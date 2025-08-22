@@ -1,0 +1,145 @@
+openapi: 3.0.3
+info:
+  title: Comprehensive API Marketplace
+  version: 1.0.0
+  description: |
+    A complete API marketplace with extensive features for API discovery, 
+    integration, and management.
+  contact:
+    name: API Support
+    email: api-support@example.com
+    url: https://developer.example.com/support
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/oauth/authorize
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            read: Read access to API
+            write: Write access to API
+            admin: Administrative access
+
+  schemas:
+    API:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the API
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Endpoint'
+        pricing:
+          $ref: '#/components/schemas/PricingTier'
+
+    Endpoint:
+      type: object
+      properties:
+        path:
+          type: string
+        method:
+          type: string
+          enum: [GET, POST, PUT, DELETE, PATCH]
+        description:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parameter'
+
+    Parameter:
+      type: object
+      properties:
+        name:
+          type: string
+        in:
+          type: string
+          enum: [query, path, header, body]
+        required:
+          type: boolean
+        schema:
+          type: object
+
+    PricingTier:
+      type: object
+      properties:
+        tier:
+          type: string
+          enum: [free, basic, pro, enterprise]
+        rateLimit:
+          type: integer
+        pricing:
+          type: number
+
+paths:
+  /apis:
+    get:
+      summary: List available APIs
+      description: Retrieve a list of all APIs in the marketplace
+      security:
+        - OAuth2: [read]
+      responses:
+        '200':
+          description: Successful API listing
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/API'
+
+  /apis/{apiId}:
+    get:
+      summary: Get API details
+      description: Retrieve detailed information about a specific API
+      parameters:
+        - name: apiId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - OAuth2: [read]
+      responses:
+        '200':
+          description: Successful API retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/API'
+
+  /marketplace/register:
+    post:
+      summary: Register a new API
+      description: Allow third-party developers to register their APIs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/API'
+      security:
+        - OAuth2: [write]
+      responses:
+        '201':
+          description: API successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/API'

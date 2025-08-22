@@ -1,0 +1,259 @@
+# Core dependencies
+numpy>=1.21.0
+scikit-learn>=1.0.0
+torch>=1.9.0
+
+# Sentence transformers for embeddings
+sentence-transformers==2.2.2
+
+# Data processing
+pandas>=1.3.0
+
+# Logging and utilities
+python-dotenv>=0.19.0
+
+# API framework
+fastapi>=0.68.0
+uvicorn>=0.15.0
+pydantic>=1.8.0
+
+# GraphQL dependencies
+strawberry-graphql[fastapi]>=0.214.0
+graphql-core>=3.2.3
+aiodataloader>=0.2.1
+redis>=4.5.0
+
+# WebSocket support for subscriptions  
+websockets>=11.0.0
+
+# Legal Compliance Dependencies
+pycountry>=22.3.5
+geoip2>=4.6.0
+ipaddress>=1.0.23
+typing-extensions>=4.7.1
+
+# Optional: Advanced Legal Research and NLP
+# spacy>=3.5.2  # For NLP-based legal text processing
+# nltk>=3.6.0   # Natural Language Toolkit
+
+
+# Multi-language and NLP Dependencies
+transformers>=4.21.0
+torch-audio>=0.12.0
+tokenizers>=0.13.0
+datasets>=2.4.0
+
+# Language Detection
+langdetect>=1.0.9
+polyglot>=16.07.04
+fasttext>=0.9.2
+
+# Translation Libraries
+googletrans>=4.0.0rc1
+google-cloud-translate>=3.8.0
+deep-translator>=1.9.2
+
+# Multilingual Models
+transformers[torch]>=4.21.0
+
+# Advanced NLP and Legal Processing
+spacy>=3.5.2
+nltk>=3.8.1
+pyicu>=2.11  # International Components for Unicode
+
+# Cross-lingual Embeddings
+faiss-cpu>=1.7.4  # For fast similarity search
+scipy>=1.9.0
+
+# Character Encoding and Text Processing
+chardet>=5.0.0
+ftfy>=6.1.1  # Fix text encoding issues
+unidecode>=1.3.4  # ASCII transliterations
+
+# Language-specific Dependencies
+jieba>=0.42.1  # Chinese text segmentation
+mecab-python3>=1.0.6  # Japanese morphological analysis
+arabic-reshaper>=2.1.4  # Arabic text processing
+python-bidi>=0.4.2  # Bidirectional text support
+
+# Performance and Caching
+joblib>=1.2.0
+memory-profiler>=0.60.0
+
+# Configuration and YAML
+PyYAML>=6.0
+
+# Testing multilingual content
+pytest-xdist>=2.5.0
+pytest-benchmark>=4.0.0
+
+# Advanced AI and ML Dependencies
+# Deep Learning Frameworks
+torch>=2.0.0
+tensorflow>=2.13.0  # For alternative models
+pytorch-lightning>=2.0.0
+
+# OpenAI Integration
+openai>=1.0.0
+tiktoken>=0.5.0  # Token counting for GPT models
+
+# Transformer Models
+transformers>=4.35.0
+accelerate>=0.24.0
+bitsandbytes>=0.41.0  # For model quantization
+
+# Explainability and Interpretability
+shap>=0.42.0
+lime>=0.2.0.1
+captum>=0.6.0  # PyTorch model interpretability
+
+# Advanced NLP
+spacy>=3.6.0
+spacy-transformers>=1.2.0
+nltk>=3.8.1
+textstat>=0.7.3  # Text readability metrics
+textblob>=0.17.1
+
+# Vector Databases and RAG
+qdrant-client>=1.6.0
+chromadb>=0.4.0
+pinecone-client>=2.2.0
+weaviate-client>=3.24.0
+faiss-cpu>=1.7.4
+
+# Legal-specific NLP Models
+legal-bert>=1.0.0  # If available
+blackstone>=0.1.15  # Legal NLP library
+
+# Advanced Visualization and Reporting Dependencies
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.17.0
+plotly-dash>=2.14.0
+dash-bootstrap-components>=1.5.0
+graphviz>=0.20.0
+
+# Interactive Visualization
+bokeh>=3.2.0
+altair>=5.1.0
+holoviews>=1.17.0
+datashader>=0.15.0
+
+# Report Generation
+jinja2>=3.1.0
+pdfkit>=1.0.0
+reportlab>=4.0.0
+python-pptx>=0.6.21
+openpyxl>=3.1.0
+xlsxwriter>=3.1.0
+weasyprint>=60.0
+
+# Data Export and Compression
+pyarrow>=13.0.0
+lz4>=4.3.0
+zstandard>=0.21.0
+cryptography>=41.0.0
+
+# Real-time Streaming
+aiokafka>=0.8.0
+apache-pulsar-client>=3.3.0
+aioredis>=2.0.0
+kafka-python>=2.0.2
+
+# Apache Spark Integration
+pyspark>=3.4.0
+delta-spark>=2.4.0
+py4j>=0.10.9
+
+# Data Warehouse Integration
+snowflake-connector-python>=3.2.0
+google-cloud-bigquery>=3.11.0
+azure-storage-blob>=12.17.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+
+# Word Cloud and Text Processing
+wordcloud>=1.9.0
+squarify>=0.4.3
+
+# Scientific Computing
+scipy>=1.11.0
+networkx>=3.1.0
+scikit-image>=0.21.0
+
+# 3D Visualization and AR/VR
+vtk>=9.2.0
+pyvista>=0.42.0
+trimesh>=3.23.0
+
+# Performance and Monitoring
+memory-profiler>=0.61.0
+line-profiler>=4.1.0
+py-spy>=0.3.14
+
+# Cloud Storage
+boto3>=1.28.0
+google-cloud-storage>=2.10.0
+azure-storage-file-datalake>=12.12.0
+
+# FTP/SFTP Support
+paramiko>=3.3.0
+
+# Geospatial Visualization
+folium>=0.14.0
+geopandas>=0.13.0
+contextily>=1.4.0
+
+# Statistical Analysis
+statsmodels>=0.14.0
+prophet>=1.1.4
+
+# Time Series
+tslearn>=0.6.0
+
+# Machine Learning for Predictions
+xgboost>=1.7.0
+lightgbm>=4.0.0
+catboost>=1.2.0
+
+# Document Processing
+pypdf>=3.16.0
+python-docx>=1.0.0
+pdfplumber>=0.10.0
+
+# Data Processing and Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.11.0
+scikit-learn>=1.3.0
+
+# Clustering and Anomaly Detection
+hdbscan>=0.8.33
+umap-learn>=0.5.4
+pyod>=1.1.0  # Outlier detection
+
+# Time Series Analysis
+prophet>=1.1.0
+statsmodels>=0.14.0
+
+# Active Learning
+modAL>=0.4.1
+libact>=0.1.6
+
+# Model Management
+mlflow>=2.8.0
+wandb>=0.15.0
+optuna>=3.4.0  # Hyperparameter optimization
+
+# API Rate Limiting and Async
+aiohttp>=3.8.0
+asyncio>=3.4.3
+tenacity>=8.2.0  # Retry logic
+ratelimit>=2.2.1
+
+# Additional Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0
+tqdm>=4.66.0
+rich>=13.6.0  # Better terminal output
+loguru>=0.7.0  # Advanced logging

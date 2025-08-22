@@ -1,0 +1,503 @@
+name: 'Test Suite - Arbitration Detection System'
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  POSTGRES_VERSION: '15'
+
+jobs:
+  # Backend unit and integration tests
+  backend-tests:
+    name: 'Backend Tests'
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: arbitration_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libpq-dev \
+            postgresql-client \
+            poppler-utils \
+            tesseract-ocr
+      
+      - name: Install Python dependencies
+        run: |
+          cd backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Set up test environment
+        run: |
+          cd backend
+          cp .env.test.example .env.test
+          export DATABASE_URL="postgresql://test_user:test_password@localhost:5432/arbitration_test"
+          export REDIS_URL="redis://localhost:6379/0"
+      
+      - name: Run database migrations
+        run: |
+          cd backend
+          alembic upgrade head
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/arbitration_test
+      
+      - name: Run unit tests
+        run: |
+          cd backend
+          pytest tests/test_arbitration_detector.py -v --cov=src --cov-report=xml --cov-report=html
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/arbitration_test
+          REDIS_URL: redis://localhost:6379/0
+      
+      - name: Run integration tests
+        run: |
+          cd backend
+          pytest tests/test_rag_pipeline.py -v --cov=src --cov-append --cov-report=xml --cov-report=html
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/arbitration_test
+          REDIS_URL: redis://localhost:6379/0
+      
+      - name: Run API tests
+        run: |
+          cd backend
+          pytest tests/test_api.py -v --cov=src --cov-append --cov-report=xml --cov-report=html
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/arbitration_test
+          REDIS_URL: redis://localhost:6379/0
+      
+      - name: Run performance benchmarks
+        run: |
+          cd backend
+          pytest tests/ -k "benchmark" --benchmark-only --benchmark-json=benchmark_results.json
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/arbitration_test
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+      
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-benchmarks
+          path: backend/benchmark_results.json
+      
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          COVERAGE_FILE: backend/coverage.xml
+
+  # Frontend unit and integration tests  
+  frontend-tests:
+    name: 'Frontend Tests'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Run linting
+        run: |
+          cd frontend
+          npm run lint
+      
+      - name: Run type checking
+        run: |
+          cd frontend
+          npm run type-check
+      
+      - name: Run unit tests
+        run: |
+          cd frontend
+          npm run test:ci
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./frontend/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+      
+      - name: Build application
+        run: |
+          cd frontend
+          npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/.next/
+          retention-days: 7
+
+  # End-to-end tests with Cypress
+  e2e-tests:
+    name: 'E2E Tests'
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: arbitration_e2e
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Set up test database
+        run: |
+          cd backend
+          export DATABASE_URL="postgresql://test_user:test_password@localhost:5432/arbitration_e2e"
+          alembic upgrade head
+          python scripts/seed_test_data.py
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/arbitration_e2e
+      
+      - name: Start backend server
+        run: |
+          cd backend
+          uvicorn main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/arbitration_e2e
+          ENVIRONMENT: test
+      
+      - name: Build and start frontend
+        run: |
+          cd frontend
+          npm run build
+          npm run start &
+          sleep 15
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+      
+      - name: Wait for services
+        run: |
+          timeout 60s bash -c 'until curl -f http://localhost:3000/health; do sleep 2; done'
+          timeout 60s bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+      
+      - name: Run Cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: frontend
+          browser: chrome
+          headless: true
+          record: false
+        env:
+          CYPRESS_BASE_URL: http://localhost:3000
+          CYPRESS_API_BASE_URL: http://localhost:8000/api/v1
+      
+      - name: Upload Cypress screenshots
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: frontend/cypress/screenshots/
+      
+      - name: Upload Cypress videos
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: cypress-videos
+          path: frontend/cypress/videos/
+
+  # Security and code quality checks
+  security-checks:
+    name: 'Security & Quality'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Bandit security scan (Python)
+        run: |
+          pip install bandit[toml]
+          bandit -r backend/src/ -f json -o bandit-report.json || true
+      
+      - name: Run Safety check for Python dependencies
+        run: |
+          pip install safety
+          safety check --json --output safety-report.json || true
+      
+      - name: Run npm audit (Node.js)
+        run: |
+          cd frontend
+          npm audit --audit-level=moderate --json > npm-audit-report.json || true
+      
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python, javascript
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+            frontend/npm-audit-report.json
+
+  # Performance and load testing
+  performance-tests:
+    name: 'Performance Tests'
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install locust
+      
+      - name: Run performance benchmarks
+        run: |
+          cd backend
+          pytest tests/ -k "performance" --benchmark-json=performance_results.json
+      
+      - name: Run load tests
+        run: |
+          cd backend
+          # Start the application
+          uvicorn main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+          
+          # Run load tests
+          locust -f tests/load_tests.py --headless -u 10 -r 2 -t 60s --host http://localhost:8000
+      
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: |
+            backend/performance_results.json
+            backend/locust_report.html
+
+  # Accuracy validation tests
+  accuracy-validation:
+    name: 'Accuracy Validation'
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Run accuracy validation tests
+        run: |
+          cd backend
+          python tests/test_data/test_scenarios.py
+          pytest tests/test_accuracy_validation.py -v --html=accuracy_report.html
+      
+      - name: Check accuracy thresholds
+        run: |
+          cd backend
+          python scripts/validate_accuracy_thresholds.py --threshold 0.85
+      
+      - name: Upload accuracy reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: accuracy-reports
+          path: |
+            backend/accuracy_report.html
+            backend/tests/test_data/*.json
+
+  # Docker build and test
+  docker-tests:
+    name: 'Docker Build & Test'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build backend Docker image
+        run: |
+          docker build -t arbitration-backend:test ./backend
+      
+      - name: Build frontend Docker image  
+        run: |
+          docker build -t arbitration-frontend:test ./frontend
+      
+      - name: Run Docker Compose tests
+        run: |
+          docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+      
+      - name: Clean up Docker resources
+        if: always()
+        run: |
+          docker-compose -f docker-compose.test.yml down -v
+          docker system prune -f
+
+  # Deployment validation (only on main branch)
+  deployment-validation:
+    name: 'Deployment Validation'
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, security-checks, performance-tests, accuracy-validation]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate deployment configuration
+        run: |
+          # Check Kubernetes manifests
+          if [ -d "k8s/" ]; then
+            kubectl --dry-run=client apply -f k8s/
+          fi
+          
+          # Validate Docker Compose production config
+          if [ -f "docker-compose.prod.yml" ]; then
+            docker-compose -f docker-compose.prod.yml config
+          fi
+      
+      - name: Create deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Security checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Performance benchmarks met" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Accuracy validation successful" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Ready for deployment" >> $GITHUB_STEP_SUMMARY
+
+  # Notification and reporting
+  notify-results:
+    name: 'Notify Results'
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, e2e-tests, security-checks]
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: ${{ needs.backend-tests.result == 'success' && needs.frontend-tests.result == 'success' && needs.e2e-tests.result == 'success' }}
+        run: |
+          echo "🎉 All tests passed successfully!"
+      
+      - name: Notify on failure
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: |
+          echo "❌ Some tests failed. Please check the logs."
+          exit 1

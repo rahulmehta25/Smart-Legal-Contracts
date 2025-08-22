@@ -1,0 +1,139 @@
+COMPREHENSIVE USER AGREEMENT FOR DIGITAL SERVICES
+
+Welcome to DigitalServe Platform! This User Agreement ("Agreement") governs your access to and use of our comprehensive digital services platform. Please read this Agreement carefully as it contains important information about your rights and obligations.
+
+SECTION A: GENERAL TERMS AND CONDITIONS
+
+1. ACCEPTANCE AND MODIFICATION OF TERMS
+By creating an account, accessing our platform, or using any of our services, you acknowledge that you have read, understood, and agree to be bound by this Agreement and all applicable laws and regulations. We reserve the right to modify these terms at any time with or without notice.
+
+2. SERVICE DESCRIPTION
+Our platform provides integrated digital solutions including but not limited to cloud storage, data analytics, communication tools, project management capabilities, and third-party application integrations. Services may be updated, modified, or discontinued at our sole discretion.
+
+3. USER RESPONSIBILITIES AND CONDUCT
+Users are expected to maintain professional conduct and comply with all applicable laws. You are responsible for all activity occurring under your account and must maintain the confidentiality of your login credentials.
+
+SECTION B: COMMERCIAL TERMS AND BILLING
+
+4. SUBSCRIPTION MODELS AND PRICING
+We offer various subscription tiers with different feature sets and usage limits. Pricing is subject to change with thirty (30) days notice. All fees are non-refundable except as required by applicable law.
+
+5. PAYMENT PROCESSING AND BILLING CYCLES
+Payments are processed through secure third-party providers. Billing occurs on monthly or annual cycles depending on your selected plan. Failed payments may result in service suspension.
+
+6. AUTOMATIC RENEWAL AND CANCELLATION
+Subscriptions automatically renew unless cancelled prior to the renewal date. Cancellation policies vary by subscription type and are detailed in your account dashboard.
+
+SECTION C: INTELLECTUAL PROPERTY AND DATA RIGHTS
+
+7. OWNERSHIP OF PLATFORM CONTENT
+All platform content, including software, designs, text, graphics, and trademarks, remain the exclusive property of DigitalServe and its licensors.
+
+8. USER DATA AND CONTENT RIGHTS
+You retain ownership of data and content you upload to our platform, subject to our license to process such content for service provision purposes.
+
+9. THIRD-PARTY INTEGRATIONS AND CONTENT
+Our platform may integrate with third-party services. We are not responsible for third-party content or services integrated through our platform.
+
+SECTION D: PRIVACY AND SECURITY
+
+10. DATA PROCESSING AND PRIVACY PROTECTION
+We process personal data in accordance with our Privacy Policy, which is incorporated by reference into this Agreement. We implement industry-standard security measures to protect user data.
+
+11. SECURITY MONITORING AND INCIDENT RESPONSE
+We continuously monitor our systems for security threats and have established incident response procedures to address potential breaches.
+
+12. COMPLIANCE WITH PRIVACY REGULATIONS
+Our data processing practices comply with applicable privacy regulations including GDPR, CCPA, and other regional privacy laws.
+
+SECTION E: SERVICE AVAILABILITY AND PERFORMANCE
+
+13. UPTIME COMMITMENTS AND SERVICE LEVELS
+We strive to maintain high service availability but do not guarantee uninterrupted service. Planned maintenance windows are scheduled during off-peak hours when possible.
+
+14. TECHNICAL SUPPORT AND CUSTOMER SERVICE
+Technical support is available through multiple channels including email, chat, and phone support during business hours.
+
+15. PERFORMANCE MONITORING AND OPTIMIZATION
+We continuously monitor system performance and implement optimizations to enhance user experience and service reliability.
+
+SECTION F: LIABILITY AND RISK ALLOCATION
+
+16. SERVICE WARRANTIES AND DISCLAIMERS
+Services are provided "as is" without warranties of any kind. We disclaim all warranties, express or implied, including warranties of merchantability and fitness for a particular purpose.
+
+17. LIMITATION OF LIABILITY AND DAMAGES
+To the maximum extent permitted by law, our total liability for any claims arising under this Agreement shall not exceed the amount you paid for services in the twelve months preceding the claim.
+
+18. INDEMNIFICATION OBLIGATIONS
+You agree to indemnify and hold harmless DigitalServe from any claims arising from your use of the services or violation of this Agreement.
+
+SECTION G: REGULATORY COMPLIANCE AND LEGAL MATTERS
+
+19. EXPORT CONTROL AND SANCTIONS COMPLIANCE
+Our services and technology are subject to export control laws and sanctions regulations. Users must comply with all applicable trade restrictions.
+
+20. ANTI-CORRUPTION AND BUSINESS ETHICS
+All users must comply with applicable anti-corruption laws and maintain high standards of business ethics in their use of our services.
+
+21. ACCESSIBILITY AND NON-DISCRIMINATION
+We are committed to providing accessible services and do not discriminate based on protected characteristics in service provision.
+
+SECTION H: DISPUTE RESOLUTION AND LEGAL PROCEDURES
+
+22. INFORMAL RESOLUTION PROCEDURES
+Before pursuing formal legal action, parties agree to attempt good-faith resolution of disputes through direct negotiation. Such negotiations should be conducted by authorized representatives with decision-making authority.
+
+23. MEDIATION AND ALTERNATIVE DISPUTE RESOLUTION
+If informal negotiations fail to resolve a dispute within sixty (60) days, the parties may agree to pursue mediation through a mutually acceptable mediator or mediation service.
+
+24. BINDING ARBITRATION FOR UNRESOLVED DISPUTES
+For disputes that cannot be resolved through negotiation or mediation, the parties agree that all claims, disputes, or controversies arising out of or relating to this Agreement, or the breach, termination, enforcement, interpretation, or validity thereof, including the determination of the scope or applicability of this agreement to arbitrate, shall be determined by arbitration conducted under the Commercial Arbitration Rules of the American Arbitration Association before a single arbitrator. The arbitration shall be conducted in the city where DigitalServe's principal place of business is located, unless the parties agree to a different location. Each party shall bear its own costs and attorneys' fees, except that the arbitrator may award costs and fees to the prevailing party if permitted by applicable law. The arbitration award shall be final and binding upon the parties and may be enforced in any court of competent jurisdiction. This arbitration provision shall survive termination of this Agreement and shall be binding upon the parties' successors and assigns.
+
+25. CLASS ACTION AND REPRESENTATIVE PROCEEDING WAIVER
+YOU AND DIGITALSERVE AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING. Further, unless both you and DigitalServe agree otherwise, the arbitrator may not consolidate more than one person's claims and may not otherwise preside over any form of a representative or class proceeding.
+
+26. JURY TRIAL WAIVER AND COURT PROCEEDINGS
+In the event that the arbitration provision is deemed unenforceable, both parties waive their right to trial by jury and agree that any court proceedings shall be conducted before a judge sitting without a jury.
+
+27. GOVERNING LAW AND JURISDICTION
+This Agreement shall be governed by and construed in accordance with the laws of the State of California, without giving effect to any choice or conflict of law provision or rule. For any disputes not subject to arbitration, the parties consent to the exclusive jurisdiction of the courts located in San Francisco County, California.
+
+SECTION I: TERMINATION AND SURVIVAL
+
+28. TERMINATION RIGHTS AND PROCEDURES
+Either party may terminate this Agreement upon written notice if the other party materially breaches the Agreement and fails to cure such breach within thirty (30) days of written notice.
+
+29. POST-TERMINATION OBLIGATIONS
+Upon termination, users must cease all use of the services and may request export of their data subject to technical limitations and applicable retention policies.
+
+30. SURVIVAL OF PROVISIONS
+Provisions relating to intellectual property, confidentiality, indemnification, limitation of liability, and dispute resolution shall survive termination of this Agreement.
+
+SECTION J: MISCELLANEOUS PROVISIONS
+
+31. ENTIRE AGREEMENT AND AMENDMENTS
+This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements and understandings. Amendments must be in writing and signed by authorized representatives.
+
+32. SEVERABILITY AND INTERPRETATION
+If any provision of this Agreement is deemed invalid or unenforceable, the remainder shall remain in full force and effect. Headings are for convenience only and do not affect interpretation.
+
+33. FORCE MAJEURE AND EXCUSED PERFORMANCE
+Neither party shall be liable for delays or failures in performance resulting from causes beyond their reasonable control, including natural disasters, government actions, or infrastructure failures.
+
+34. NOTICES AND COMMUNICATIONS
+All notices required under this Agreement must be in writing and delivered to the addresses specified in user account information or as otherwise communicated by the parties.
+
+35. ASSIGNMENT AND TRANSFER
+This Agreement may not be assigned by users without prior written consent. DigitalServe may assign this Agreement in connection with mergers, acquisitions, or business transfers.
+
+By clicking "I Agree" or by using our services, you acknowledge that you have carefully read this entire Agreement, understand its terms, and agree to be legally bound by all provisions contained herein.
+
+For questions regarding this Agreement, please contact our legal department at legal@digitalserve.com or write to:
+
+DigitalServe Legal Department
+789 Innovation Drive, Suite 400
+San Francisco, CA 94107
+
+Effective Date: March 1, 2024
+Version: 3.2

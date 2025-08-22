@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#3b82f6" />
+    <meta
+      name="description"
+      content="AI-powered arbitration clause detection and analysis for legal documents. Detect, classify, and analyze arbitration clauses with high accuracy using advanced natural language processing."
+    />
+    <meta name="keywords" content="arbitration, legal, document analysis, AI, RAG, clause detection, legal tech" />
+    <meta name="author" content="Arbitration Clause Detector Team" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://arbitration-detector.app/" />
+    <meta property="og:title" content="Arbitration Clause Detector - AI Legal Document Analysis" />
+    <meta property="og:description" content="Detect and analyze arbitration clauses in legal documents using advanced AI technology." />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://arbitration-detector.app/" />
+    <meta property="twitter:title" content="Arbitration Clause Detector - AI Legal Document Analysis" />
+    <meta property="twitter:description" content="Detect and analyze arbitration clauses in legal documents using advanced AI technology." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/twitter-image.png" />
+
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Inter font for better readability -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <title>Arbitration Clause Detector - AI Legal Document Analysis</title>
+    
+    <style>
+      /* Loading screen styles */
+      #initial-loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      
+      #loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      
+      #loading-text {
+        color: white;
+        font-family: 'Inter', sans-serif;
+        font-size: 18px;
+        font-weight: 500;
+        text-align: center;
+      }
+      
+      #loading-subtext {
+        color: rgba(255, 255, 255, 0.8);
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        margin-top: 8px;
+        text-align: center;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide loading screen when React loads */
+      .loaded #initial-loading-screen {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      /* Apply Inter font globally */
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Ensure smooth scrolling */
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      /* Custom scrollbar for better UX */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>
+      <div id="noscript-warning" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fee2e2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+        z-index: 10000;
+      ">
+        <h1 style="color: #dc2626; font-size: 24px; margin-bottom: 16px;">JavaScript Required</h1>
+        <p style="color: #991b1b; font-size: 16px; max-width: 500px;">
+          The Arbitration Clause Detector requires JavaScript to function properly. 
+          Please enable JavaScript in your browser settings and refresh the page.
+        </p>
+      </div>
+    </noscript>
+    
+    <!-- Initial loading screen -->
+    <div id="initial-loading-screen">
+      <div id="loading-spinner"></div>
+      <div id="loading-text">Loading Arbitration Clause Detector</div>
+      <div id="loading-subtext">Initializing AI analysis engine...</div>
+    </div>
+    
+    <!-- Main React app container -->
+    <div id="react-root"></div>
+    
+    <!-- Error boundary fallback -->
+    <div id="error-fallback" style="display: none;">
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fef2f2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+      ">
+        <h1 id="error-title" style="color: #dc2626; font-size: 24px; margin-bottom: 16px;">
+          Application Error
+        </h1>
+        <p id="error-message" style="color: #991b1b; font-size: 16px; max-width: 500px; margin-bottom: 20px;">
+          Something went wrong while loading the application. Please refresh the page to try again.
+        </p>
+        <button 
+          id="error-refresh-button"
+          onclick="window.location.reload()" 
+          style="
+            background: #dc2626;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+          "
+          onmouseover="this.style.background='#b91c1c'"
+          onmouseout="this.style.background='#dc2626'"
+        >
+          Refresh Page
+        </button>
+      </div>
+    </div>
+    
+    <!-- Accessibility announcement region -->
+    <div 
+      id="accessibility-announcements" 
+      aria-live="polite" 
+      aria-atomic="true" 
+      style="
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      "
+    ></div>
+    
+    <!-- Performance monitoring -->
+    <script>
+      // Hide loading screen when React app is ready
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          document.body.classList.add('loaded');
+          // Remove loading screen after transition
+          setTimeout(function() {
+            const loadingScreen = document.getElementById('initial-loading-screen');
+            if (loadingScreen) {
+              loadingScreen.remove();
+            }
+          }, 500);
+        }, 1000); // Minimum loading time for smooth UX
+      });
+      
+      // Error handling
+      window.addEventListener('error', function(event) {
+        console.error('Application error:', event.error);
+        document.getElementById('error-fallback').style.display = 'flex';
+      });
+      
+      // Unhandled promise rejection handling
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled promise rejection:', event.reason);
+        document.getElementById('error-fallback').style.display = 'flex';
+      });
+      
+      // Basic performance monitoring
+      if ('performance' in window) {
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            const perfData = performance.getEntriesByType('navigation')[0];
+            console.log('Page load performance:', {
+              domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
+              loadComplete: perfData.loadEventEnd - perfData.loadEventStart,
+              totalTime: perfData.loadEventEnd - perfData.fetchStart
+            });
+          }, 0);
+        });
+      }
+    </script>
+  </body>
+</html>

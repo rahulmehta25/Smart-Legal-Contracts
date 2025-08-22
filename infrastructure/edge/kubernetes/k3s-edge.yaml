@@ -1,0 +1,619 @@
+# K3s Edge Cluster Configuration
+# Lightweight Kubernetes for edge computing
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: edge-computing
+  labels:
+    name: edge-computing
+    environment: production
+
+---
+# ConfigMap for edge configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: edge-config
+  namespace: edge-computing
+data:
+  edge-locations: |
+    - name: us-east-1
+      region: americas
+      capacity: high
+      nodes: 10
+    - name: eu-west-1
+      region: europe
+      capacity: high
+      nodes: 8
+    - name: ap-southeast-1
+      region: asia-pacific
+      capacity: medium
+      nodes: 6
+    - name: edge-site-1
+      region: on-premise
+      capacity: low
+      nodes: 3
+  
+  routing-rules: |
+    - type: geo
+      source: europe
+      destination: eu-west-1
+    - type: geo
+      source: asia
+      destination: ap-southeast-1
+    - type: latency
+      threshold: 10ms
+      action: route-to-nearest
+  
+  ml-models: |
+    - name: image-classifier
+      version: v2.1.0
+      format: onnx
+      size: 25MB
+    - name: anomaly-detector
+      version: v1.3.0
+      format: tensorflow-lite
+      size: 15MB
+
+---
+# Edge Router Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-router
+  namespace: edge-computing
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: edge-router
+  template:
+    metadata:
+      labels:
+        app: edge-router
+        version: v1
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - edge-router
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: router
+        image: edge-router:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        env:
+        - name: EDGE_LOCATION
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CACHE_ENABLED
+          value: "true"
+        - name: ML_INFERENCE_ENDPOINT
+          value: "http://ml-inference:8080"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/edge
+        - name: cache
+          mountPath: /var/cache/edge
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: edge-config
+      - name: cache
+        emptyDir:
+          sizeLimit: 1Gi
+
+---
+# ML Inference Service
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ml-inference
+  namespace: edge-computing
+spec:
+  selector:
+    matchLabels:
+      app: ml-inference
+  template:
+    metadata:
+      labels:
+        app: ml-inference
+    spec:
+      nodeSelector:
+        edge.kubernetes.io/ml-capable: "true"
+      tolerations:
+      - key: edge.kubernetes.io/ml-node
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: inference
+        image: ml-inference:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+            nvidia.com/gpu: "0"  # Optional GPU support
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+            nvidia.com/gpu: "1"
+        env:
+        - name: MODEL_PATH
+          value: "/models"
+        - name: CACHE_MODELS
+          value: "true"
+        - name: MAX_BATCH_SIZE
+          value: "32"
+        - name: INFERENCE_THREADS
+          value: "4"
+        volumeMounts:
+        - name: models
+          mountPath: /models
+          readOnly: true
+        - name: model-cache
+          mountPath: /var/cache/models
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "curl -f http://localhost:8080/health || exit 1"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+      initContainers:
+      - name: model-downloader
+        image: model-downloader:latest
+        volumeMounts:
+        - name: models
+          mountPath: /models
+        env:
+        - name: MODEL_REGISTRY
+          value: "https://models.example.com"
+        - name: MODELS_TO_DOWNLOAD
+          value: "image-classifier,anomaly-detector"
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: ml-models-pvc
+      - name: model-cache
+        emptyDir:
+          sizeLimit: 5Gi
+
+---
+# Edge Cache (Redis)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: edge-cache
+  namespace: edge-computing
+spec:
+  serviceName: edge-cache
+  replicas: 3
+  selector:
+    matchLabels:
+      app: edge-cache
+  template:
+    metadata:
+      labels:
+        app: edge-cache
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        command:
+        - redis-server
+        - /usr/local/etc/redis/redis.conf
+        volumeMounts:
+        - name: config
+          mountPath: /usr/local/etc/redis
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: config
+        configMap:
+          name: redis-config
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 10Gi
+
+---
+# Redis Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: edge-computing
+data:
+  redis.conf: |
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+    save 900 1
+    save 300 10
+    save 60 10000
+    appendonly yes
+    appendfsync everysec
+    cluster-enabled yes
+    cluster-config-file nodes.conf
+    cluster-node-timeout 5000
+
+---
+# Edge Security Gateway
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: security-gateway
+  namespace: edge-computing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: security-gateway
+  template:
+    metadata:
+      labels:
+        app: security-gateway
+    spec:
+      containers:
+      - name: gateway
+        image: security-gateway:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"
+        env:
+        - name: WAF_ENABLED
+          value: "true"
+        - name: RATE_LIMIT_ENABLED
+          value: "true"
+        - name: DDoS_PROTECTION
+          value: "true"
+        - name: IP_REPUTATION_DB
+          value: "/var/lib/security/ip-reputation.db"
+        volumeMounts:
+        - name: waf-rules
+          mountPath: /etc/waf
+        - name: security-db
+          mountPath: /var/lib/security
+      - name: modsecurity
+        image: owasp/modsecurity:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: waf-rules
+          mountPath: /etc/modsecurity
+      volumes:
+      - name: waf-rules
+        configMap:
+          name: waf-rules
+      - name: security-db
+        persistentVolumeClaim:
+          claimName: security-db-pvc
+
+---
+# WAF Rules ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: waf-rules
+  namespace: edge-computing
+data:
+  modsecurity.conf: |
+    SecRuleEngine On
+    SecRequestBodyAccess On
+    SecResponseBodyAccess Off
+    SecRequestBodyLimit 13107200
+    SecRequestBodyNoFilesLimit 131072
+    SecRequestBodyLimitAction Reject
+    
+    # OWASP CRS rules
+    Include /etc/modsecurity/crs/crs-setup.conf
+    Include /etc/modsecurity/crs/rules/*.conf
+    
+    # Custom rules
+    SecRule REQUEST_URI "@contains /admin" \
+      "id:1001,\
+      phase:1,\
+      block,\
+      msg:'Admin access attempted',\
+      logdata:'Matched Data: %{MATCHED_VAR} found within %{MATCHED_VAR_NAME}'"
+
+---
+# Edge Monitoring (Prometheus)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-prometheus
+  namespace: edge-computing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        ports:
+        - containerPort: 9090
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus
+        - name: data
+          mountPath: /prometheus
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: prometheus-pvc
+
+---
+# Prometheus Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: edge-computing
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    scrape_configs:
+    - job_name: 'edge-router'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - edge-computing
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: edge-router
+    
+    - job_name: 'ml-inference'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - edge-computing
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: ml-inference
+    
+    - job_name: 'node-exporter'
+      kubernetes_sd_configs:
+      - role: node
+
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-router
+  namespace: edge-computing
+spec:
+  type: LoadBalancer
+  selector:
+    app: edge-router
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  - name: https
+    port: 443
+    targetPort: 8443
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-inference
+  namespace: edge-computing
+spec:
+  type: ClusterIP
+  selector:
+    app: ml-inference
+  ports:
+  - port: 8080
+    targetPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-cache
+  namespace: edge-computing
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: edge-cache
+  ports:
+  - port: 6379
+    targetPort: 6379
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: edge-router-hpa
+  namespace: edge-computing
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: edge-router
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+
+---
+# PersistentVolumeClaim for ML Models
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ml-models-pvc
+  namespace: edge-computing
+spec:
+  accessModes:
+  - ReadOnlyMany
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# PersistentVolumeClaim for Security DB
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: security-db-pvc
+  namespace: edge-computing
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# PersistentVolumeClaim for Prometheus
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  namespace: edge-computing
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# Network Policy for edge isolation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: edge-network-policy
+  namespace: edge-computing
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: edge-computing
+    - podSelector:
+        matchLabels:
+          app: edge-router
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: edge-computing
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

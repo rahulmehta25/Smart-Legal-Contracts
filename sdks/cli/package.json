@@ -1,0 +1,115 @@
+{
+  "name": "@arbitration-platform/cli",
+  "version": "1.0.0",
+  "description": "CLI tool for managing Arbitration Platform SDKs",
+  "main": "dist/index.js",
+  "bin": {
+    "arbitration": "./bin/arbitration",
+    "arb": "./bin/arbitration"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "prepare": "npm run build",
+    "docs": "typedoc src/index.ts"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "templates",
+    "README.md"
+  ],
+  "keywords": [
+    "arbitration",
+    "legal-tech",
+    "sdk",
+    "cli",
+    "mobile-development",
+    "document-analysis"
+  ],
+  "author": "Arbitration Platform <sdk@arbitration-platform.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arbitration-platform/cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arbitration-platform/cli/issues"
+  },
+  "homepage": "https://docs.arbitration-platform.com/cli",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.12",
+    "ora": "^7.0.1",
+    "boxen": "^7.1.1",
+    "figlet": "^1.7.0",
+    "axios": "^1.6.2",
+    "fs-extra": "^11.1.1",
+    "glob": "^10.3.10",
+    "semver": "^7.5.4",
+    "yaml": "^2.3.4",
+    "mustache": "^4.2.0",
+    "node-fetch": "^3.3.2",
+    "tar": "^6.2.0",
+    "unzipper": "^0.10.14",
+    "open": "^9.1.0",
+    "update-notifier": "^6.0.2",
+    "validate-npm-package-name": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/jest": "^29.5.8",
+    "@types/fs-extra": "^11.0.4",
+    "@types/figlet": "^1.5.8",
+    "@types/mustache": "^4.2.5",
+    "@types/tar": "^6.1.8",
+    "@types/inquirer": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.1.0",
+    "tsx": "^4.6.0",
+    "typedoc": "^0.25.4",
+    "typescript": "^5.3.2"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": ["**/__tests__/**/*.test.ts"],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts"
+    ]
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "extends": [
+      "eslint:recommended",
+      "@typescript-eslint/recommended",
+      "prettier"
+    ],
+    "env": {
+      "node": true
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 80,
+    "tabWidth": 2
+  }
+}

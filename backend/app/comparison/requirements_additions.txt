@@ -1,0 +1,41 @@
+# Additional requirements for Document Comparison System
+# Add these to your main requirements.txt file
+
+# Advanced diff algorithms and text processing
+difflib2>=1.0.0  # Enhanced diff algorithms  
+python-levenshtein>=0.21.1  # Fast string distance calculations
+textdistance>=4.6.0  # Various distance metrics
+
+# NLP and semantic analysis (additional to existing spacy/nltk)
+spacy-universal-sentence-encoder>=0.4.6  # Universal sentence encoder for spaCy
+spacy-sentence-bert>=0.1.2  # BERT sentence embeddings
+
+# Graph visualization and network analysis (additional to existing networkx)
+pygraphviz>=1.11.0  # Python interface to Graphviz
+
+# HTML processing and web scraping
+beautifulsoup4>=4.12.0  # HTML parsing
+lxml>=4.9.0  # XML/HTML processing
+
+# Image processing for heatmaps and visualizations
+Pillow>=10.0.0  # Image processing
+opencv-python>=4.8.0  # Computer vision library
+
+# Version control and Git integration
+GitPython>=3.1.0  # Git repository interaction
+dulwich>=0.21.0  # Pure Python Git implementation
+
+# Regular expressions and text matching
+regex>=2023.8.8  # Enhanced regex support
+fuzzywuzzy>=0.18.0  # Fuzzy string matching
+
+# Caching and performance
+diskcache>=5.6.0  # Disk-based caching
+
+# Progress tracking and async processing
+aiofiles>=23.0.0  # Async file operations
+asyncio-throttle>=1.0.0  # Rate limiting for async operations
+
+# Mathematical computations (additional to existing scipy/numpy)
+sympy>=1.12.0  # Symbolic mathematics
+numba>=0.58.0  # JIT compilation for NumPy

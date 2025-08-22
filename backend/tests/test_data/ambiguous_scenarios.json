@@ -1,0 +1,30 @@
+{
+  "category": "ambiguous",
+  "scenario_count": 1,
+  "scenarios": [
+    {
+      "id": "ambiguous_001",
+      "name": "Optional Arbitration Clause",
+      "description": "Document with optional rather than mandatory arbitration",
+      "document_text": "DISPUTE RESOLUTION OPTIONS\n            \n            In the event of a dispute, the parties may elect to resolve the matter \n            through any of the following methods: (a) direct negotiation, (b) mediation \n            through a neutral third party, or (c) binding arbitration under the rules \n            of JAMS. If no election is made within thirty (30) days of notice of \n            dispute, the matter shall proceed to litigation in the appropriate court.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.35,
+        "clause_type": "optional",
+        "keywords": [
+          "may elect",
+          "binding arbitration",
+          "JAMS"
+        ],
+        "arbitration_optional": true,
+        "default_to_litigation": true
+      },
+      "difficulty_level": "hard",
+      "tags": [
+        "optional",
+        "ambiguous",
+        "litigation_default"
+      ]
+    }
+  ]
+}

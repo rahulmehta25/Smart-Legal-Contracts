@@ -1,0 +1,242 @@
+# Alert rules for Arbitration Detection RAG System
+groups:
+  - name: arbitration-system.rules
+    interval: 30s
+    rules:
+    # High-level service availability
+    - alert: ServiceDown
+      expr: up{job=~"arbitration-backend|arbitration-frontend"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        team: platform
+      annotations:
+        summary: "Service {{ $labels.job }} is down"
+        description: "Service {{ $labels.job }} on instance {{ $labels.instance }} has been down for more than 1 minute."
+
+    # Backend API alerts
+    - alert: HighRequestLatency
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="arbitration-backend"}[5m])) > 2
+      for: 5m
+      labels:
+        severity: warning
+        team: backend
+      annotations:
+        summary: "High request latency on backend API"
+        description: "95th percentile latency is {{ $value }}s for the last 5 minutes."
+
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{job="arbitration-backend",status=~"5.."}[5m]) / rate(http_requests_total{job="arbitration-backend"}[5m]) > 0.05
+      for: 3m
+      labels:
+        severity: critical
+        team: backend
+      annotations:
+        summary: "High error rate on backend API"
+        description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+    - alert: LowThroughput
+      expr: rate(http_requests_total{job="arbitration-backend"}[5m]) < 0.1
+      for: 10m
+      labels:
+        severity: warning
+        team: backend
+      annotations:
+        summary: "Low throughput on backend API"
+        description: "Request rate is {{ $value }} requests/second for the last 5 minutes."
+
+    # ML/AI model performance alerts
+    - alert: ModelPredictionLatencyHigh
+      expr: histogram_quantile(0.95, rate(model_prediction_duration_seconds_bucket[5m])) > 10
+      for: 5m
+      labels:
+        severity: warning
+        team: ml
+      annotations:
+        summary: "High ML model prediction latency"
+        description: "95th percentile model prediction latency is {{ $value }}s."
+
+    - alert: ModelAccuracyDrop
+      expr: model_accuracy_score < 0.85
+      for: 2m
+      labels:
+        severity: critical
+        team: ml
+      annotations:
+        summary: "Model accuracy dropped below threshold"
+        description: "Model accuracy is {{ $value | humanizePercentage }}, below the 85% threshold."
+
+    - alert: EmbeddingGenerationFailures
+      expr: rate(embedding_generation_failures_total[5m]) > 0.01
+      for: 3m
+      labels:
+        severity: warning
+        team: ml
+      annotations:
+        summary: "High embedding generation failure rate"
+        description: "Embedding generation failure rate is {{ $value }} failures/second."
+
+    # Database alerts
+    - alert: PostgreSQLDown
+      expr: up{job="postgres"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        team: database
+      annotations:
+        summary: "PostgreSQL is down"
+        description: "PostgreSQL database has been down for more than 1 minute."
+
+    - alert: PostgreSQLHighConnections
+      expr: pg_stat_activity_count / pg_settings_max_connections > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        team: database
+      annotations:
+        summary: "PostgreSQL high connection usage"
+        description: "PostgreSQL connection usage is {{ $value | humanizePercentage }}."
+
+    - alert: PostgreSQLSlowQueries
+      expr: rate(pg_stat_activity_max_tx_duration[5m]) > 300
+      for: 3m
+      labels:
+        severity: warning
+        team: database
+      annotations:
+        summary: "PostgreSQL slow queries detected"
+        description: "Average query duration is {{ $value }}s."
+
+    - alert: RedisDown
+      expr: up{job="redis"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        team: cache
+      annotations:
+        summary: "Redis is down"
+        description: "Redis cache has been down for more than 1 minute."
+
+    - alert: RedisHighMemoryUsage
+      expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+      for: 5m
+      labels:
+        severity: warning
+        team: cache
+      annotations:
+        summary: "Redis high memory usage"
+        description: "Redis memory usage is {{ $value | humanizePercentage }}."
+
+    # Vector database alerts
+    - alert: ChromaDBDown
+      expr: up{job="chroma"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        team: vector-db
+      annotations:
+        summary: "ChromaDB is down"
+        description: "ChromaDB vector database has been down for more than 1 minute."
+
+    - alert: VectorSearchLatencyHigh
+      expr: histogram_quantile(0.95, rate(vector_search_duration_seconds_bucket[5m])) > 5
+      for: 5m
+      labels:
+        severity: warning
+        team: vector-db
+      annotations:
+        summary: "High vector search latency"
+        description: "95th percentile vector search latency is {{ $value }}s."
+
+    # Resource utilization alerts
+    - alert: HighCPUUsage
+      expr: (1 - rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        team: infrastructure
+      annotations:
+        summary: "High CPU usage"
+        description: "CPU usage is {{ $value }}% on instance {{ $labels.instance }}."
+
+    - alert: HighMemoryUsage
+      expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+        team: infrastructure
+      annotations:
+        summary: "High memory usage"
+        description: "Memory usage is {{ $value }}% on instance {{ $labels.instance }}."
+
+    - alert: DiskSpaceLow
+      expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+        team: infrastructure
+      annotations:
+        summary: "Low disk space"
+        description: "Disk usage is {{ $value }}% on instance {{ $labels.instance }} at {{ $labels.mountpoint }}."
+
+    # Container and Pod alerts
+    - alert: PodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "Pod is crash looping"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping with restart rate {{ $value }}."
+
+    - alert: PodNotReady
+      expr: kube_pod_status_ready{condition="false"} == 1
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "Pod not ready"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been not ready for more than 5 minutes."
+
+    - alert: DeploymentReplicasMismatch
+      expr: kube_deployment_spec_replicas != kube_deployment_status_available_replicas
+      for: 10m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "Deployment replicas mismatch"
+        description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has {{ $labels.spec_replicas }} desired but {{ $labels.available_replicas }} available replicas."
+
+    # Business logic alerts
+    - alert: DocumentProcessingBacklog
+      expr: document_processing_queue_size > 100
+      for: 5m
+      labels:
+        severity: warning
+        team: business
+      annotations:
+        summary: "Document processing backlog"
+        description: "Document processing queue has {{ $value }} items pending."
+
+    - alert: ArbitrationDetectionAccuracy
+      expr: arbitration_detection_accuracy_24h < 0.90
+      for: 10m
+      labels:
+        severity: critical
+        team: ml
+      annotations:
+        summary: "Arbitration detection accuracy below threshold"
+        description: "24-hour arbitration detection accuracy is {{ $value | humanizePercentage }}, below the 90% threshold."
+
+    - alert: UserUploadFailures
+      expr: rate(user_upload_failures_total[5m]) > 0.05
+      for: 3m
+      labels:
+        severity: warning
+        team: backend
+      annotations:
+        summary: "High user upload failure rate"
+        description: "User upload failure rate is {{ $value }} failures/second."

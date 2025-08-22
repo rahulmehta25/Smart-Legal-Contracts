@@ -1,0 +1,862 @@
+# GraphQL Schema for Arbitration Detection System
+# Complete type definitions with versioning support
+
+scalar DateTime
+scalar JSON
+scalar Upload
+
+# Enums
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DetectionType {
+  MANDATORY_ARBITRATION
+  OPTIONAL_ARBITRATION
+  CLASS_ACTION_WAIVER
+  BINDING_ARBITRATION
+  DISPUTE_RESOLUTION
+}
+
+enum ClauseType {
+  MANDATORY
+  OPTIONAL
+  CLASS_ACTION_WAIVER
+  BINDING_ARBITRATION
+  DISPUTE_RESOLUTION
+}
+
+enum PatternType {
+  REGEX
+  KEYWORD
+  SEMANTIC
+}
+
+enum DetectionMethod {
+  RULE_BASED
+  ML_MODEL
+  HYBRID
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum SubscriptionType {
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}
+
+# Interfaces
+interface Node {
+  id: ID!
+}
+
+interface Timestamped {
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+# Document Types
+type Document implements Node & Timestamped {
+  id: ID!
+  filename: String!
+  filePath: String
+  fileType: String!
+  fileSize: Int!
+  contentHash: String!
+  uploadDate: DateTime!
+  lastProcessed: DateTime
+  processingStatus: ProcessingStatus!
+  totalPages: Int
+  totalChunks: Int!
+  metadata: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  chunks(
+    first: Int
+    after: String
+    filter: ChunkFilter
+  ): ChunkConnection!
+  
+  detections(
+    first: Int
+    after: String
+    filter: DetectionFilter
+  ): DetectionConnection!
+  
+  analyses(
+    first: Int
+    after: String
+    versionFilter: String
+  ): AnalysisConnection!
+  
+  # Computed fields
+  isProcessed: Boolean!
+  detectionCount: Int!
+  hasArbitrationClauses: Boolean!
+  averageConfidenceScore: Float
+  processingTimeMs: Int
+}
+
+type Chunk implements Node & Timestamped {
+  id: ID!
+  documentId: ID!
+  chunkIndex: Int!
+  content: String!
+  contentLength: Int!
+  chunkHash: String!
+  pageNumber: Int
+  sectionTitle: String
+  embeddingModel: String!
+  similarityThreshold: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  document: Document!
+  detections(
+    first: Int
+    after: String
+    filter: DetectionFilter
+  ): DetectionConnection!
+  
+  # Computed fields
+  hasEmbedding: Boolean!
+  hasDetections: Boolean!
+  embedding: [Float!]  # Only return if requested and authorized
+}
+
+type Detection implements Node & Timestamped {
+  id: ID!
+  chunkId: ID!
+  documentId: ID!
+  detectionType: DetectionType!
+  confidenceScore: Float!
+  patternId: ID
+  matchedText: String!
+  contextBefore: String
+  contextAfter: String
+  startPosition: Int
+  endPosition: Int
+  pageNumber: Int
+  detectionMethod: DetectionMethod!
+  modelVersion: String
+  isValidated: Boolean!
+  validationScore: Float
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  chunk: Chunk!
+  document: Document!
+  pattern: Pattern
+  
+  # Computed fields
+  isHighConfidence: Boolean!
+  contextSnippet: String!
+  severity: Float
+}
+
+type Pattern implements Node & Timestamped {
+  id: ID!
+  patternName: String!
+  patternText: String!
+  patternType: PatternType!
+  category: String!
+  language: String!
+  effectivenessScore: Float!
+  usageCount: Int!
+  lastUsed: DateTime
+  isActive: Boolean!
+  createdBy: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  detections(
+    first: Int
+    after: String
+    filter: DetectionFilter
+  ): DetectionConnection!
+  
+  # Computed fields
+  isEffective: Boolean!
+  averageConfidenceScore: Float
+}
+
+# Analysis Types
+type ArbitrationAnalysis implements Node & Timestamped {
+  id: ID!
+  documentId: ID!
+  hasArbitrationClause: Boolean!
+  confidenceScore: Float
+  analysisSummary: String
+  analyzedAt: DateTime!
+  analysisVersion: String!
+  processingTimeMs: Int
+  metadata: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  document: Document!
+  clauses(
+    first: Int
+    after: String
+    filter: ClauseFilter
+  ): ClauseConnection!
+  
+  # Computed fields
+  clauseCount: Int!
+  averageClauseScore: Float
+  riskLevel: String!
+}
+
+type ArbitrationClause implements Node {
+  id: ID!
+  analysisId: ID!
+  clauseText: String!
+  clauseType: ClauseType
+  startPosition: Int
+  endPosition: Int
+  relevanceScore: Float
+  severityScore: Float
+  surroundingContext: String
+  sectionTitle: String
+  
+  # Relationships
+  analysis: ArbitrationAnalysis!
+  
+  # Computed fields
+  riskLevel: String!
+  isBinding: Boolean!
+}
+
+# User and Organization Types
+type User implements Node & Timestamped {
+  id: ID!
+  email: String!
+  username: String!
+  fullName: String
+  organization: String
+  role: UserRole!
+  isActive: Boolean!
+  isVerified: Boolean!
+  lastLogin: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships (with authorization)
+  documents(
+    first: Int
+    after: String
+    filter: DocumentFilter
+  ): DocumentConnection!
+  
+  analyses(
+    first: Int
+    after: String
+    filter: AnalysisFilter
+  ): AnalysisConnection!
+  
+  # Computed fields
+  documentCount: Int!
+  analysisCount: Int!
+}
+
+type Organization implements Node & Timestamped {
+  id: ID!
+  name: String!
+  domain: String
+  subscriptionType: SubscriptionType!
+  maxUsers: Int!
+  maxDocuments: Int!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  users(
+    first: Int
+    after: String
+    filter: UserFilter
+  ): UserConnection!
+  
+  # Usage statistics
+  currentUserCount: Int!
+  currentDocumentCount: Int!
+  monthlyAnalysisCount: Int!
+}
+
+# Collaboration Types
+type Comment implements Node & Timestamped {
+  id: ID!
+  documentId: ID!
+  userId: ID!
+  content: String!
+  isResolved: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  document: Document!
+  user: User!
+  replies(
+    first: Int
+    after: String
+  ): CommentConnection!
+  parentComment: Comment
+}
+
+type Annotation implements Node & Timestamped {
+  id: ID!
+  documentId: ID!
+  userId: ID!
+  chunkId: ID
+  startPosition: Int!
+  endPosition: Int!
+  content: String!
+  annotationType: String!
+  metadata: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime
+  
+  # Relationships
+  document: Document!
+  user: User!
+  chunk: Chunk
+}
+
+# Filter Input Types
+input DocumentFilter {
+  filename: String
+  fileType: String
+  processingStatus: ProcessingStatus
+  hasArbitrationClauses: Boolean
+  uploadedAfter: DateTime
+  uploadedBefore: DateTime
+  contentSearch: String
+}
+
+input ChunkFilter {
+  pageNumber: Int
+  hasEmbedding: Boolean
+  hasDetections: Boolean
+  contentLength: IntRange
+}
+
+input DetectionFilter {
+  detectionType: DetectionType
+  confidenceScore: FloatRange
+  detectionMethod: DetectionMethod
+  isValidated: Boolean
+  isHighConfidence: Boolean
+}
+
+input ClauseFilter {
+  clauseType: ClauseType
+  relevanceScore: FloatRange
+  severityScore: FloatRange
+}
+
+input AnalysisFilter {
+  hasArbitrationClause: Boolean
+  confidenceScore: FloatRange
+  analysisVersion: String
+  analyzedAfter: DateTime
+  analyzedBefore: DateTime
+}
+
+input UserFilter {
+  role: UserRole
+  isActive: Boolean
+  isVerified: Boolean
+  organization: String
+}
+
+input IntRange {
+  min: Int
+  max: Int
+}
+
+input FloatRange {
+  min: Float
+  max: Float
+}
+
+# Connection Types (Relay-style pagination)
+type DocumentConnection {
+  edges: [DocumentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DocumentEdge {
+  node: Document!
+  cursor: String!
+}
+
+type ChunkConnection {
+  edges: [ChunkEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ChunkEdge {
+  node: Chunk!
+  cursor: String!
+}
+
+type DetectionConnection {
+  edges: [DetectionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DetectionEdge {
+  node: Detection!
+  cursor: String!
+}
+
+type ClauseConnection {
+  edges: [ClauseEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClauseEdge {
+  node: ArbitrationClause!
+  cursor: String!
+}
+
+type AnalysisConnection {
+  edges: [AnalysisEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type AnalysisEdge {
+  node: ArbitrationAnalysis!
+  cursor: String!
+}
+
+type PatternConnection {
+  edges: [PatternEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PatternEdge {
+  node: Pattern!
+  cursor: String!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type CommentConnection {
+  edges: [CommentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CommentEdge {
+  node: Comment!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# Mutation Input Types
+input DocumentUploadInput {
+  file: Upload!
+  metadata: JSON
+}
+
+input DocumentUpdateInput {
+  id: ID!
+  filename: String
+  metadata: JSON
+}
+
+input AnalysisRequestInput {
+  documentId: ID!
+  forceReanalysis: Boolean = false
+  analysisOptions: AnalysisOptionsInput
+}
+
+input AnalysisOptionsInput {
+  includeContext: Boolean = true
+  confidenceThreshold: Float = 0.5
+  maxClauses: Int = 50
+}
+
+input QuickAnalysisInput {
+  text: String!
+  includeContext: Boolean = true
+}
+
+input PatternCreateInput {
+  patternName: String!
+  patternText: String!
+  patternType: PatternType!
+  category: String!
+  language: String = "en"
+}
+
+input PatternUpdateInput {
+  id: ID!
+  patternName: String
+  patternText: String
+  isActive: Boolean
+}
+
+input UserCreateInput {
+  email: String!
+  username: String!
+  password: String!
+  fullName: String
+  organization: String
+}
+
+input UserUpdateInput {
+  id: ID!
+  fullName: String
+  organization: String
+  role: UserRole
+}
+
+input CommentCreateInput {
+  documentId: ID!
+  content: String!
+  parentCommentId: ID
+}
+
+input CommentUpdateInput {
+  id: ID!
+  content: String
+  isResolved: Boolean
+}
+
+input AnnotationCreateInput {
+  documentId: ID!
+  chunkId: ID
+  startPosition: Int!
+  endPosition: Int!
+  content: String!
+  annotationType: String!
+  metadata: JSON
+}
+
+# Mutation Response Types
+type DocumentUploadResult {
+  success: Boolean!
+  message: String!
+  document: Document
+  errors: [String!]
+}
+
+type AnalysisResult {
+  success: Boolean!
+  message: String!
+  analysis: ArbitrationAnalysis
+  processingTimeMs: Int
+  errors: [String!]
+}
+
+type QuickAnalysisResult {
+  hasArbitrationClause: Boolean!
+  confidenceScore: Float!
+  clausesFound: [QuickClause!]!
+  summary: String!
+  processingTimeMs: Int!
+}
+
+type QuickClause {
+  text: String!
+  type: String!
+  confidence: Float!
+  startPosition: Int!
+  endPosition: Int!
+}
+
+type PatternResult {
+  success: Boolean!
+  message: String!
+  pattern: Pattern
+  errors: [String!]
+}
+
+type UserResult {
+  success: Boolean!
+  message: String!
+  user: User
+  token: String  # Only returned on login/register
+  errors: [String!]
+}
+
+type CommentResult {
+  success: Boolean!
+  message: String!
+  comment: Comment
+  errors: [String!]
+}
+
+type AnnotationResult {
+  success: Boolean!
+  message: String!
+  annotation: Annotation
+  errors: [String!]
+}
+
+# Subscription Types
+type DocumentProcessingUpdate {
+  documentId: ID!
+  status: ProcessingStatus!
+  progress: Float
+  message: String
+  errorMessage: String
+}
+
+type AnalysisUpdate {
+  analysisId: ID!
+  documentId: ID!
+  status: String!
+  progress: Float
+  results: ArbitrationAnalysis
+}
+
+type CommentUpdate {
+  documentId: ID!
+  comment: Comment!
+  action: String!  # CREATED, UPDATED, DELETED
+}
+
+type CollaborationUpdate {
+  documentId: ID!
+  userId: ID!
+  action: String!
+  data: JSON
+}
+
+# Statistics and Analytics Types
+type DocumentStats {
+  totalDocuments: Int!
+  processedDocuments: Int!
+  documentsWithArbitration: Int!
+  averageProcessingTime: Float!
+  processingRate: Float!
+}
+
+type DetectionStats {
+  totalDetections: Int!
+  highConfidenceDetections: Int!
+  averageConfidenceScore: Float!
+  detectionsByType: [DetectionTypeStat!]!
+  detectionsByMethod: [DetectionMethodStat!]!
+}
+
+type DetectionTypeStat {
+  type: DetectionType!
+  count: Int!
+  averageConfidence: Float!
+}
+
+type DetectionMethodStat {
+  method: DetectionMethod!
+  count: Int!
+  averageConfidence: Float!
+}
+
+type PatternStats {
+  totalPatterns: Int!
+  activePatterns: Int!
+  averageEffectiveness: Float!
+  mostUsedPatterns: [Pattern!]!
+}
+
+type SystemStats {
+  documents: DocumentStats!
+  detections: DetectionStats!
+  patterns: PatternStats!
+  uptime: String!
+  version: String!
+}
+
+# Root Types
+type Query {
+  # Node interface
+  node(id: ID!): Node
+  
+  # Documents
+  document(id: ID!): Document
+  documents(
+    first: Int = 20
+    after: String
+    filter: DocumentFilter
+    orderBy: String = "uploadDate"
+    orderDirection: String = "DESC"
+  ): DocumentConnection!
+  
+  # Chunks
+  chunk(id: ID!): Chunk
+  chunks(
+    first: Int = 20
+    after: String
+    filter: ChunkFilter
+  ): ChunkConnection!
+  
+  # Detections
+  detection(id: ID!): Detection
+  detections(
+    first: Int = 20
+    after: String
+    filter: DetectionFilter
+  ): DetectionConnection!
+  
+  # Patterns
+  pattern(id: ID!): Pattern
+  patterns(
+    first: Int = 20
+    after: String
+    isActive: Boolean
+  ): PatternConnection!
+  
+  # Analyses
+  analysis(id: ID!): ArbitrationAnalysis
+  analyses(
+    first: Int = 20
+    after: String
+    filter: AnalysisFilter
+  ): AnalysisConnection!
+  
+  # Users
+  user(id: ID!): User
+  currentUser: User
+  users(
+    first: Int = 20
+    after: String
+    filter: UserFilter
+  ): UserConnection!
+  
+  # Comments and Annotations
+  comments(
+    documentId: ID!
+    first: Int = 20
+    after: String
+  ): CommentConnection!
+  
+  annotations(
+    documentId: ID!
+    first: Int = 20
+    after: String
+  ): [Annotation!]!
+  
+  # Statistics and Analytics
+  systemStats: SystemStats!
+  documentStats(
+    filter: DocumentFilter
+    dateRange: String
+  ): DocumentStats!
+  
+  detectionStats(
+    filter: DetectionFilter
+    dateRange: String
+  ): DetectionStats!
+  
+  # Search
+  searchDocuments(
+    query: String!
+    first: Int = 20
+    after: String
+    filter: DocumentFilter
+  ): DocumentConnection!
+  
+  searchClauses(
+    query: String!
+    first: Int = 20
+    after: String
+  ): [ArbitrationClause!]!
+}
+
+type Mutation {
+  # Document operations
+  uploadDocument(input: DocumentUploadInput!): DocumentUploadResult!
+  updateDocument(input: DocumentUpdateInput!): DocumentUploadResult!
+  deleteDocument(id: ID!): Boolean!
+  
+  # Analysis operations
+  requestAnalysis(input: AnalysisRequestInput!): AnalysisResult!
+  quickAnalysis(input: QuickAnalysisInput!): QuickAnalysisResult!
+  validateDetection(detectionId: ID!, isValid: Boolean!): Boolean!
+  
+  # Pattern operations
+  createPattern(input: PatternCreateInput!): PatternResult!
+  updatePattern(input: PatternUpdateInput!): PatternResult!
+  deletePattern(id: ID!): Boolean!
+  
+  # User operations
+  registerUser(input: UserCreateInput!): UserResult!
+  loginUser(username: String!, password: String!): UserResult!
+  updateUser(input: UserUpdateInput!): UserResult!
+  deleteUser(id: ID!): Boolean!
+  
+  # Collaboration operations
+  createComment(input: CommentCreateInput!): CommentResult!
+  updateComment(input: CommentUpdateInput!): CommentResult!
+  deleteComment(id: ID!): Boolean!
+  
+  createAnnotation(input: AnnotationCreateInput!): AnnotationResult!
+  updateAnnotation(input: AnnotationCreateInput!): AnnotationResult!
+  deleteAnnotation(id: ID!): Boolean!
+  
+  # Cache operations (admin only)
+  clearCache(cacheKey: String): Boolean!
+  refreshStats: Boolean!
+}
+
+type Subscription {
+  # Document processing updates
+  documentProcessing(documentId: ID): DocumentProcessingUpdate!
+  
+  # Analysis updates
+  analysisProgress(documentId: ID): AnalysisUpdate!
+  
+  # Real-time collaboration
+  documentComments(documentId: ID!): CommentUpdate!
+  documentCollaboration(documentId: ID!): CollaborationUpdate!
+  
+  # System updates
+  systemStats: SystemStats!
+}
+
+# Schema directives for advanced features
+directive @auth(requires: UserRole = USER) on FIELD_DEFINITION
+directive @rateLimit(max: Int!, window: Int!) on FIELD_DEFINITION
+directive @complexity(value: Int!) on FIELD_DEFINITION
+directive @deprecated(reason: String) on FIELD_DEFINITION | ENUM_VALUE
+directive @federation(key: String!) on OBJECT

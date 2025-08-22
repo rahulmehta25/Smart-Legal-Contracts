@@ -1,0 +1,31 @@
+{
+  "document_id": "doc-no-arb",
+  "has_arbitration": false,
+  "confidence": 0.08,
+  "clause_type": null,
+  "explanation": "No arbitration clause was found in this document. The document contains standard dispute resolution language directing parties to state and federal courts. While the term 'arbitration' appears once in passing reference to general legal principles, there is no binding arbitration requirement.",
+  "keywords": [],
+  "processing_time": 0.9,
+  "arbitration_details": null,
+  "clause_text": null,
+  "clause_location": null,
+  "confidence_breakdown": {
+    "keyword_strength": 0.05,
+    "context_clarity": 0.12,
+    "legal_terminology": 0.08,
+    "clause_completeness": 0.02
+  },
+  "alternative_dispute_resolution": {
+    "type": "court_jurisdiction",
+    "jurisdiction": "State and Federal Courts of New York",
+    "mediation_mentioned": false,
+    "negotiation_mentioned": true
+  },
+  "negative_indicators": [
+    "exclusive court jurisdiction clause",
+    "no arbitration terminology",
+    "litigation procedures specified",
+    "jury trial rights preserved"
+  ],
+  "timestamp": "2024-01-15T14:25:18Z"
+}

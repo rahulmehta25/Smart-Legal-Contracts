@@ -1,0 +1,31 @@
+{
+  "category": "hidden_arbitration",
+  "scenario_count": 1,
+  "scenarios": [
+    {
+      "id": "hidden_001",
+      "name": "Employment Contract Hidden Clause",
+      "description": "Arbitration clause buried in employment agreement",
+      "document_text": "EMPLOYMENT AGREEMENT\n            \n            This Employment Agreement is entered into between Company and Employee.\n            \n            Section 1: Position and Duties\n            Employee agrees to serve as Senior Manager with the following responsibilities...\n            \n            Section 2: Compensation\n            Base salary shall be $75,000 per year...\n            \n            Section 8: Benefits\n            Employee shall be entitled to health insurance, dental coverage...\n            \n            Section 15: Miscellaneous Provisions\n            15.1 This Agreement shall be governed by Delaware law.\n            15.2 Any modification must be in writing.\n            15.3 Any claim or dispute between Employee and Company, whether arising under \n            this Agreement or otherwise, including claims for discrimination, harassment, \n            or wrongful termination, shall be resolved exclusively through final and \n            binding arbitration before a single arbitrator selected pursuant to the \n            Employment Arbitration Rules of the American Arbitration Association.\n            15.4 This Agreement represents the complete agreement between the parties.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.88,
+        "clause_type": "employment_arbitration",
+        "keywords": [
+          "exclusively through",
+          "final and binding arbitration",
+          "single arbitrator"
+        ],
+        "arbitration_body": "American Arbitration Association",
+        "employment_context": true,
+        "exclusivity": true
+      },
+      "difficulty_level": "medium",
+      "tags": [
+        "employment",
+        "buried",
+        "exclusive"
+      ]
+    }
+  ]
+}

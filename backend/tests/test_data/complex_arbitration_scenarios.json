@@ -1,0 +1,39 @@
+{
+  "category": "complex_arbitration",
+  "scenario_count": 1,
+  "scenarios": [
+    {
+      "id": "complex_001",
+      "name": "Multi-Tier Escalation Process",
+      "description": "Complex dispute resolution with multiple tiers",
+      "document_text": "COMPREHENSIVE DISPUTE RESOLUTION PROCEDURE\n            \n            The parties agree to the following escalating dispute resolution process:\n            \n            TIER 1: DIRECT NEGOTIATION (30 Days)\n            The parties shall first attempt to resolve any dispute through good faith, \n            direct negotiations between senior executives of each party.\n            \n            TIER 2: MEDIATION (60 Days) \n            If Tier 1 is unsuccessful, the dispute shall be submitted to mediation \n            administered by CPR International Institute for Conflict Prevention and \n            Resolution under its Mediation Procedure.\n            \n            TIER 3: EXPEDITED ARBITRATION (For Disputes < $500,000)\n            For disputes involving amounts less than $500,000, the matter shall proceed \n            to expedited arbitration under JAMS Expedited Arbitration Rules before a \n            single arbitrator.\n            \n            TIER 4: COMPREHENSIVE ARBITRATION (For Disputes ≥ $500,000)\n            For disputes involving $500,000 or more, the matter shall be finally resolved \n            by binding arbitration administered by the International Chamber of Commerce \n            under its Rules of Arbitration. The arbitration shall be conducted by three \n            arbitrators, with each party appointing one arbitrator and the third selected \n            by the two party-appointed arbitrators. The seat of arbitration shall be \n            New York, New York, and the proceedings shall be conducted in English.\n            \n            All arbitration awards under Tiers 3 and 4 shall be final and binding, \n            with no right of appeal except on grounds specified in the Federal \n            Arbitration Act.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.97,
+        "clause_type": "multi_tier_complex",
+        "keywords": [
+          "multi-tier",
+          "expedited arbitration",
+          "binding arbitration",
+          "ICC",
+          "JAMS"
+        ],
+        "multi_tier": true,
+        "amount_based_tiers": true,
+        "arbitration_bodies": [
+          "JAMS",
+          "International Chamber of Commerce"
+        ],
+        "mediation_first": true,
+        "negotiation_first": true
+      },
+      "difficulty_level": "expert",
+      "tags": [
+        "multi_tier",
+        "complex",
+        "amount_based",
+        "escalation"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+# Dockerfile for Cypress E2E testing
+FROM cypress/included:13.6.0
+
+# Set working directory
+WORKDIR /app
+
+# Install additional dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy Cypress configuration and tests
+COPY cypress.config.ts ./
+COPY cypress/ ./cypress/
+
+# Create directories for test outputs
+RUN mkdir -p test-reports cypress/screenshots cypress/videos
+
+# Set Cypress environment variables
+ENV CYPRESS_CACHE_FOLDER=/root/.cache/Cypress
+ENV CYPRESS_RUN_BINARY=/usr/local/bin/cypress
+
+# Verify Cypress installation
+RUN cypress verify
+
+# Default command
+CMD ["cypress", "run", "--browser", "chrome", "--headless"]

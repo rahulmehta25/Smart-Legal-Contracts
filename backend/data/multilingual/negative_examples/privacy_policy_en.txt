@@ -1,0 +1,78 @@
+PRIVACY POLICY
+
+Last Updated: February 1, 2024
+
+DataSafe Corp ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or use our services.
+
+1. INFORMATION WE COLLECT
+We may collect information about you in a variety of ways:
+
+Personal Information: Name, email address, phone number, billing address, and payment information when you register for an account or make a purchase.
+
+Usage Data: Information about how you access and use our service, including your IP address, browser type, pages visited, and time spent on pages.
+
+Device Information: Information about the device you use to access our service, including hardware model, operating system, and unique device identifiers.
+
+Cookies and Tracking: We use cookies and similar tracking technologies to track activity on our service and store certain information.
+
+2. HOW WE USE YOUR INFORMATION
+We use the information we collect to:
+- Provide, operate, and maintain our service
+- Process transactions and send related information
+- Send administrative information, such as security updates
+- Respond to customer service requests
+- Improve our service and develop new features
+- Send marketing communications (with your consent)
+- Monitor usage and analyze trends
+
+3. SHARING YOUR INFORMATION
+We may share your information in the following situations:
+- With service providers who perform services on our behalf
+- For business transfers in connection with mergers or acquisitions
+- To comply with legal obligations
+- To protect our rights and prevent fraud
+- With your consent or at your direction
+
+4. DATA SECURITY
+We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
+
+5. DATA RETENTION
+We retain your personal information only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required by law.
+
+6. YOUR RIGHTS
+Depending on your location, you may have certain rights regarding your personal information:
+- Access: Request information about the personal data we hold about you
+- Correction: Request correction of inaccurate personal data
+- Deletion: Request deletion of your personal data
+- Portability: Request transfer of your data to another service
+- Objection: Object to processing of your personal data
+- Restriction: Request restriction of processing
+
+7. INTERNATIONAL TRANSFERS
+Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place for such transfers.
+
+8. CHILDREN'S PRIVACY
+Our service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.
+
+9. THIRD-PARTY LINKS
+Our service may contain links to third-party websites. We are not responsible for the privacy practices of these external sites.
+
+10. CALIFORNIA PRIVACY RIGHTS
+If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information we collect and the right to request deletion of your personal information.
+
+11. CHANGES TO THIS POLICY
+We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on our website and updating the "Last Updated" date.
+
+12. CONTACT US
+If you have questions about this Privacy Policy or our privacy practices, please contact us at:
+
+DataSafe Corp
+456 Privacy Street
+Austin, TX 78701
+Email: privacy@datasafe.com
+Phone: (555) 987-6543
+
+13. GOVERNING LAW
+This Privacy Policy is governed by the laws of the State of Texas, without regard to conflict of law principles.
+
+By using our service, you consent to the collection and use of your information as described in this Privacy Policy.

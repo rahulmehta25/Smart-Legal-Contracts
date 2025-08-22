@@ -1,0 +1,732 @@
+# Multi-language Configuration for Arbitration Clause Detection System
+# This file defines supported languages, their legal systems, translation settings,
+# and language-specific arbitration keywords for global legal document analysis.
+
+# Supported Languages Configuration
+supported_languages:
+  # English - Common Law System
+  english:
+    code: "en"
+    name: "English"
+    iso_639_1: "en"
+    iso_639_2: "eng"
+    legal_system: "common_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "US"  # United States
+      - "UK"  # United Kingdom
+      - "CA"  # Canada
+      - "AU"  # Australia
+      - "IN"  # India
+      - "SG"  # Singapore
+      - "HK"  # Hong Kong
+    arbitration_institutions:
+      - name: "American Arbitration Association"
+        abbreviation: "AAA"
+        website: "https://www.adr.org"
+      - name: "JAMS"
+        abbreviation: "JAMS"
+        website: "https://www.jamsadr.com"
+      - name: "London Court of International Arbitration"
+        abbreviation: "LCIA"
+        website: "https://www.lcia.org"
+      - name: "Singapore International Arbitration Centre"
+        abbreviation: "SIAC"
+        website: "https://www.siac.org.sg"
+
+  # Spanish - Civil Law System
+  spanish:
+    code: "es"
+    name: "Spanish"
+    iso_639_1: "es"
+    iso_639_2: "spa"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "ES"  # Spain
+      - "MX"  # Mexico
+      - "AR"  # Argentina
+      - "CO"  # Colombia
+      - "CL"  # Chile
+      - "PE"  # Peru
+      - "VE"  # Venezuela
+    arbitration_institutions:
+      - name: "Corte de Arbitraje de Madrid"
+        abbreviation: "CAM"
+        website: "https://www.arbitrajemadrid.org"
+      - name: "Centro de Arbitraje de México"
+        abbreviation: "CAM"
+        website: "https://www.camex.com.mx"
+
+  # French - Civil Law System
+  french:
+    code: "fr"
+    name: "French"
+    iso_639_1: "fr"
+    iso_639_2: "fra"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "FR"  # France
+      - "BE"  # Belgium
+      - "CH"  # Switzerland (French regions)
+      - "CA"  # Canada (Quebec)
+      - "LU"  # Luxembourg
+    arbitration_institutions:
+      - name: "International Chamber of Commerce"
+        abbreviation: "ICC"
+        website: "https://iccwbo.org"
+      - name: "Chambre Arbitrale de Paris"
+        abbreviation: "CAP"
+        website: "https://www.arbitrage.org"
+
+  # German - Civil Law System
+  german:
+    code: "de"
+    name: "German"
+    iso_639_1: "de"
+    iso_639_2: "deu"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "DE"  # Germany
+      - "AT"  # Austria
+      - "CH"  # Switzerland (German regions)
+      - "LI"  # Liechtenstein
+    arbitration_institutions:
+      - name: "Deutsche Institution für Schiedsgerichtsbarkeit"
+        abbreviation: "DIS"
+        website: "https://www.dis-arb.org"
+      - name: "Vienna International Arbitral Centre"
+        abbreviation: "VIAC"
+        website: "https://www.viac.eu"
+
+  # Chinese (Simplified) - Civil Law System
+  chinese_simplified:
+    code: "zh-cn"
+    name: "Chinese (Simplified)"
+    iso_639_1: "zh"
+    iso_639_2: "zho"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "CN"  # China
+      - "SG"  # Singapore
+    arbitration_institutions:
+      - name: "China International Economic and Trade Arbitration Commission"
+        abbreviation: "CIETAC"
+        website: "http://www.cietac.org"
+      - name: "Beijing Arbitration Commission"
+        abbreviation: "BAC"
+        website: "http://www.bjac.org.cn"
+
+  # Chinese (Traditional) - Civil Law System
+  chinese_traditional:
+    code: "zh-tw"
+    name: "Chinese (Traditional)"
+    iso_639_1: "zh"
+    iso_639_2: "zho"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "TW"  # Taiwan
+      - "HK"  # Hong Kong
+      - "MO"  # Macau
+    arbitration_institutions:
+      - name: "Chinese Arbitration Association"
+        abbreviation: "CAA"
+        website: "http://www.arbitration.org.tw"
+      - name: "Hong Kong International Arbitration Centre"
+        abbreviation: "HKIAC"
+        website: "https://www.hkiac.org"
+
+  # Japanese - Civil Law System
+  japanese:
+    code: "ja"
+    name: "Japanese"
+    iso_639_1: "ja"
+    iso_639_2: "jpn"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "JP"  # Japan
+    arbitration_institutions:
+      - name: "Japan Commercial Arbitration Association"
+        abbreviation: "JCAA"
+        website: "http://www.jcaa.or.jp"
+
+  # Portuguese - Civil Law System
+  portuguese:
+    code: "pt"
+    name: "Portuguese"
+    iso_639_1: "pt"
+    iso_639_2: "por"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "PT"  # Portugal
+      - "BR"  # Brazil
+      - "AO"  # Angola
+      - "MZ"  # Mozambique
+    arbitration_institutions:
+      - name: "Centro de Arbitragem Comercial"
+        abbreviation: "CAC"
+        website: "https://www.centrodearbitragem.pt"
+
+  # Italian - Civil Law System
+  italian:
+    code: "it"
+    name: "Italian"
+    iso_639_1: "it"
+    iso_639_2: "ita"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "IT"  # Italy
+      - "CH"  # Switzerland (Italian regions)
+      - "SM"  # San Marino
+      - "VA"  # Vatican City
+    arbitration_institutions:
+      - name: "Camera Arbitrale di Milano"
+        abbreviation: "CAM"
+        website: "https://www.camera-arbitrale.it"
+
+  # Russian - Civil Law System
+  russian:
+    code: "ru"
+    name: "Russian"
+    iso_639_1: "ru"
+    iso_639_2: "rus"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "RU"  # Russia
+      - "BY"  # Belarus
+      - "KZ"  # Kazakhstan
+      - "KG"  # Kyrgyzstan
+    arbitration_institutions:
+      - name: "Russian Arbitration Center"
+        abbreviation: "RAC"
+        website: "https://arbitration.ru"
+
+  # Arabic - Islamic Law System
+  arabic:
+    code: "ar"
+    name: "Arabic"
+    iso_639_1: "ar"
+    iso_639_2: "ara"
+    legal_system: "islamic_law"
+    writing_direction: "rtl"
+    primary_jurisdictions:
+      - "SA"  # Saudi Arabia
+      - "AE"  # United Arab Emirates
+      - "QA"  # Qatar
+      - "KW"  # Kuwait
+      - "BH"  # Bahrain
+      - "OM"  # Oman
+      - "JO"  # Jordan
+      - "LB"  # Lebanon
+      - "EG"  # Egypt
+    arbitration_institutions:
+      - name: "Dubai International Arbitration Centre"
+        abbreviation: "DIAC"
+        website: "https://www.diac.ae"
+      - name: "Saudi Center for Commercial Arbitration"
+        abbreviation: "SCCA"
+        website: "https://www.sadr.org"
+
+  # Korean - Civil Law System
+  korean:
+    code: "ko"
+    name: "Korean"
+    iso_639_1: "ko"
+    iso_639_2: "kor"
+    legal_system: "civil_law"
+    writing_direction: "ltr"
+    primary_jurisdictions:
+      - "KR"  # South Korea
+      - "KP"  # North Korea
+    arbitration_institutions:
+      - name: "Korean Commercial Arbitration Board"
+        abbreviation: "KCAB"
+        website: "http://www.kcab.or.kr"
+
+# Translation Pipeline Configuration
+translation:
+  # Primary translation models and APIs
+  primary_providers:
+    google_translate:
+      enabled: true
+      api_key_env_var: "GOOGLE_TRANSLATE_API_KEY"
+      endpoint: "https://translation.googleapis.com/language/translate/v2"
+      rate_limit: 100  # requests per second
+      max_chars_per_request: 5000
+      supported_languages: ["en", "es", "fr", "de", "zh", "ja", "pt", "it", "ru", "ar", "ko"]
+      
+    huggingface_transformers:
+      enabled: true
+      models:
+        multilingual: "facebook/mbart-large-50-many-to-many-mmt"
+        legal_specific: "nlpaueb/legal-bert-base-uncased"
+        marian_models:
+          en_to_es: "Helsinki-NLP/opus-mt-en-es"
+          en_to_fr: "Helsinki-NLP/opus-mt-en-fr"
+          en_to_de: "Helsinki-NLP/opus-mt-en-de"
+          es_to_en: "Helsinki-NLP/opus-mt-es-en"
+          fr_to_en: "Helsinki-NLP/opus-mt-fr-en"
+          de_to_en: "Helsinki-NLP/opus-mt-de-en"
+          zh_to_en: "Helsinki-NLP/opus-mt-zh-en"
+          ja_to_en: "Helsinki-NLP/opus-mt-jap-en"
+      cache_models: true
+      gpu_acceleration: true
+
+  # Fallback strategies
+  fallback_providers:
+    - azure_translator
+    - amazon_translate
+    - deepl_api
+    
+  # Translation quality settings
+  quality_settings:
+    preserve_legal_terms: true
+    context_aware_translation: true
+    jurisdiction_specific_mapping: true
+    confidence_threshold: 0.7
+    max_translation_attempts: 3
+    
+  # Caching configuration
+  caching:
+    enabled: true
+    cache_size: 10000
+    cache_ttl: 86400  # 24 hours in seconds
+    persistent_cache: true
+    cache_backend: "redis"  # or "memory"
+
+# Language-Specific Arbitration Keywords
+arbitration_keywords:
+  english:
+    core_terms:
+      - "arbitration"
+      - "arbitrator"
+      - "arbitral"
+      - "binding arbitration"
+      - "final and binding"
+      - "arbitration clause"
+      - "arbitration agreement"
+      - "arbitral tribunal"
+      - "arbitral award"
+      - "arbitration rules"
+      - "dispute resolution"
+      - "alternative dispute resolution"
+      - "ADR"
+    
+    binding_phrases:
+      - "binding and final arbitration"
+      - "submit to binding arbitration"
+      - "resolve through arbitration"
+      - "settled by arbitration"
+      - "arbitration shall be final"
+      - "binding arbitration procedures"
+    
+    institutional_references:
+      - "AAA rules"
+      - "JAMS arbitration"
+      - "ICC arbitration"
+      - "LCIA rules"
+      - "UNCITRAL rules"
+      - "SIAC arbitration"
+    
+    waiver_terms:
+      - "waive jury trial"
+      - "waive class action"
+      - "no class action"
+      - "individual arbitration"
+      - "waiver of right to jury"
+      - "prohibition on class actions"
+    
+    jurisdiction_terms:
+      - "exclusive jurisdiction"
+      - "governing law"
+      - "applicable law"
+      - "choice of law"
+      - "forum selection"
+      - "venue selection"
+
+  spanish:
+    core_terms:
+      - "arbitraje"
+      - "árbitro"
+      - "arbitral"
+      - "arbitraje vinculante"
+      - "final y vinculante"
+      - "cláusula de arbitraje"
+      - "acuerdo de arbitraje"
+      - "tribunal arbitral"
+      - "laudo arbitral"
+      - "reglas de arbitraje"
+      - "resolución de disputas"
+      - "resolución alternativa de disputas"
+    
+    binding_phrases:
+      - "arbitraje vinculante y final"
+      - "someterse a arbitraje vinculante"
+      - "resolver mediante arbitraje"
+      - "resuelto por arbitraje"
+      - "el arbitraje será final"
+      - "procedimientos de arbitraje vinculante"
+    
+    institutional_references:
+      - "reglas AAA"
+      - "arbitraje JAMS"
+      - "arbitraje ICC"
+      - "reglas LCIA"
+      - "reglas UNCITRAL"
+      - "arbitraje CAM"
+    
+    waiver_terms:
+      - "renuncia a juicio por jurado"
+      - "renuncia a acción colectiva"
+      - "sin acción colectiva"
+      - "arbitraje individual"
+      - "renuncia al derecho de jurado"
+
+  french:
+    core_terms:
+      - "arbitrage"
+      - "arbitre"
+      - "arbitral"
+      - "arbitrage contraignant"
+      - "final et contraignant"
+      - "clause d'arbitrage"
+      - "accord d'arbitrage"
+      - "tribunal arbitral"
+      - "sentence arbitrale"
+      - "règles d'arbitrage"
+      - "résolution des différends"
+      - "résolution alternative des différends"
+    
+    binding_phrases:
+      - "arbitrage contraignant et final"
+      - "se soumettre à un arbitrage contraignant"
+      - "résoudre par arbitrage"
+      - "réglé par arbitrage"
+      - "l'arbitrage sera final"
+      - "procédures d'arbitrage contraignant"
+    
+    institutional_references:
+      - "règles AAA"
+      - "arbitrage JAMS"
+      - "arbitrage ICC"
+      - "règles LCIA"
+      - "règles CNUDCI"
+      - "arbitrage CAP"
+
+  german:
+    core_terms:
+      - "Schiedsverfahren"
+      - "Schiedsrichter"
+      - "schiedsgerichtlich"
+      - "bindendes Schiedsverfahren"
+      - "endgültig und bindend"
+      - "Schiedsklausel"
+      - "Schiedsvereinbarung"
+      - "Schiedsgericht"
+      - "Schiedsspruch"
+      - "Schiedsregeln"
+      - "Streitbeilegung"
+      - "alternative Streitbeilegung"
+    
+    binding_phrases:
+      - "bindendes und endgültiges Schiedsverfahren"
+      - "sich einem bindenden Schiedsverfahren unterwerfen"
+      - "durch Schiedsverfahren lösen"
+      - "durch Schiedsverfahren beigelegt"
+      - "das Schiedsverfahren ist endgültig"
+      - "bindende Schiedsverfahren"
+    
+    institutional_references:
+      - "AAA-Regeln"
+      - "JAMS-Schiedsverfahren"
+      - "ICC-Schiedsverfahren"
+      - "LCIA-Regeln"
+      - "UNCITRAL-Regeln"
+      - "DIS-Schiedsverfahren"
+
+  chinese_simplified:
+    core_terms:
+      - "仲裁"
+      - "仲裁员"
+      - "仲裁庭"
+      - "约束性仲裁"
+      - "终局且有约束力"
+      - "仲裁条款"
+      - "仲裁协议"
+      - "仲裁庭"
+      - "仲裁裁决"
+      - "仲裁规则"
+      - "争议解决"
+      - "替代性争议解决"
+    
+    binding_phrases:
+      - "有约束力的最终仲裁"
+      - "提交约束性仲裁"
+      - "通过仲裁解决"
+      - "由仲裁解决"
+      - "仲裁为最终裁决"
+      - "约束性仲裁程序"
+    
+    institutional_references:
+      - "AAA规则"
+      - "JAMS仲裁"
+      - "ICC仲裁"
+      - "LCIA规则"
+      - "贸仲规则"
+      - "CIETAC仲裁"
+
+  japanese:
+    core_terms:
+      - "仲裁"
+      - "仲裁人"
+      - "仲裁廷"
+      - "拘束力のある仲裁"
+      - "最終かつ拘束力のある"
+      - "仲裁条項"
+      - "仲裁合意"
+      - "仲裁廷"
+      - "仲裁判断"
+      - "仲裁規則"
+      - "紛争解決"
+      - "代替的紛争解決"
+    
+    binding_phrases:
+      - "拘束力のある最終仲裁"
+      - "拘束力のある仲裁に付す"
+      - "仲裁により解決する"
+      - "仲裁により解決される"
+      - "仲裁は最終的である"
+      - "拘束力のある仲裁手続"
+    
+    institutional_references:
+      - "AAA規則"
+      - "JAMS仲裁"
+      - "ICC仲裁"
+      - "LCIA規則"
+      - "UNCITRAL規則"
+      - "JCAA仲裁"
+
+  arabic:
+    core_terms:
+      - "تحكيم"
+      - "محكم"
+      - "تحكيمي"
+      - "تحكيم ملزم"
+      - "نهائي وملزم"
+      - "شرط التحكيم"
+      - "اتفاقية التحكيم"
+      - "محكمة التحكيم"
+      - "قرار التحكيم"
+      - "قواعد التحكيم"
+      - "حل النزاعات"
+      - "حل النزاعات البديل"
+    
+    binding_phrases:
+      - "تحكيم ملزم ونهائي"
+      - "الخضوع للتحكيم الملزم"
+      - "حل عن طريق التحكيم"
+      - "يحل بالتحكيم"
+      - "التحكيم نهائي"
+      - "إجراءات التحكيم الملزمة"
+    
+    institutional_references:
+      - "قواعد AAA"
+      - "تحكيم JAMS"
+      - "تحكيم ICC"
+      - "قواعد LCIA"
+      - "قواعد الأونسيترال"
+      - "تحكيم DIAC"
+
+# Language Detection Configuration
+language_detection:
+  # Primary detection libraries
+  libraries:
+    langdetect:
+      enabled: true
+      confidence_threshold: 0.8
+      
+    polyglot:
+      enabled: true
+      fallback_for_langdetect: true
+      
+    fasttext:
+      enabled: false
+      model_path: "lid.176.bin"
+      
+  # Character-based detection for fallback
+  character_detection:
+    enabled: true
+    script_mappings:
+      latin: ["en", "es", "fr", "de", "pt", "it"]
+      cyrillic: ["ru"]
+      arabic: ["ar"]
+      cjk: ["zh", "ja", "ko"]
+      
+  # Confidence thresholds
+  confidence_thresholds:
+    high_confidence: 0.9
+    medium_confidence: 0.7
+    low_confidence: 0.5
+    
+  # Text preprocessing
+  preprocessing:
+    min_text_length: 10
+    remove_punctuation: false
+    normalize_whitespace: true
+    handle_mixed_scripts: true
+
+# Performance and Optimization Settings
+performance:
+  # Caching configuration
+  embedding_cache_size: 5000
+  translation_cache_size: 10000
+  similarity_cache_size: 2000
+  
+  # Batch processing
+  default_batch_size: 16
+  max_batch_size: 64
+  
+  # Model optimization
+  gpu_acceleration: true
+  model_quantization: false
+  mixed_precision: true
+  
+  # FAISS indexing
+  faiss_index_type: "flat"  # or "ivf"
+  faiss_nprobe: 10
+  
+  # Parallelization
+  max_workers: 4
+  async_processing: true
+  
+  # Memory management
+  auto_cleanup_cache: true
+  cleanup_interval: 3600  # 1 hour
+  
+# Legal System Mappings
+legal_systems:
+  common_law:
+    description: "Legal system based on judicial precedent and case law"
+    characteristics:
+      - "precedent_based"
+      - "adversarial_system"
+      - "jury_trials"
+      - "judge_made_law"
+    arbitration_features:
+      - "broad_arbitrator_powers"
+      - "limited_court_intervention"
+      - "discovery_processes"
+      - "punitive_damages_possible"
+    
+  civil_law:
+    description: "Legal system based on written statutes and codes"
+    characteristics:
+      - "codified_law"
+      - "inquisitorial_system"
+      - "judge_led_proceedings"
+      - "written_procedures"
+    arbitration_features:
+      - "formal_procedures"
+      - "limited_discovery"
+      - "judicial_assistance"
+      - "compensatory_damages_focus"
+    
+  islamic_law:
+    description: "Legal system based on Islamic religious principles"
+    characteristics:
+      - "sharia_based"
+      - "religious_foundation"
+      - "mediation_emphasis"
+      - "community_resolution"
+    arbitration_features:
+      - "sharia_compliance_required"
+      - "mediation_preferred"
+      - "religious_arbitrators"
+      - "moral_considerations"
+    
+  mixed_system:
+    description: "Legal system combining elements from multiple traditions"
+    characteristics:
+      - "hybrid_approach"
+      - "multiple_influences"
+      - "complex_jurisdictions"
+      - "varied_procedures"
+    arbitration_features:
+      - "flexible_procedures"
+      - "multiple_law_sources"
+      - "complex_choice_of_law"
+      - "varied_enforcement"
+
+# API Integration Configuration
+api_integration:
+  # External translation APIs
+  google_translate:
+    base_url: "https://translation.googleapis.com"
+    version: "v2"
+    rate_limit: 100
+    timeout: 30
+    
+  microsoft_translator:
+    base_url: "https://api.cognitive.microsofttranslator.com"
+    version: "3.0"
+    rate_limit: 50
+    timeout: 30
+    
+  deepl:
+    base_url: "https://api-free.deepl.com"
+    version: "v2"
+    rate_limit: 500000  # characters per month
+    timeout: 30
+    
+  # Legal databases
+  westlaw:
+    enabled: false
+    base_url: "https://api.westlaw.com"
+    
+  lexis_nexis:
+    enabled: false
+    base_url: "https://api.lexisnexis.com"
+    
+# Monitoring and Logging
+monitoring:
+  # Performance metrics
+  track_translation_time: true
+  track_detection_accuracy: true
+  track_cache_hit_ratio: true
+  track_api_usage: true
+  
+  # Logging configuration
+  log_level: "INFO"
+  log_translation_requests: true
+  log_detection_results: true
+  log_performance_metrics: true
+  
+  # Error handling
+  max_retry_attempts: 3
+  retry_delay: 1  # seconds
+  circuit_breaker_enabled: true
+  
+# Security Configuration
+security:
+  # API key management
+  encrypt_api_keys: true
+  rotate_keys_automatically: false
+  key_rotation_interval: 90  # days
+  
+  # Data privacy
+  anonymize_logs: true
+  data_retention_period: 365  # days
+  gdpr_compliance: true
+  
+  # Rate limiting
+  enable_rate_limiting: true
+  requests_per_minute: 1000
+  burst_limit: 100

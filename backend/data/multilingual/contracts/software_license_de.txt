@@ -1,0 +1,38 @@
+SOFTWARE-LIZENZVEREINBARUNG
+
+Diese Software-Lizenzvereinbarung ("Vereinbarung") wird zwischen TechCorp Inc., einer Gesellschaft aus Delaware ("Unternehmen"), und dem Endbenutzer ("Benutzer") des Softwareprodukts geschlossen.
+
+1. LIZENZGEWÄHRUNG
+Das Unternehmen gewährt dem Benutzer hiermit eine nicht-exklusive, nicht übertragbare Lizenz zur Nutzung der Software vorbehaltlich der Bedingungen dieser Vereinbarung.
+
+2. BESCHRÄNKUNGEN
+Der Benutzer darf die Software nicht kopieren, modifizieren, vertreiben, verkaufen oder zurückentwickeln ohne vorherige schriftliche Zustimmung des Unternehmens.
+
+3. SUPPORT UND WARTUNG
+Das Unternehmen wird technischen Support und Software-Updates für einen Zeitraum von einem Jahr ab Kaufdatum bereitstellen.
+
+4. GEWÄHRLEISTUNGSAUSSCHLUSS
+DIE SOFTWARE WIRD "WIE BESEHEN" OHNE GEWÄHRLEISTUNG JEDER ART BEREITGESTELLT. DAS UNTERNEHMEN SCHLIESST ALLE GEWÄHRLEISTUNGEN AUS, AUSDRÜCKLICHE ODER STILLSCHWEIGENDE, EINSCHLIESSLICH ABER NICHT BESCHRÄNKT AUF DIE GEWÄHRLEISTUNGEN DER MARKTGÄNGIGKEIT UND EIGNUNG FÜR EINEN BESTIMMTEN ZWECK.
+
+5. HAFTUNGSBESCHRÄNKUNG
+IN KEINEM FALL HAFTET DAS UNTERNEHMEN FÜR INDIREKTE, ZUFÄLLIGE, BESONDERE ODER FOLGESCHÄDEN, DIE AUS DER NUTZUNG DER SOFTWARE ENTSTEHEN.
+
+6. STREITBEILEGUNG
+Jede Streitigkeit, Kontroverse oder Forderung, die aus oder in Bezug auf diese Vereinbarung entsteht, oder deren Verletzung, Beendigung oder Gültigkeit, wird durch endgültiges und bindendes Schiedsverfahren beigelegt, das von der American Arbitration Association (AAA) unter ihren Commercial Arbitration Rules verwaltet wird. Das Schiedsverfahren wird von einem einzelnen Schiedsrichter in San Francisco, Kalifornien, durchgeführt. Die Parteien verzichten hiermit auf jedes Recht auf ein Geschworenenprozess und stimmen zu, dass der Schiedsspruch endgültig und für beide Parteien bindend ist.
+
+7. VERZICHT AUF SAMMELKLAGEN
+Der Benutzer stimmt zu, dass jedes Schiedsverfahren nur in der individuellen Eigenschaft des Benutzers und nicht als Sammelklage oder andere repräsentative Klage durchgeführt wird, und der Benutzer verzichtet ausdrücklich auf jedes Recht, eine Sammelklage einzureichen oder Abhilfe auf einer Sammelbasis zu suchen.
+
+8. ANWENDBARES RECHT
+Diese Vereinbarung unterliegt den Gesetzen des Staates Kalifornien und wird in Übereinstimmung mit diesen ausgelegt, ohne Rücksicht auf deren Kollisionsrechtsbestimmungen.
+
+9. VOLLSTÄNDIGE VEREINBARUNG
+Diese Vereinbarung stellt die vollständige Vereinbarung zwischen den Parteien dar und ersetzt alle vorherigen Verhandlungen, Darstellungen oder Vereinbarungen in Bezug auf den Gegenstand hiervon.
+
+ZU URKUND DESSEN haben die Parteien diese Vereinbarung am oben erstgenannten Datum ausgeführt.
+
+TECHCORP INC.
+
+Von: _________________________
+Name: John Smith
+Titel: Geschäftsführer

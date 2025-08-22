@@ -1,0 +1,76 @@
+# Blockchain and Distributed Ledger Dependencies
+web3>=6.0.0  # Ethereum Web3 library
+eth-account>=0.8.0  # Ethereum account management
+eth-keys>=0.4.0  # Ethereum cryptographic key utilities
+eth-utils>=2.0.0  # Ethereum utility functions
+py-solc-x>=1.12.0  # Solidity compiler wrapper
+
+# Hyperledger Fabric SDK
+hfc>=1.0.0  # Hyperledger Fabric Client SDK
+
+# IPFS Integration
+ipfshttpclient>=0.8.0a2  # IPFS HTTP client
+py-multibase>=1.0.3  # Multibase encoding
+py-multihash>=2.0.1  # Multihash implementation
+
+# Cryptography and Security
+cryptography>=37.0.0  # Modern cryptography library
+pycryptodome>=3.15.0  # Self-contained crypto library
+merkletools>=1.0.3  # Merkle tree implementation
+pysha3>=1.0.2  # SHA-3 hashing
+
+# Blockchain Data Processing
+rlp>=3.0.0  # Recursive Length Prefix encoding
+base58>=2.1.1  # Base58 encoding
+bech32>=1.2.0  # Bech32 address encoding
+
+# Distributed Systems
+aiohttp>=3.8.0  # Async HTTP client/server
+grpcio>=1.47.0  # gRPC framework
+grpcio-tools>=1.47.0  # gRPC tools
+
+# Event Streaming and Message Queues
+kafka-python>=2.0.2  # Apache Kafka client
+celery>=5.2.0  # Distributed task queue
+pika>=1.3.0  # RabbitMQ client
+
+# Monitoring and Observability
+prometheus-client>=0.14.0  # Prometheus metrics
+psutil>=5.9.0  # System and process utilities
+
+# Database Extensions for Blockchain
+sqlalchemy>=1.4.0  # SQL toolkit
+alembic>=1.8.0  # Database migration tool
+asyncpg>=0.26.0  # PostgreSQL async driver
+
+# Network and P2P
+netifaces>=0.11.0  # Network interface information
+pynacl>=1.5.0  # Networking and Cryptography library
+
+# Configuration and Environment
+click>=8.1.0  # Command line interface creation kit
+toml>=0.10.2  # TOML parser
+
+# Time and Date Utilities
+python-dateutil>=2.8.2  # Date utilities
+
+# Validation and Schema
+jsonschema>=4.7.0  # JSON Schema validation
+
+# API Security and Authentication
+pyjwt>=2.4.0  # JSON Web Token implementation
+passlib>=1.7.4  # Password hashing library
+argon2-cffi>=21.3.0  # Argon2 password hashing
+
+# Development and Testing for Blockchain
+pytest-asyncio>=0.19.0  # Async pytest support
+pytest-mock>=3.8.0  # Mock fixtures for pytest
+
+# Performance Optimization
+uvloop>=0.16.0  # Fast asyncio event loop
+orjson>=3.7.0  # Fast JSON library
+lz4>=4.0.0  # Fast compression algorithm
+
+# Blockchain Analytics
+matplotlib>=3.5.0  # Plotting library
+networkx>=2.8.0  # Network analysis

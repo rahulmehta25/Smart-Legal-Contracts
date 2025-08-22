@@ -1,0 +1,224 @@
+{
+  "clear_arbitration_documents": [
+    {
+      "id": "clear_001",
+      "filename": "binding_arbitration_contract.txt",
+      "content": "ARBITRATION AGREEMENT\n\nAny dispute, claim, or controversy arising out of or relating to this Agreement or the breach, termination, enforcement, interpretation or validity thereof, including the determination of the scope or applicability of this agreement to arbitrate, shall be determined by arbitration in New York, New York before one arbitrator. The arbitration shall be administered by JAMS pursuant to its Comprehensive Arbitration Rules and Procedures. Judgment on the Award may be entered in any court having jurisdiction.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.95,
+        "clause_type": "mandatory_binding",
+        "keywords": ["arbitration", "binding", "JAMS", "mandatory"],
+        "arbitration_body": "JAMS",
+        "location": "New York, New York",
+        "number_of_arbitrators": 1
+      }
+    },
+    {
+      "id": "clear_002", 
+      "filename": "aaa_arbitration_clause.txt",
+      "content": "DISPUTE RESOLUTION: All claims and disputes arising under or relating to this Agreement are to be settled by binding arbitration in the state of California or another location mutually agreeable to the parties. The arbitration shall be conducted on a confidential basis pursuant to the Commercial Arbitration Rules of the American Arbitration Association. Any decision or award as a result of any such arbitration proceeding shall be final and binding upon each of the parties.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.92,
+        "clause_type": "mandatory_binding",
+        "keywords": ["binding arbitration", "American Arbitration Association", "final and binding"],
+        "arbitration_body": "American Arbitration Association",
+        "location": "California",
+        "confidential": true
+      }
+    },
+    {
+      "id": "clear_003",
+      "filename": "icc_international_arbitration.txt", 
+      "content": "International Arbitration Clause: Any dispute arising out of or in connection with this contract, including any question regarding its existence, validity or termination, shall be referred to and finally resolved by arbitration under the Rules of Arbitration of the International Chamber of Commerce. The number of arbitrators shall be three. The seat of arbitration shall be London, England. The language of the arbitration shall be English.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.98,
+        "clause_type": "international_arbitration",
+        "keywords": ["International Chamber of Commerce", "ICC", "arbitration", "three arbitrators"],
+        "arbitration_body": "International Chamber of Commerce",
+        "location": "London, England",
+        "number_of_arbitrators": 3,
+        "language": "English"
+      }
+    }
+  ],
+  
+  "hidden_arbitration_documents": [
+    {
+      "id": "hidden_001",
+      "filename": "buried_arbitration_terms.txt",
+      "content": "TERMS AND CONDITIONS\n\n1. Services\nThe Company shall provide consulting services as outlined in Schedule A.\n\n2. Payment Terms\nPayment is due within 30 days of invoice date.\n\n15. Dispute Resolution\nIn the event of any disagreement between the parties concerning the interpretation, performance, or breach of this agreement, the parties agree that the matter shall be resolved exclusively through binding arbitration administered by the American Arbitration Association in accordance with its Commercial Arbitration Rules. The parties hereby waive any right to trial by jury.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.85,
+        "clause_type": "mandatory_binding",
+        "keywords": ["exclusively through binding arbitration", "waive", "trial by jury"],
+        "arbitration_body": "American Arbitration Association",
+        "jury_waiver": true
+      }
+    },
+    {
+      "id": "hidden_002",
+      "filename": "employment_contract_arbitration.txt",
+      "content": "EMPLOYMENT AGREEMENT\n\nSection 1: Position and Duties\nEmployee agrees to serve as Marketing Manager.\n\nSection 8: Confidentiality\nEmployee shall maintain strict confidentiality.\n\nSection 12: Governing Law and Dispute Resolution\n12.1 This Agreement shall be governed by the laws of Delaware.\n12.2 Any claim or dispute between Employee and Company, whether arising under this Agreement or otherwise, shall be resolved through final and binding arbitration before a single arbitrator selected pursuant to the Employment Arbitration Rules of the American Arbitration Association.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.88,
+        "clause_type": "employment_arbitration",
+        "keywords": ["final and binding arbitration", "Employment Arbitration Rules", "single arbitrator"],
+        "arbitration_body": "American Arbitration Association",
+        "number_of_arbitrators": 1,
+        "employment_context": true
+      }
+    }
+  ],
+  
+  "no_arbitration_documents": [
+    {
+      "id": "no_arb_001",
+      "filename": "court_jurisdiction_only.txt",
+      "content": "DISPUTE RESOLUTION\n\nAny disputes arising under this agreement shall be resolved exclusively in the state and federal courts located in New York County, New York. The parties hereby consent to the personal jurisdiction of such courts and waive any objection to venue in such courts.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.05,
+        "clause_type": null,
+        "keywords": [],
+        "jurisdiction": "New York County, New York",
+        "court_selection": true
+      }
+    },
+    {
+      "id": "no_arb_002", 
+      "filename": "mediation_only_clause.txt",
+      "content": "MEDIATION AGREEMENT\n\nThe parties agree that any dispute arising under this contract shall first be submitted to mediation before a neutral mediator selected by mutual agreement. If mediation is unsuccessful after 60 days, either party may pursue any legal remedies available at law or in equity in any court of competent jurisdiction.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.15,
+        "clause_type": null,
+        "keywords": ["mediation"],
+        "mediation_required": true,
+        "arbitration_mentioned": false
+      }
+    },
+    {
+      "id": "no_arb_003",
+      "filename": "negotiation_only.txt",
+      "content": "DISPUTE RESOLUTION PROCEDURE\n\nIn case of any dispute, the parties agree to engage in good faith negotiations for a period of thirty (30) days before pursuing any legal action. All negotiations shall be conducted in confidence.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.02,
+        "clause_type": null,
+        "keywords": ["negotiations"],
+        "negotiation_required": true
+      }
+    }
+  ],
+  
+  "ambiguous_documents": [
+    {
+      "id": "ambiguous_001",
+      "filename": "alternative_dispute_resolution.txt",
+      "content": "ALTERNATIVE DISPUTE RESOLUTION\n\nThe parties agree to resolve disputes through alternative dispute resolution mechanisms including mediation, arbitration, or other mutually agreed upon procedures. The specific method will be determined by the parties at the time a dispute arises.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.45,
+        "clause_type": "optional",
+        "keywords": ["alternative dispute resolution", "arbitration", "mediation"],
+        "arbitration_optional": true,
+        "method_undetermined": true
+      }
+    },
+    {
+      "id": "ambiguous_002",
+      "filename": "arbitration_option_clause.txt", 
+      "content": "DISPUTE RESOLUTION OPTIONS\n\nIn the event of a dispute, either party may elect to resolve the matter through: (a) direct negotiation, (b) mediation, or (c) binding arbitration under the rules of JAMS. If no election is made within 30 days of notice of dispute, the matter shall proceed to litigation in state court.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.35,
+        "clause_type": "optional",
+        "keywords": ["may elect", "binding arbitration", "JAMS"],
+        "arbitration_optional": true,
+        "default_to_litigation": true
+      }
+    }
+  ],
+  
+  "complex_arbitration_documents": [
+    {
+      "id": "complex_001",
+      "filename": "multi_tier_dispute_resolution.txt",
+      "content": "MULTI-TIER DISPUTE RESOLUTION\n\nStep 1: Direct Negotiation (30 days)\nThe parties shall first attempt to resolve any dispute through direct, good faith negotiations.\n\nStep 2: Mediation (60 days)\nIf negotiation fails, the dispute shall be submitted to mediation administered by the CPR International Institute for Conflict Prevention and Resolution.\n\nStep 3: Arbitration (Final and Binding)\nIf mediation is unsuccessful, the dispute shall be finally settled by arbitration administered by the International Chamber of Commerce. The arbitration shall be conducted by a panel of three arbitrators, one selected by each party and the third selected by the two party-appointed arbitrators. The seat of arbitration shall be Geneva, Switzerland, and the arbitration shall be conducted in English.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.96,
+        "clause_type": "multi_tier_mandatory",
+        "keywords": ["finally settled by arbitration", "three arbitrators", "ICC", "binding"],
+        "arbitration_body": "International Chamber of Commerce",
+        "location": "Geneva, Switzerland",
+        "number_of_arbitrators": 3,
+        "language": "English",
+        "multi_tier": true,
+        "mediation_first": true
+      }
+    },
+    {
+      "id": "complex_002",
+      "filename": "expedited_arbitration.txt",
+      "content": "EXPEDITED ARBITRATION PROCEDURE\n\nFor disputes involving amounts less than $100,000, the parties agree to expedited arbitration under the JAMS Expedited Arbitration Rules. A single arbitrator shall be appointed within 14 days, and the final award shall be rendered within 60 days of the arbitrator's appointment. For disputes exceeding $100,000, standard JAMS Comprehensive Arbitration Rules shall apply with a three-arbitrator panel.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.94,
+        "clause_type": "tiered_by_amount",
+        "keywords": ["expedited arbitration", "JAMS", "single arbitrator", "three-arbitrator panel"],
+        "arbitration_body": "JAMS",
+        "expedited_procedure": true,
+        "amount_threshold": 100000,
+        "time_limits": true
+      }
+    }
+  ],
+  
+  "false_positive_prevention": [
+    {
+      "id": "false_pos_001",
+      "filename": "arbitration_discussion_not_clause.txt",
+      "content": "BACKGROUND AND RECITALS\n\nThe parties have discussed various dispute resolution options including litigation, mediation, and arbitration. After careful consideration, the parties have decided that traditional court proceedings best serve their interests. Therefore, any disputes shall be resolved in the Superior Court of California.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.15,
+        "clause_type": null,
+        "keywords": ["discussed", "arbitration"],
+        "arbitration_rejected": true,
+        "court_selected": true
+      }
+    },
+    {
+      "id": "false_pos_002",
+      "filename": "arbitrage_financial_term.txt",
+      "content": "INVESTMENT TERMS\n\nThe investment strategy may include arbitrage opportunities in foreign exchange markets. The fund manager shall have the discretion to engage in arbitrage transactions when market conditions are favorable.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.05,
+        "clause_type": null,
+        "keywords": ["arbitrage"],
+        "financial_context": true,
+        "not_dispute_resolution": true
+      }
+    },
+    {
+      "id": "false_pos_003",
+      "filename": "arbitrary_decision_clause.txt",
+      "content": "MANAGEMENT DECISIONS\n\nThe Board of Directors shall have the authority to make decisions regarding company policy. Such decisions shall not be arbitrary or capricious but shall be made in good faith and in the best interests of the company.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.03,
+        "clause_type": null,
+        "keywords": ["arbitrary"],
+        "governance_context": true,
+        "not_dispute_resolution": true
+      }
+    }
+  ]
+}

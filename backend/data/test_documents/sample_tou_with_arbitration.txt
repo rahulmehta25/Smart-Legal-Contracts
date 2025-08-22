@@ -1,0 +1,86 @@
+TERMS OF SERVICE
+
+Effective Date: January 1, 2024
+
+1. ACCEPTANCE OF TERMS
+
+By accessing or using our Service, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use our Service.
+
+2. DESCRIPTION OF SERVICE
+
+Our company provides a cloud-based software platform that enables users to manage their business operations. The Service includes access to our web application, mobile applications, and related support services.
+
+3. USER ACCOUNTS
+
+You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.
+
+4. PAYMENT TERMS
+
+Subscription fees are billed in advance on a monthly or annual basis and are non-refundable. We reserve the right to change our pricing at any time with 30 days' notice.
+
+5. INTELLECTUAL PROPERTY
+
+All content and materials available through the Service are the property of the Company or its licensors and are protected by applicable intellectual property laws.
+
+6. DISPUTE RESOLUTION AND ARBITRATION
+
+PLEASE READ THIS SECTION CAREFULLY – IT MAY SIGNIFICANTLY AFFECT YOUR LEGAL RIGHTS, INCLUDING YOUR RIGHT TO FILE A LAWSUIT IN COURT.
+
+6.1 Mandatory Binding Arbitration
+
+You and the Company agree that any dispute, claim, or controversy arising out of or relating to these Terms or the breach, termination, enforcement, interpretation, or validity thereof, or your use of the Service (collectively, "Disputes") will be settled by binding arbitration, except that each party retains the right to bring an individual action in small claims court if the claim qualifies for small claims court.
+
+6.2 Arbitration Rules and Procedures
+
+The arbitration will be conducted by the American Arbitration Association (AAA) under its Consumer Arbitration Rules and the Supplementary Procedures for Consumer Related Disputes (AAA Consumer Rules) then in effect, except as modified by this Section 6. The AAA Rules are available at www.adr.org or by calling the AAA at 1-800-778-7879.
+
+6.3 Arbitration Location and Procedure
+
+Unless you and the Company otherwise agree, the arbitration will be conducted in the county where you reside. If your claim does not exceed $10,000, then the arbitration will be conducted solely on the basis of documents you and the Company submit to the arbitrator. If your claim exceeds $10,000, your right to a hearing will be determined by the AAA Rules.
+
+6.4 Class Action Waiver
+
+YOU AND THE COMPANY AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING. Further, unless both you and the Company agree otherwise, the arbitrator may not consolidate more than one person's claims and may not otherwise preside over any form of a representative or class proceeding.
+
+6.5 Jury Trial Waiver
+
+YOU AND THE COMPANY HEREBY WAIVE ANY CONSTITUTIONAL AND STATUTORY RIGHTS TO SUE IN COURT AND HAVE A TRIAL IN FRONT OF A JUDGE OR A JURY. You and the Company are instead electing that all Disputes shall be resolved by arbitration under this Agreement.
+
+6.6 Opt-Out Right
+
+You have the right to opt out of this arbitration agreement by sending written notice of your decision to opt out to: Legal Department, [Company Address], within thirty (30) days of first accepting these Terms. Your notice must include your name and address, your username (if any), the email address you used to set up your account, and an unequivocal statement that you want to opt out of this arbitration agreement.
+
+6.7 Severability
+
+If any part of this Section 6 is found to be invalid or unenforceable, the remainder of this Section 6 will remain in full force and effect.
+
+7. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE COMPANY SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES.
+
+8. INDEMNIFICATION
+
+You agree to indemnify and hold harmless the Company and its officers, directors, employees, and agents from any claims, damages, or expenses arising from your violation of these Terms or your use of the Service.
+
+9. PRIVACY
+
+Your use of the Service is also governed by our Privacy Policy, which is incorporated into these Terms by reference.
+
+10. MODIFICATIONS TO TERMS
+
+We reserve the right to modify these Terms at any time. We will notify you of any material changes by posting the new Terms on our website and updating the "Effective Date" above.
+
+11. GOVERNING LAW
+
+These Terms shall be governed by the laws of the State of California, without regard to its conflict of law provisions. Subject to Section 6, you agree to submit to the personal and exclusive jurisdiction of the courts located within San Francisco County, California.
+
+12. CONTACT INFORMATION
+
+If you have any questions about these Terms, please contact us at:
+
+[Company Name]
+[Address]
+Email: legal@company.com
+Phone: 1-800-XXX-XXXX
+
+By using our Service, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.

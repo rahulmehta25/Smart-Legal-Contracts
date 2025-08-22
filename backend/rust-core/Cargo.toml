@@ -1,0 +1,121 @@
+[package]
+name = "rust-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rust Core Team"]
+description = "High-performance Rust core for critical operations"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "rust_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Async runtime and web framework
+tokio = { version = "1.35", features = ["full", "rt-multi-thread"] }
+tokio-util = { version = "0.7", features = ["full"] }
+actix = "0.13"
+actix-web = "4.4"
+actix-rt = "2.9"
+
+# Python bindings
+pyo3 = { version = "0.20", features = ["extension-module", "auto-initialize"] }
+pyo3-asyncio = { version = "0.20", features = ["tokio-runtime"] }
+numpy = "0.20"
+
+# Serialization and data formats
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+rmp-serde = "1.1"
+
+# Pattern matching and text processing
+aho-corasick = "1.1"
+regex = { version = "1.10", features = ["perf-simd", "perf-dfa", "perf-inline", "perf-literal"] }
+memchr = { version = "2.6", features = ["std"] }
+suffix = "1.2"
+edit-distance = "2.1"
+
+# SIMD and performance optimizations
+rayon = "1.8"
+crossbeam = { version = "0.8", features = ["crossbeam-channel"] }
+crossbeam-channel = "0.5"
+simd = "0.3"
+wide = "0.7"
+bytemuck = { version = "1.14", features = ["derive"] }
+
+# Memory management and caching
+dashmap = "5.5"
+moka = { version = "0.12", features = ["future"] }
+lru = "0.12"
+slab = "0.4"
+memmap2 = "0.9"
+
+# Cryptography
+ring = "0.17"
+sha3 = "0.10"
+blake3 = "1.5"
+argon2 = "0.5"
+
+# WebAssembly
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["console", "Worker"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Metrics and monitoring
+metrics = "0.22"
+metrics-exporter-prometheus = "0.12"
+
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+
+# Utilities
+uuid = { version = "1.6", features = ["v4", "serde"] }
+once_cell = "1.19"
+lazy_static = "1.4"
+parking_lot = "0.12"
+flate2 = "1.0"
+lz4 = "1.24"
+
+[dev-dependencies]
+tokio-test = "0.4"
+proptest = "1.4"
+quickcheck = "1.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wee_alloc = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.bench]
+debug = true
+
+[[bench]]
+name = "parsing_bench"
+harness = false
+
+[[bench]]
+name = "pattern_matching_bench"
+harness = false
+
+[[bench]]
+name = "indexing_bench"
+harness = false
+
+[[bench]]
+name = "cache_bench"
+harness = false

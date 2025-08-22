@@ -1,0 +1,55 @@
+{
+  "category": "clear_arbitration",
+  "scenario_count": 2,
+  "scenarios": [
+    {
+      "id": "clear_001",
+      "name": "Simple Binding Arbitration",
+      "description": "Basic mandatory binding arbitration clause",
+      "document_text": "ARBITRATION AGREEMENT\n            \n            Any dispute arising under this agreement shall be resolved through binding \n            arbitration administered by the American Arbitration Association in accordance \n            with its Commercial Arbitration Rules. The arbitration award shall be final \n            and binding upon both parties.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.95,
+        "clause_type": "mandatory_binding",
+        "keywords": [
+          "binding arbitration",
+          "American Arbitration Association",
+          "final and binding"
+        ],
+        "arbitration_body": "American Arbitration Association"
+      },
+      "difficulty_level": "easy",
+      "tags": [
+        "binding",
+        "AAA",
+        "simple"
+      ]
+    },
+    {
+      "id": "clear_002",
+      "name": "ICC International Arbitration",
+      "description": "International arbitration with ICC rules",
+      "document_text": "DISPUTE RESOLUTION CLAUSE\n            \n            All disputes arising out of or in connection with this contract shall be \n            finally settled under the Rules of Arbitration of the International Chamber \n            of Commerce by three arbitrators appointed in accordance with the said Rules. \n            The seat of arbitration shall be Geneva, Switzerland. The language of the \n            arbitration shall be English.",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.98,
+        "clause_type": "international_arbitration",
+        "keywords": [
+          "International Chamber of Commerce",
+          "three arbitrators",
+          "Geneva"
+        ],
+        "arbitration_body": "International Chamber of Commerce",
+        "location": "Geneva, Switzerland",
+        "number_of_arbitrators": 3,
+        "language": "English"
+      },
+      "difficulty_level": "medium",
+      "tags": [
+        "international",
+        "ICC",
+        "three_arbitrators"
+      ]
+    }
+  ]
+}

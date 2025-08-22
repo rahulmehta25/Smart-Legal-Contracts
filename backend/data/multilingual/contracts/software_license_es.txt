@@ -1,0 +1,38 @@
+ACUERDO DE LICENCIA DE SOFTWARE
+
+Este Acuerdo de Licencia de Software ("Acuerdo") se celebra entre TechCorp Inc., una corporación de Delaware ("Compañía"), y el usuario final ("Usuario") del producto de software.
+
+1. CONCESIÓN DE LICENCIA
+La Compañía por la presente otorga al Usuario una licencia no exclusiva e intransferible para usar el software sujeto a los términos y condiciones de este Acuerdo.
+
+2. RESTRICCIONES
+El Usuario no puede copiar, modificar, distribuir, vender o realizar ingeniería inversa del software sin el consentimiento previo por escrito de la Compañía.
+
+3. SOPORTE Y MANTENIMIENTO
+La Compañía proporcionará soporte técnico y actualizaciones de software por un período de un año desde la fecha de compra.
+
+4. EXENCIÓN DE GARANTÍA
+EL SOFTWARE SE PROPORCIONA "TAL COMO ESTÁ" SIN GARANTÍA DE NINGÚN TIPO. LA COMPAÑÍA RENUNCIA A TODAS LAS GARANTÍAS, EXPRESAS O IMPLÍCITAS, INCLUYENDO PERO NO LIMITADO A LAS GARANTÍAS DE COMERCIABILIDAD E IDONEIDAD PARA UN PROPÓSITO PARTICULAR.
+
+5. LIMITACIÓN DE RESPONSABILIDAD
+EN NINGÚN CASO LA COMPAÑÍA SERÁ RESPONSABLE DE CUALQUIER DAÑO INDIRECTO, INCIDENTAL, ESPECIAL O CONSECUENCIAL QUE SURJA DEL USO DEL SOFTWARE.
+
+6. RESOLUCIÓN DE DISPUTAS
+Cualquier disputa, controversia o reclamación que surja de o se relacione con este Acuerdo, o el incumplimiento, terminación o validez del mismo, será resuelta mediante arbitraje final y vinculante administrado por la Asociación Americana de Arbitraje (AAA) bajo sus Reglas de Arbitraje Comercial. El arbitraje será conducido por un solo árbitro en San Francisco, California. Las partes por la presente renuncian a cualquier derecho a un juicio por jurado y acuerdan que el laudo arbitral será final y vinculante para ambas partes.
+
+7. RENUNCIA A ACCIÓN COLECTIVA
+El Usuario acepta que cualquier arbitraje se conducirá únicamente en la capacidad individual del Usuario y no como una acción colectiva u otra acción representativa, y el Usuario renuncia expresamente a cualquier derecho de presentar una acción colectiva o buscar alivio sobre una base colectiva.
+
+8. LEY APLICABLE
+Este Acuerdo se regirá e interpretará de acuerdo con las leyes del Estado de California, sin tener en cuenta sus disposiciones de conflicto de leyes.
+
+9. ACUERDO COMPLETO
+Este Acuerdo constituye el acuerdo completo entre las partes y reemplaza todas las negociaciones, representaciones o acuerdos previos relacionados con el tema en cuestión.
+
+EN FE DE LO CUAL, las partes han ejecutado este Acuerdo en la fecha mencionada anteriormente.
+
+TECHCORP INC.
+
+Por: _________________________
+Nombre: John Smith
+Título: Director Ejecutivo Principal

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: namespace

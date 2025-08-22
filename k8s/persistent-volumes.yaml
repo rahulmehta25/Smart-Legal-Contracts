@@ -1,0 +1,102 @@
+# Persistent Volume Claims for data storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: database-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd  # Use your cluster's SSD storage class
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: cache-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chroma-pvc
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: vector-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-pvc
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: model-storage
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods need access to models
+  storageClassName: shared-storage  # Use your cluster's shared storage class
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# Monitoring storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: monitoring-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: monitoring-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 10Gi

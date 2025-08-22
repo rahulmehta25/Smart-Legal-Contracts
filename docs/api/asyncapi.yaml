@@ -1,0 +1,105 @@
+asyncapi: 2.6.0
+info:
+  title: Real-time API Marketplace WebSocket API
+  version: 1.0.0
+  description: WebSocket API for real-time events and notifications in the API Marketplace
+
+servers:
+  production:
+    url: wss://realtime.example.com/v1
+    protocol: ws
+    description: Production WebSocket server
+
+channels:
+  /marketplace/events:
+    description: Real-time marketplace events
+    subscribe:
+      summary: Subscribe to marketplace events
+      message:
+        oneOf:
+          - $ref: '#/components/messages/APIRegistered'
+          - $ref: '#/components/messages/APIUpdated'
+          - $ref: '#/components/messages/APIAnalytics'
+
+  /marketplace/notifications:
+    description: User and API notifications
+    subscribe:
+      summary: Receive notifications about APIs and marketplace activities
+      message:
+        oneOf:
+          - $ref: '#/components/messages/APIDeprecationNotice'
+          - $ref: '#/components/messages/RateLimitWarning'
+
+components:
+  messages:
+    APIRegistered:
+      name: apiRegistered
+      title: New API Registered
+      payload:
+        type: object
+        properties:
+          apiId:
+            type: string
+          name:
+            type: string
+          description:
+            type: string
+          registeredBy:
+            type: string
+
+    APIUpdated:
+      name: apiUpdated
+      title: API Updated
+      payload:
+        type: object
+        properties:
+          apiId:
+            type: string
+          changes:
+            type: array
+            items:
+              type: string
+
+    APIAnalytics:
+      name: apiAnalytics
+      title: API Usage Analytics
+      payload:
+        type: object
+        properties:
+          apiId:
+            type: string
+          totalCalls:
+            type: integer
+          successRate:
+            type: number
+          averageLatency:
+            type: number
+
+    APIDeprecationNotice:
+      name: apiDeprecationNotice
+      title: API Deprecation Notice
+      payload:
+        type: object
+        properties:
+          apiId:
+            type: string
+          deprecationDate:
+            type: string
+            format: date-time
+          replacementApiId:
+            type: string
+
+    RateLimitWarning:
+      name: rateLimitWarning
+      title: Rate Limit Warning
+      payload:
+        type: object
+        properties:
+          apiId:
+            type: string
+          currentUsage:
+            type: integer
+          limit:
+            type: integer
+          percentageUsed:
+            type: number

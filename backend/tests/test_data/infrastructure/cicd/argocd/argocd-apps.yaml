@@ -1,0 +1,213 @@
+# ArgoCD Application Definitions for GitOps
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: production
+  namespace: argocd
+spec:
+  description: Production environment project
+  sourceRepos:
+  - '*'
+  destinations:
+  - namespace: '*'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infrastructure
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: production
+  source:
+    repoURL: https://github.com/example/infrastructure
+    targetRevision: main
+    path: kubernetes/
+    helm:
+      valueFiles:
+      - values-production.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microservices
+  namespace: argocd
+spec:
+  project: production
+  source:
+    repoURL: https://github.com/example/microservices
+    targetRevision: main
+    path: deploy/
+    kustomize:
+      namePrefix: prod-
+      commonLabels:
+        environment: production
+      images:
+      - api-gateway=api-gateway:v1.2.3
+      - user-service=user-service:v2.1.0
+      - order-service=order-service:v1.5.2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ApplyOutOfSyncOnly=true
+    - RespectIgnoreDifferences=true
+  revisionHistoryLimit: 10
+---
+# ApplicationSet for multi-environment deployment
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: multi-env-apps
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - cluster: production
+        url: https://k8s-prod.example.com
+        namespace: production
+        values:
+          replicas: "3"
+          resources: "high"
+      - cluster: staging
+        url: https://k8s-staging.example.com
+        namespace: staging
+        values:
+          replicas: "2"
+          resources: "medium"
+      - cluster: development
+        url: https://k8s-dev.example.com
+        namespace: development
+        values:
+          replicas: "1"
+          resources: "low"
+  template:
+    metadata:
+      name: '{{cluster}}-apps'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/example/applications
+        targetRevision: main
+        path: manifests/
+        helm:
+          parameters:
+          - name: replicas
+            value: '{{values.replicas}}'
+          - name: resources
+            value: '{{values.resources}}'
+      destination:
+        server: '{{url}}'
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+---
+# Rollback configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rollback-config
+  namespace: argocd
+data:
+  rollback-strategy: |
+    # Automated rollback on failure
+    - trigger: HealthDegraded
+      action: Rollback
+      revision: Previous
+    - trigger: SyncFailed
+      action: Rollback
+      revision: LastKnownGood
+    - trigger: MetricThreshold
+      metric: error_rate
+      threshold: 0.05
+      action: Rollback
+---
+# Notification configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  service.slack: |
+    token: $slack-token
+    
+  template.app-deployed: |
+    message: |
+      Application {{.app.metadata.name}} is now running new version.
+      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Deployment successful!
+    slack:
+      attachments: |
+        [{
+          "title": "{{.app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#18be52",
+          "fields": [{
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          }, {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          }]
+        }]
+  
+  template.app-health-degraded: |
+    message: |
+      Application {{.app.metadata.name}} has degraded health.
+      {{if eq .serviceType "slack"}}:exclamation:{{end}} Immediate attention required!
+    slack:
+      attachments: |
+        [{
+          "title": "{{.app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#E96D76",
+          "fields": [{
+            "title": "Health Status",
+            "value": "{{.app.status.health.status}}",
+            "short": true
+          }]
+        }]
+  
+  trigger.on-deployed: |
+    - when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+      send: [app-deployed]
+  
+  trigger.on-health-degraded: |
+    - when: app.status.health.status == 'Degraded'
+      send: [app-health-degraded]

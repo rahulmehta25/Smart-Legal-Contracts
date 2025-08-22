@@ -1,0 +1,443 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /integration-platform
+
+spring:
+  application:
+    name: partner-integration-platform
+  
+  profiles:
+    active: local
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/integration_platform
+    username: ${DB_USERNAME:integration_user}
+    password: ${DB_PASSWORD:integration_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 25
+          order_inserts: true
+          order_updates: true
+        cache:
+          use_second_level_cache: true
+          region:
+            factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+  
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: integration-platform
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        enable.auto.commit: false
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.records: 100
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        acks: all
+        retries: 3
+        batch.size: 16384
+        linger.ms: 10
+        buffer.memory: 33554432
+        compression.type: snappy
+        enable.idempotence: true
+    admin:
+      properties:
+        bootstrap.servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  
+  # Redis Configuration (for rate limiting)
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+  
+  # Jackson Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    time-zone: UTC
+  
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:8090/auth/realms/integration}
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/auth/realms/integration/protocol/openid-connect/certs}
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        integration.response.time: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+        integration.response.time: 0.5,0.95,0.99
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.enterprise.integrations: DEBUG
+    org.apache.camel: INFO
+    org.springframework.kafka: INFO
+    org.springframework.cloud.gateway: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+  file:
+    name: logs/integration-platform.log
+    max-size: 100MB
+    max-history: 30
+
+# Integration Platform Configuration
+integration:
+  platform:
+    partners:
+      salesforce:
+        client-id: ${SALESFORCE_CLIENT_ID:}
+        client-secret: ${SALESFORCE_CLIENT_SECRET:}
+        username: ${SALESFORCE_USERNAME:}
+        password: ${SALESFORCE_PASSWORD:}
+        security-token: ${SALESFORCE_SECURITY_TOKEN:}
+        login-url: ${SALESFORCE_LOGIN_URL:https://login.salesforce.com}
+        rate-limit-per-hour: 5000
+        bulk-api-enabled: true
+      
+      microsoft:
+        client-id: ${MICROSOFT_CLIENT_ID:}
+        client-secret: ${MICROSOFT_CLIENT_SECRET:}
+        tenant-id: ${MICROSOFT_TENANT_ID:}
+        scope: https://graph.microsoft.com/.default
+        graph-url: https://graph.microsoft.com/v1.0
+        rate-limit-per-minute: 600
+      
+      google:
+        client-id: ${GOOGLE_CLIENT_ID:}
+        client-secret: ${GOOGLE_CLIENT_SECRET:}
+        service-account-key-path: ${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:}
+        domain: ${GOOGLE_DOMAIN:}
+        rate-limit-per-second: 100
+        scopes:
+          - https://www.googleapis.com/auth/admin.directory.user
+          - https://www.googleapis.com/auth/admin.directory.group
+      
+      docusign:
+        integration-key: ${DOCUSIGN_INTEGRATION_KEY:}
+        user-id: ${DOCUSIGN_USER_ID:}
+        account-id: ${DOCUSIGN_ACCOUNT_ID:}
+        private-key-path: ${DOCUSIGN_PRIVATE_KEY_PATH:}
+        base-path: ${DOCUSIGN_BASE_PATH:https://demo.docusign.net/restapi}
+        rate-limit-per-hour: 1000
+      
+      slack:
+        bot-token: ${SLACK_BOT_TOKEN:}
+        app-token: ${SLACK_APP_TOKEN:}
+        signing-secret: ${SLACK_SIGNING_SECRET:}
+        rate-limit-tier: 1
+      
+      box:
+        client-id: ${BOX_CLIENT_ID:}
+        client-secret: ${BOX_CLIENT_SECRET:}
+        enterprise-id: ${BOX_ENTERPRISE_ID:}
+        public-key-id: ${BOX_PUBLIC_KEY_ID:}
+        private-key-path: ${BOX_PRIVATE_KEY_PATH:}
+        passphrase: ${BOX_PASSPHRASE:}
+        rate-limit-per-second: 10
+      
+      sap:
+        base-url: ${SAP_BASE_URL:}
+        username: ${SAP_USERNAME:}
+        password: ${SAP_PASSWORD:}
+        client: ${SAP_CLIENT:100}
+        language: ${SAP_LANGUAGE:EN}
+        max-connections: 10
+      
+      netsuite:
+        account-id: ${NETSUITE_ACCOUNT_ID:}
+        consumer-key: ${NETSUITE_CONSUMER_KEY:}
+        consumer-secret: ${NETSUITE_CONSUMER_SECRET:}
+        token-id: ${NETSUITE_TOKEN_ID:}
+        token-secret: ${NETSUITE_TOKEN_SECRET:}
+        base-url: ${NETSUITE_BASE_URL:}
+        rate-limit-per-minute: 100
+    
+    gateway:
+      global-rate-limit-per-second: 1000
+      circuit-breaker-timeout: PT10S
+      circuit-breaker-failure-threshold: 5
+      circuit-breaker-recovery-time: PT1M
+      partner-rate-limits:
+        salesforce: 100
+        microsoft365: 120
+        google: 150
+        docusign: 50
+        slack: 30
+        box: 40
+        sap: 25
+        netsuite: 60
+    
+    monitoring:
+      health-check-interval: PT1M
+      metrics-collection-interval: PT30S
+      error-alert-threshold: 10
+      slow-operation-threshold: PT5S
+    
+    kafka:
+      integration-events-topic: integration.events
+      errors-topic: integration.errors
+      metrics-topic: integration.metrics
+      audit-topic: integration.audit
+      partitions: 3
+      replication-factor: 3
+    
+    retry:
+      max-attempts: 3
+      initial-delay: PT1S
+      multiplier: 2.0
+      max-delay: PT1M
+
+# Camel Configuration
+camel:
+  springboot:
+    name: IntegrationCamelContext
+    main-run-controller: true
+    duration-max-idle-seconds: 30
+    duration-max-messages: 1000
+  component:
+    kafka:
+      brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      configuration:
+        auto.offset.reset: earliest
+        enable.auto.commit: false
+        session.timeout.ms: 30000
+    http:
+      connection-time-to-live: 60000
+      connections-per-route: 20
+      max-total-connections: 200
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: PT30S
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: PT5S
+    instances:
+      salesforce-cb:
+        base-config: default
+        wait-duration-in-open-state: PT1M
+      microsoft-cb:
+        base-config: default
+        wait-duration-in-open-state: PT45S
+      google-cb:
+        base-config: default
+      docusign-cb:
+        base-config: default
+      slack-cb:
+        base-config: default
+        failure-rate-threshold: 60
+      box-cb:
+        base-config: default
+      sap-cb:
+        base-config: default
+        wait-duration-in-open-state: PT2M
+      netsuite-cb:
+        base-config: default
+      workflow-cb:
+        base-config: default
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: PT10S
+    instances:
+      salesforce-cb:
+        timeout-duration: PT15S
+      microsoft-cb:
+        timeout-duration: PT12S
+      sap-cb:
+        timeout-duration: PT20S
+
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: PT1S
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+
+# Actuator Info
+info:
+  app:
+    name: Partner Integration Platform
+    description: Comprehensive partner integration ecosystem
+    version: 1.0.0
+    team: Integration Platform Team
+  build:
+    artifact: ${project.artifactId:partner-integration-platform}
+    name: ${project.name:Partner Integration Platform}
+    time: ${project.build.time:unknown}
+    version: ${project.version:1.0.0-SNAPSHOT}
+
+---
+# Local Profile
+spring:
+  config:
+    activate:
+      on-profile: local
+  
+  datasource:
+    url: jdbc:h2:mem:integration_platform
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+logging:
+  level:
+    com.enterprise.integrations: DEBUG
+    org.apache.camel: DEBUG
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+integration:
+  platform:
+    monitoring:
+      health-check-interval: PT2M
+      metrics-collection-interval: PT1M
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+server:
+  port: 8080
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    root: WARN
+    com.enterprise.integrations: INFO
+  file:
+    name: /var/log/integration-platform/application.log
+
+integration:
+  platform:
+    partners:
+      salesforce:
+        rate-limit-per-hour: 10000
+      microsoft:
+        rate-limit-per-minute: 1200
+    gateway:
+      global-rate-limit-per-second: 2000

@@ -1,0 +1,313 @@
+# Tekton CI/CD Pipeline Configuration
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-deploy
+  namespace: tekton-pipelines
+spec:
+  params:
+  - name: repo-url
+    type: string
+  - name: revision
+    type: string
+    default: main
+  - name: image-name
+    type: string
+  - name: image-tag
+    type: string
+  workspaces:
+  - name: shared-workspace
+  - name: docker-credentials
+  
+  tasks:
+  # Clone repository
+  - name: fetch-source
+    taskRef:
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: shared-workspace
+    params:
+    - name: url
+      value: $(params.repo-url)
+    - name: revision
+      value: $(params.revision)
+  
+  # Run tests
+  - name: run-tests
+    runAfter: ["fetch-source"]
+    taskRef:
+      name: golang-test
+    workspaces:
+    - name: source
+      workspace: shared-workspace
+    params:
+    - name: package
+      value: ./...
+    - name: flags
+      value: -v -race -coverprofile=coverage.out
+  
+  # Security scan
+  - name: security-scan
+    runAfter: ["fetch-source"]
+    taskRef:
+      name: trivy-scan
+    workspaces:
+    - name: source
+      workspace: shared-workspace
+    params:
+    - name: scan-type
+      value: fs
+    - name: severity
+      value: HIGH,CRITICAL
+  
+  # Build Docker image
+  - name: build-image
+    runAfter: ["run-tests", "security-scan"]
+    taskRef:
+      name: kaniko
+    workspaces:
+    - name: source
+      workspace: shared-workspace
+    - name: dockerconfig
+      workspace: docker-credentials
+    params:
+    - name: IMAGE
+      value: $(params.image-name):$(params.image-tag)
+    - name: DOCKERFILE
+      value: ./Dockerfile
+    - name: CONTEXT
+      value: ./
+    - name: EXTRA_ARGS
+      value:
+      - --cache=true
+      - --cache-ttl=24h
+  
+  # Update GitOps repository
+  - name: update-manifest
+    runAfter: ["build-image"]
+    taskRef:
+      name: update-manifest
+    params:
+    - name: MANIFEST_REPO
+      value: https://github.com/example/gitops-manifests
+    - name: NEW_IMAGE
+      value: $(params.image-name):$(params.image-tag)
+    - name: DEPLOYMENT_PATH
+      value: production/deployment.yaml
+---
+# Task: Golang Test
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: golang-test
+  namespace: tekton-pipelines
+spec:
+  params:
+  - name: package
+    type: string
+  - name: flags
+    type: string
+    default: -v
+  workspaces:
+  - name: source
+  steps:
+  - name: test
+    image: golang:1.21
+    workingDir: $(workspaces.source.path)
+    script: |
+      #!/bin/bash
+      set -e
+      go mod download
+      go test $(params.flags) $(params.package)
+      
+      # Generate test report
+      go install github.com/jstemmer/go-junit-report@latest
+      go test -v 2>&1 ./... | go-junit-report > test-report.xml
+      
+      # Check coverage threshold
+      coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+      if (( $(echo "$coverage < 80" | bc -l) )); then
+        echo "Coverage $coverage% is below threshold 80%"
+        exit 1
+      fi
+---
+# Task: Trivy Security Scan
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: trivy-scan
+  namespace: tekton-pipelines
+spec:
+  params:
+  - name: scan-type
+    type: string
+  - name: severity
+    type: string
+  workspaces:
+  - name: source
+  steps:
+  - name: scan
+    image: aquasec/trivy:latest
+    workingDir: $(workspaces.source.path)
+    script: |
+      #!/bin/bash
+      trivy $(params.scan-type) \
+        --severity $(params.severity) \
+        --exit-code 1 \
+        --format json \
+        --output trivy-report.json \
+        .
+      
+      # Also generate human-readable report
+      trivy $(params.scan-type) \
+        --severity $(params.severity) \
+        --format table \
+        .
+---
+# Task: Update Manifest
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: update-manifest
+  namespace: tekton-pipelines
+spec:
+  params:
+  - name: MANIFEST_REPO
+    type: string
+  - name: NEW_IMAGE
+    type: string
+  - name: DEPLOYMENT_PATH
+    type: string
+  steps:
+  - name: update-and-commit
+    image: alpine/git:latest
+    script: |
+      #!/bin/sh
+      set -e
+      
+      # Clone manifest repository
+      git clone $(params.MANIFEST_REPO) /tmp/gitops
+      cd /tmp/gitops
+      
+      # Update image in deployment
+      sed -i "s|image:.*|image: $(params.NEW_IMAGE)|" $(params.DEPLOYMENT_PATH)
+      
+      # Commit and push changes
+      git config user.email "tekton@example.com"
+      git config user.name "Tekton Pipeline"
+      git add .
+      git commit -m "Update image to $(params.NEW_IMAGE)"
+      git push origin main
+---
+# PipelineRun Template
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: build-and-deploy-run-
+  namespace: tekton-pipelines
+spec:
+  pipelineRef:
+    name: build-and-deploy
+  params:
+  - name: repo-url
+    value: https://github.com/example/application
+  - name: revision
+    value: main
+  - name: image-name
+    value: gcr.io/project-id/app
+  - name: image-tag
+    value: $(context.pipelineRun.uid)
+  workspaces:
+  - name: shared-workspace
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+  - name: docker-credentials
+    secret:
+      secretName: docker-credentials
+---
+# Trigger for automatic pipeline execution
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: github-listener
+  namespace: tekton-pipelines
+spec:
+  serviceAccountName: tekton-triggers
+  triggers:
+  - name: github-push
+    interceptors:
+    - ref:
+        name: github
+      params:
+      - name: secretRef
+        value:
+          secretName: github-webhook-secret
+          secretKey: secret
+      - name: eventTypes
+        value: ["push", "pull_request"]
+    bindings:
+    - ref: github-push-binding
+    template:
+      ref: build-and-deploy-template
+---
+# TriggerBinding
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: github-push-binding
+  namespace: tekton-pipelines
+spec:
+  params:
+  - name: git-revision
+    value: $(body.head_commit.id)
+  - name: git-repo-url
+    value: $(body.repository.clone_url)
+  - name: git-repo-name
+    value: $(body.repository.name)
+---
+# TriggerTemplate
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: build-and-deploy-template
+  namespace: tekton-pipelines
+spec:
+  params:
+  - name: git-revision
+  - name: git-repo-url
+  - name: git-repo-name
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: $(tt.params.git-repo-name)-run-
+    spec:
+      pipelineRef:
+        name: build-and-deploy
+      params:
+      - name: repo-url
+        value: $(tt.params.git-repo-url)
+      - name: revision
+        value: $(tt.params.git-revision)
+      - name: image-name
+        value: gcr.io/project-id/$(tt.params.git-repo-name)
+      - name: image-tag
+        value: $(tt.params.git-revision)
+      workspaces:
+      - name: shared-workspace
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+            - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi
+      - name: docker-credentials
+        secret:
+          secretName: docker-credentials

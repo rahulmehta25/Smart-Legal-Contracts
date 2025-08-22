@@ -1,0 +1,298 @@
+# Grafana Configuration and Dashboards
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus:9090
+      isDefault: true
+      editable: true
+    - name: Elasticsearch
+      type: elasticsearch
+      access: proxy
+      url: http://elasticsearch:9200
+      database: "[logstash-]YYYY.MM.DD"
+      jsonData:
+        esVersion: "7.10.0"
+        timeField: "@timestamp"
+    - name: Jaeger
+      type: jaeger
+      access: proxy
+      url: http://jaeger-query:16686
+      editable: true
+    - name: CloudWatch
+      type: cloudwatch
+      jsonData:
+        authType: default
+        defaultRegion: us-east-1
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-providers
+  namespace: monitoring
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      updateIntervalSeconds: 10
+      allowUiUpdates: true
+      options:
+        path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  kubernetes-cluster.json: |
+    {
+      "dashboard": {
+        "title": "Kubernetes Cluster Overview",
+        "panels": [
+          {
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "title": "Cluster CPU Usage",
+            "targets": [
+              {
+                "expr": "sum(rate(container_cpu_usage_seconds_total[5m])) / sum(machine_cpu_cores) * 100",
+                "legendFormat": "CPU Usage %"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "title": "Cluster Memory Usage",
+            "targets": [
+              {
+                "expr": "sum(container_memory_working_set_bytes) / sum(machine_memory_bytes) * 100",
+                "legendFormat": "Memory Usage %"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "title": "Pod Count by Namespace",
+            "targets": [
+              {
+                "expr": "sum(kube_pod_info) by (namespace)",
+                "legendFormat": "{{ namespace }}"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "title": "Network I/O",
+            "targets": [
+              {
+                "expr": "sum(rate(container_network_receive_bytes_total[5m]))",
+                "legendFormat": "RX"
+              },
+              {
+                "expr": "sum(rate(container_network_transmit_bytes_total[5m]))",
+                "legendFormat": "TX"
+              }
+            ],
+            "type": "graph"
+          }
+        ],
+        "refresh": "10s",
+        "time": {"from": "now-1h", "to": "now"}
+      }
+    }
+  
+  application-metrics.json: |
+    {
+      "dashboard": {
+        "title": "Application Metrics",
+        "panels": [
+          {
+            "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+            "title": "Request Rate",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total[5m])) by (service)",
+                "legendFormat": "{{ service }}"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+            "title": "Error Rate",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (service)",
+                "legendFormat": "{{ service }}"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0},
+            "title": "Response Time P95",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le))",
+                "legendFormat": "{{ service }}"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+            "title": "Database Connections",
+            "targets": [
+              {
+                "expr": "db_connection_pool_size - db_connection_pool_available",
+                "legendFormat": "Used Connections"
+              },
+              {
+                "expr": "db_connection_pool_available",
+                "legendFormat": "Available Connections"
+              }
+            ],
+            "type": "graph"
+          }
+        ],
+        "refresh": "5s",
+        "time": {"from": "now-30m", "to": "now"}
+      }
+    }
+  
+  cost-optimization.json: |
+    {
+      "dashboard": {
+        "title": "Cost Optimization Dashboard",
+        "panels": [
+          {
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "title": "Monthly Cost Estimate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(kube_node_info) * 0.1 * 730",
+                "legendFormat": "EC2 Cost"
+              }
+            ]
+          },
+          {
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "title": "Spot Instance Savings",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(kube_node_labels{label_node_kubernetes_io_instance_type=\"spot\"}) * 0.03 * 730",
+                "legendFormat": "Savings per Month"
+              }
+            ]
+          },
+          {
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+            "title": "Resource Utilization Efficiency",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "avg(rate(container_cpu_usage_seconds_total[5m])) by (namespace) / avg(container_spec_cpu_quota) by (namespace)",
+                "format": "table",
+                "instant": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+---
+# Grafana Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.0.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: admin-user
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: admin-password
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel"
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: grafana-dashboard-providers
+          mountPath: /etc/grafana/provisioning/dashboards
+        - name: grafana-dashboards
+          mountPath: /var/lib/grafana/dashboards
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+      volumes:
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources
+      - name: grafana-dashboard-providers
+        configMap:
+          name: grafana-dashboard-providers
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-dashboards
+      - name: grafana-storage
+        persistentVolumeClaim:
+          claimName: grafana-pvc
+---
+# Grafana Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3000
+    targetPort: 3000
+  selector:
+    app: grafana

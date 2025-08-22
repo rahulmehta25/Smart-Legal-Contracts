@@ -1,0 +1,332 @@
+# Disaster Recovery Plan and Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disaster-recovery-plan
+  namespace: dr-system
+data:
+  dr-plan.md: |
+    # Disaster Recovery Plan
+    
+    ## Overview
+    This disaster recovery plan ensures 99.99% uptime with RTO < 1 hour and RPO < 15 minutes.
+    
+    ## Recovery Objectives
+    - **RTO (Recovery Time Objective)**: < 1 hour
+    - **RPO (Recovery Point Objective)**: < 15 minutes
+    - **Uptime Target**: 99.99% (52.56 minutes downtime per year)
+    
+    ## Backup Strategy
+    
+    ### Database Backups
+    - **Frequency**: Every 15 minutes (incremental), Daily (full)
+    - **Retention**: 30 days for daily, 7 days for incremental
+    - **Location**: Cross-region S3 buckets with versioning
+    - **Encryption**: AES-256 at rest, TLS in transit
+    
+    ### Application State
+    - **Method**: Continuous replication via Kafka
+    - **Storage**: Multi-region Redis clusters
+    - **Snapshots**: Every hour to S3
+    
+    ### Configuration Backups
+    - **Method**: GitOps with ArgoCD
+    - **Repository**: Replicated across 3 regions
+    - **Validation**: Automated config drift detection
+    
+    ## Failover Procedures
+    
+    ### Automatic Failover (< 5 minutes)
+    1. Health checks detect primary region failure
+    2. Route53 updates DNS to secondary region
+    3. Database promotes read replica to primary
+    4. Application pods scale up in secondary region
+    5. Cache warms up from S3 snapshots
+    
+    ### Manual Failover (< 30 minutes)
+    1. Incident commander declares disaster
+    2. Run failover script: `./scripts/dr-failover.sh --region us-west-2`
+    3. Verify services in secondary region
+    4. Update status page
+    5. Notify stakeholders
+    
+    ## Recovery Procedures
+    
+    ### Data Recovery
+    1. Identify last known good backup
+    2. Restore database from snapshot
+    3. Apply transaction logs up to failure point
+    4. Validate data integrity
+    5. Resume application services
+    
+    ### Service Recovery Priority
+    1. **Critical** (< 15 min): Authentication, Payment Processing
+    2. **High** (< 30 min): API Gateway, Core Services
+    3. **Medium** (< 1 hour): Analytics, Reporting
+    4. **Low** (< 4 hours): Batch Processing, Archives
+    
+    ## Testing Schedule
+    - **Monthly**: Backup restoration test
+    - **Quarterly**: Regional failover drill
+    - **Annually**: Full disaster simulation
+    
+    ## Contact Information
+    - **Incident Commander**: on-call@example.com
+    - **Database Team**: db-team@example.com
+    - **Infrastructure Team**: infra-team@example.com
+    - **Executive Escalation**: cto@example.com
+---
+# Velero Backup Configuration
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  objectStorage:
+    bucket: velero-backups-prod
+    prefix: kubernetes
+  config:
+    region: us-east-1
+    s3ForcePathStyle: "false"
+    s3Url: https://s3.amazonaws.com
+---
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: secondary
+  namespace: velero
+spec:
+  provider: aws
+  objectStorage:
+    bucket: velero-backups-prod-west
+    prefix: kubernetes
+  config:
+    region: us-west-2
+    s3ForcePathStyle: "false"
+    s3Url: https://s3.us-west-2.amazonaws.com
+---
+# Scheduled Backups
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-backup
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  template:
+    hooks: {}
+    includedNamespaces:
+    - production
+    - staging
+    excludedNamespaces:
+    - kube-system
+    - velero
+    includeClusterResources: true
+    storageLocation: default
+    ttl: 720h  # 30 days retention
+    volumeSnapshotLocations:
+    - default
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: hourly-critical-backup
+  namespace: velero
+spec:
+  schedule: "0 * * * *"  # Every hour
+  template:
+    labelSelector:
+      matchLabels:
+        backup-priority: critical
+    includedNamespaces:
+    - production
+    storageLocation: default
+    ttl: 168h  # 7 days retention
+---
+# Cross-Region Replication CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cross-region-backup-sync
+  namespace: dr-system
+spec:
+  schedule: "*/15 * * * *"  # Every 15 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-operator
+          containers:
+          - name: sync
+            image: amazon/aws-cli:2.13.0
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Starting cross-region backup sync..."
+              
+              # Sync database backups
+              aws s3 sync s3://db-backups-prod/ s3://db-backups-prod-west/ \
+                --source-region us-east-1 \
+                --region us-west-2 \
+                --delete \
+                --sse AES256
+              
+              # Sync application snapshots
+              aws s3 sync s3://app-snapshots-prod/ s3://app-snapshots-prod-west/ \
+                --source-region us-east-1 \
+                --region us-west-2 \
+                --delete \
+                --sse AES256
+              
+              # Verify sync completion
+              aws s3 ls s3://db-backups-prod-west/ --recursive --summarize
+              
+              echo "Cross-region sync completed successfully"
+          restartPolicy: OnFailure
+---
+# Database Backup CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: production
+spec:
+  schedule: "*/15 * * * *"  # Every 15 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:15-alpine
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+              BACKUP_FILE="backup-${TIMESTAMP}.sql.gz"
+              
+              # Create backup
+              pg_dump -h postgres-primary -U postgres -d production \
+                --no-owner --no-acl --clean --if-exists | \
+                gzip > /tmp/${BACKUP_FILE}
+              
+              # Upload to S3
+              aws s3 cp /tmp/${BACKUP_FILE} \
+                s3://db-backups-prod/postgres/${BACKUP_FILE} \
+                --sse AES256
+              
+              # Cleanup old backups (keep last 100)
+              aws s3 ls s3://db-backups-prod/postgres/ | \
+                sort -r | tail -n +101 | \
+                awk '{print $4}' | \
+                xargs -I {} aws s3 rm s3://db-backups-prod/postgres/{}
+              
+              echo "Backup completed: ${BACKUP_FILE}"
+          restartPolicy: OnFailure
+---
+# Multi-Region Deployment Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: multi-region-config
+  namespace: dr-system
+data:
+  regions.yaml: |
+    primary:
+      name: us-east-1
+      endpoint: https://k8s-prod-east.example.com
+      priority: 1
+      weight: 60
+      health_check: https://api-east.example.com/health
+    
+    secondary:
+      name: us-west-2
+      endpoint: https://k8s-prod-west.example.com
+      priority: 2
+      weight: 40
+      health_check: https://api-west.example.com/health
+    
+    tertiary:
+      name: eu-west-1
+      endpoint: https://k8s-prod-eu.example.com
+      priority: 3
+      weight: 0  # Standby only
+      health_check: https://api-eu.example.com/health
+---
+# Failover Script ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: failover-scripts
+  namespace: dr-system
+data:
+  dr-failover.sh: |
+    #!/bin/bash
+    set -e
+    
+    REGION=${1:-us-west-2}
+    echo "Initiating failover to region: ${REGION}"
+    
+    # Update Route53 weighted routing
+    aws route53 change-resource-record-sets \
+      --hosted-zone-id Z1234567890ABC \
+      --change-batch file:///scripts/route53-failover.json
+    
+    # Scale up services in secondary region
+    kubectl --context=${REGION} scale deployment --all -n production --replicas=3
+    
+    # Promote database read replica
+    aws rds promote-read-replica \
+      --db-instance-identifier postgres-replica-${REGION} \
+      --region ${REGION}
+    
+    # Warm up cache
+    kubectl --context=${REGION} create job cache-warmer --from=cronjob/cache-warmer -n production
+    
+    # Verify services
+    for service in api-gateway user-service order-service payment-service; do
+      kubectl --context=${REGION} rollout status deployment/${service} -n production
+    done
+    
+    # Update status page
+    curl -X POST https://status.example.com/api/v1/incidents \
+      -H "Authorization: Bearer ${STATUS_PAGE_TOKEN}" \
+      -d '{"status": "recovering", "message": "Failover to '${REGION}' in progress"}'
+    
+    echo "Failover completed successfully"
+  
+  dr-restore.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_ID=${1:-latest}
+    echo "Starting disaster recovery restoration from backup: ${BACKUP_ID}"
+    
+    # Restore Kubernetes resources
+    velero restore create --from-backup ${BACKUP_ID} --wait
+    
+    # Restore database
+    BACKUP_FILE=$(aws s3 ls s3://db-backups-prod/postgres/ | tail -1 | awk '{print $4}')
+    aws s3 cp s3://db-backups-prod/postgres/${BACKUP_FILE} /tmp/
+    gunzip < /tmp/${BACKUP_FILE} | psql -h postgres-primary -U postgres -d production
+    
+    # Restore Redis cache
+    redis-cli --cluster restore redis-cluster:6379 /backups/redis-latest.rdb
+    
+    # Verify data integrity
+    kubectl run integrity-check --rm -it --image=integrity-checker:latest \
+      --command -- /bin/check-data-integrity.sh
+    
+    echo "Restoration completed successfully"

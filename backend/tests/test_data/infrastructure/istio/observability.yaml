@@ -1,0 +1,195 @@
+# Istio Observability Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio-telemetry-config
+  namespace: istio-system
+data:
+  mesh: |
+    defaultConfig:
+      proxyStatsMatcher:
+        inclusionRegexps:
+        - ".*outlier_detection.*"
+        - ".*osconfig.*"
+        - ".*circuit_breakers.*"
+        - ".*upstream_rq_retry.*"
+        - ".*upstream_rq_pending.*"
+        - ".*xds.*"
+        inclusionSuffixes:
+        - "osconfig_request"
+        - "osconfig_request_success"
+        - "osconfig_request_failure"
+---
+# Telemetry configuration
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: default-metrics
+  namespace: istio-system
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+    dimensions:
+      request_protocol: request.protocol | "unknown"
+      response_code: response.code | 200
+      source_workload: source.workload.name | "unknown"
+      source_app: source.labels["app"] | "unknown"
+      destination_service: destination.service.name | "unknown"
+      destination_version: destination.labels["version"] | "unknown"
+  - providers:
+    - name: prometheus
+    dimensions:
+      custom_dimension: request.headers["x-custom-header"] | "unknown"
+    overrides:
+    - match:
+        metric: REQUEST_COUNT
+      tagOverrides:
+        method:
+          value: request.method
+        path:
+          value: request.path
+---
+# Distributed tracing
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-config
+  namespace: istio-system
+data:
+  sampling: |
+    {
+      "service_strategies": [
+        {
+          "service": "api-gateway",
+          "type": "probabilistic",
+          "param": 0.1
+        },
+        {
+          "service": "payment-service",
+          "type": "probabilistic",
+          "param": 1.0
+        }
+      ],
+      "default_strategy": {
+        "type": "probabilistic",
+        "param": 0.01
+      }
+    }
+---
+# Access logging
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: access-log-config
+  namespace: istio-system
+data:
+  access-log-format: |
+    [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%"
+    %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT%
+    "%DOWNSTREAM_REMOTE_ADDRESS%" "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%"
+    "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%"
+    %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-B3-TRACEID)%"
+---
+# Custom metrics
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: custom-metrics
+  namespace: production
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+    dimensions:
+      api_version: request.headers["x-api-version"] | "v1"
+      user_type: request.headers["x-user-type"] | "standard"
+    overrides:
+    - match:
+        metric: REQUEST_COUNT
+      disabled: false
+    - match:
+        metric: REQUEST_DURATION
+      disabled: false
+    - match:
+        metric: TCP_OPENED_CONNECTIONS
+      disabled: true
+---
+# Grafana dashboard configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: istio-system
+data:
+  istio-service-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Istio Service Dashboard",
+        "panels": [
+          {
+            "title": "Request Rate",
+            "targets": [
+              {
+                "expr": "sum(rate(istio_request_total[5m])) by (destination_service_name)"
+              }
+            ]
+          },
+          {
+            "title": "Error Rate",
+            "targets": [
+              {
+                "expr": "sum(rate(istio_request_total{response_code!~\"2..\"}[5m])) by (destination_service_name)"
+              }
+            ]
+          },
+          {
+            "title": "P95 Latency",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket[5m])) by (destination_service_name, le))"
+              }
+            ]
+          },
+          {
+            "title": "Circuit Breaker Trips",
+            "targets": [
+              {
+                "expr": "sum(rate(envoy_cluster_upstream_rq_pending_overflow[5m])) by (cluster_name)"
+              }
+            ]
+          }
+        ]
+      }
+    }
+---
+# Kiali configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kiali-config
+  namespace: istio-system
+data:
+  config.yaml: |
+    auth:
+      strategy: anonymous
+    deployment:
+      accessible_namespaces:
+      - "**"
+    external_services:
+      prometheus:
+        url: http://prometheus:9090
+      grafana:
+        url: http://grafana:3000
+        dashboards:
+        - name: "Istio Service Dashboard"
+          variables:
+            namespace: "var-namespace"
+            service: "var-service"
+      tracing:
+        enabled: true
+        namespace_selector: true
+        url: http://jaeger-query:16686
+    server:
+      metrics_enabled: true
+      metrics_port: 9090

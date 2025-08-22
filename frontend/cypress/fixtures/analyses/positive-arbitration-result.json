@@ -1,0 +1,43 @@
+{
+  "document_id": "doc-1",
+  "has_arbitration": true,
+  "confidence": 0.94,
+  "clause_type": "mandatory_binding",
+  "explanation": "The document contains a comprehensive arbitration clause in Section 15.3 that requires binding arbitration for all disputes. The clause specifies the American Arbitration Association (AAA) as the arbitration body and includes a jury trial waiver.",
+  "keywords": [
+    "arbitration",
+    "binding",
+    "mandatory",
+    "American Arbitration Association",
+    "AAA",
+    "Section 15.3",
+    "jury trial waiver",
+    "disputes"
+  ],
+  "processing_time": 2.1,
+  "arbitration_details": {
+    "arbitration_body": "American Arbitration Association",
+    "location": "New York, NY",
+    "number_of_arbitrators": 1,
+    "language": "English",
+    "expedited": false,
+    "multi_tier": false,
+    "jury_waiver": true,
+    "class_action_waiver": true,
+    "fee_allocation": "each party bears own costs",
+    "appeal_rights": "limited"
+  },
+  "clause_text": "Any dispute, claim, or controversy arising out of or relating to this Agreement shall be settled by binding arbitration administered by the American Arbitration Association (AAA) in accordance with its Commercial Arbitration Rules. The parties hereby waive their right to trial by jury and agree that any arbitration award shall be final and binding.",
+  "clause_location": {
+    "section": "15.3",
+    "page": 12,
+    "paragraph": 3
+  },
+  "confidence_breakdown": {
+    "keyword_strength": 0.92,
+    "context_clarity": 0.95,
+    "legal_terminology": 0.96,
+    "clause_completeness": 0.93
+  },
+  "timestamp": "2024-01-15T14:30:25Z"
+}

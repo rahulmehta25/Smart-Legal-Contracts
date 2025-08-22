@@ -1,0 +1,70 @@
+{
+  "short_name": "Arbitration Detector",
+  "name": "Arbitration Clause Detector - AI Legal Document Analysis",
+  "description": "AI-powered arbitration clause detection and analysis for legal documents",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#3b82f6",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["legal", "productivity", "business"],
+  "lang": "en",
+  "scope": "/",
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshot-narrow.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Upload Document",
+      "short_name": "Upload",
+      "description": "Upload a new legal document for analysis",
+      "url": "/?action=upload",
+      "icons": [
+        {
+          "src": "upload-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "View Results",
+      "short_name": "Results", 
+      "description": "View recent analysis results",
+      "url": "/?action=results",
+      "icons": [
+        {
+          "src": "results-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

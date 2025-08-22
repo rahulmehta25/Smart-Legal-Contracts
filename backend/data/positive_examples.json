@@ -1,0 +1,72 @@
+{
+  "arbitration_clauses": [
+    {
+      "id": "example_001",
+      "text": "Any dispute arising out of or relating to these Terms of Service, including the breach, termination, enforcement, interpretation or validity thereof, shall be determined by binding arbitration in San Francisco, California, before one arbitrator. The arbitration shall be administered by JAMS pursuant to its Comprehensive Arbitration Rules and Procedures. Judgment on the Award may be entered in any court having jurisdiction. This clause shall not preclude parties from seeking provisional remedies in aid of arbitration from a court of appropriate jurisdiction.",
+      "type": "binding",
+      "provider": "JAMS",
+      "location": "San Francisco, California",
+      "features": ["binding", "location_specified", "provider_specified", "comprehensive_rules"]
+    },
+    {
+      "id": "example_002",
+      "text": "You and the Company agree that any dispute, claim or controversy arising out of or relating to these Terms or the breach, termination, enforcement, interpretation or validity thereof or the use of the Service (collectively, 'Disputes') will be settled by binding arbitration, except that each party retains the right: (i) to bring an individual action in small claims court and (ii) to seek injunctive or other equitable relief in a court of competent jurisdiction. You acknowledge and agree that you and the Company are each waiving the right to a trial by jury or to participate as a plaintiff or class member in any purported class action or representative proceeding.",
+      "type": "binding",
+      "features": ["binding", "jury_trial_waiver", "class_action_waiver", "small_claims_exception"]
+    },
+    {
+      "id": "example_003",
+      "text": "PLEASE READ THIS SECTION CAREFULLY. IT AFFECTS YOUR LEGAL RIGHTS. You agree that all disputes between you and us will be resolved by BINDING ARBITRATION. You GIVE UP YOUR RIGHT TO GO TO COURT to assert or defend your rights. You also GIVE UP YOUR RIGHT TO PARTICIPATE IN A CLASS ACTION OR OTHER CLASS PROCEEDING. Your rights will be determined by a NEUTRAL ARBITRATOR and NOT a judge or jury. You are entitled to a FAIR HEARING, but the arbitration procedures are SIMPLER AND MORE LIMITED THAN RULES APPLICABLE IN COURT.",
+      "type": "binding",
+      "features": ["binding", "emphasized_text", "jury_trial_waiver", "class_action_waiver", "court_waiver"]
+    },
+    {
+      "id": "example_004",
+      "text": "All claims and disputes arising under or relating to this Agreement are to be settled by binding arbitration in the state of Delaware or another location mutually agreeable to the parties. An award of arbitration may be confirmed in a court of competent jurisdiction. The arbitration shall be conducted on a confidential basis pursuant to the Commercial Arbitration Rules of the American Arbitration Association.",
+      "type": "binding",
+      "provider": "AAA",
+      "location": "Delaware",
+      "features": ["binding", "AAA_rules", "confidential", "location_specified"]
+    },
+    {
+      "id": "example_005",
+      "text": "Except for disputes in which either party seeks to bring an individual action in small claims court or seeks injunctive or other equitable relief for the alleged unlawful use of intellectual property, YOU AND COMPANY WAIVE YOUR RIGHTS TO A JURY TRIAL AND TO HAVE ANY DISPUTE ARISING OUT OF OR RELATED TO THESE TERMS OR OUR SERVICES RESOLVED IN COURT. Instead, all disputes arising out of or relating to these Terms or our Services will be resolved through mandatory binding arbitration.",
+      "type": "mandatory",
+      "features": ["mandatory", "binding", "jury_trial_waiver", "IP_exception", "small_claims_exception"]
+    },
+    {
+      "id": "example_006",
+      "text": "Any controversy or claim arising out of or relating to this contract, or the breach thereof, shall be settled by arbitration administered by the American Arbitration Association in accordance with its Commercial Arbitration Rules, and judgment on the award rendered by the arbitrator(s) may be entered in any court having jurisdiction thereof. The place of arbitration shall be New York, New York. The arbitration shall be governed by the laws of the State of New York.",
+      "type": "binding",
+      "provider": "AAA",
+      "location": "New York, New York",
+      "governing_law": "New York",
+      "features": ["binding", "AAA_commercial_rules", "location_specified", "governing_law"]
+    },
+    {
+      "id": "example_007",
+      "text": "YOU UNDERSTAND AND AGREE THAT BY ENTERING INTO THIS AGREEMENT, YOU AND COMPANY ARE EACH WAIVING THE RIGHT TO TRIAL BY JURY OR TO PARTICIPATE IN A CLASS ACTION. Any arbitration under this Agreement will take place on an individual basis; class arbitrations and class actions are not permitted. Company and you agree that each may bring claims against the other only in your or its individual capacity and not as a plaintiff or class member in any purported class or representative action.",
+      "type": "binding",
+      "features": ["binding", "individual_only", "class_action_prohibition", "jury_waiver", "emphasized"]
+    },
+    {
+      "id": "example_008",
+      "text": "If a dispute arises between you and the Company, our goal is to provide you with a neutral and cost-effective means of resolving the dispute quickly. Accordingly, you and the Company agree that any dispute, controversy or claim arising under or in connection with this Agreement shall be finally settled under the Rules of Arbitration of the International Chamber of Commerce by one or more arbitrators appointed in accordance with the said Rules.",
+      "type": "binding",
+      "provider": "ICC",
+      "features": ["binding", "ICC_rules", "cost_effective", "international"]
+    },
+    {
+      "id": "example_009",
+      "text": "This Agreement contains a mandatory individual arbitration and class action/jury trial waiver provision that requires the use of arbitration on an individual basis to resolve disputes, rather than jury trials or class actions. By accepting this Agreement, you expressly acknowledge that you have read and understand all of the terms of this Agreement and have taken time to consider the consequences of this important decision.",
+      "type": "mandatory",
+      "features": ["mandatory", "individual_arbitration", "class_waiver", "jury_waiver", "acknowledgment"]
+    },
+    {
+      "id": "example_010",
+      "text": "Binding Arbitration. Except as otherwise provided herein, if you have a dispute with us, you agree to first contact us and attempt to resolve the dispute informally. If we are unable to resolve the dispute informally, any dispute, claim or controversy arising out of or relating to this Agreement shall be resolved through binding arbitration conducted by telephone, online or based solely on written submissions where no in-person appearance is required.",
+      "type": "binding",
+      "features": ["binding", "informal_resolution_first", "remote_arbitration", "written_submissions"]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+ACCORD DE LICENCE LOGICIEL
+
+Cet Accord de Licence Logiciel ("Accord") est conclu entre TechCorp Inc., une société du Delaware ("Société"), et l'utilisateur final ("Utilisateur") du produit logiciel.
+
+1. OCTROI DE LICENCE
+La Société accorde par les présentes à l'Utilisateur une licence non exclusive et non transférable d'utiliser le logiciel sous réserve des termes et conditions de cet Accord.
+
+2. RESTRICTIONS
+L'Utilisateur ne peut pas copier, modifier, distribuer, vendre ou procéder à l'ingénierie inverse du logiciel sans le consentement écrit préalable de la Société.
+
+3. SUPPORT ET MAINTENANCE
+La Société fournira un support technique et des mises à jour logicielles pour une période d'un an à compter de la date d'achat.
+
+4. EXCLUSION DE GARANTIE
+LE LOGICIEL EST FOURNI "EN L'ÉTAT" SANS GARANTIE D'AUCUNE SORTE. LA SOCIÉTÉ DÉCLINE TOUTES LES GARANTIES, EXPRESSES OU IMPLICITES, Y COMPRIS MAIS SANS S'Y LIMITER AUX GARANTIES DE QUALITÉ MARCHANDE ET D'ADÉQUATION À UN USAGE PARTICULIER.
+
+5. LIMITATION DE RESPONSABILITÉ
+EN AUCUN CAS LA SOCIÉTÉ NE SERA RESPONSABLE DE DOMMAGES INDIRECTS, ACCESSOIRES, SPÉCIAUX OU CONSÉCUTIFS DÉCOULANT DE L'UTILISATION DU LOGICIEL.
+
+6. RÉSOLUTION DES DIFFÉRENDS
+Tout différend, controverse ou réclamation découlant de ou se rapportant à cet Accord, ou à la violation, résiliation ou validité de celui-ci, sera réglé par arbitrage final et contraignant administré par l'Association Américaine d'Arbitrage (AAA) sous ses Règles d'Arbitrage Commercial. L'arbitrage sera conduit par un seul arbitre à San Francisco, Californie. Les parties renoncent par les présentes à tout droit à un procès devant jury et conviennent que la sentence arbitrale sera finale et contraignante pour les deux parties.
+
+7. RENONCIATION À L'ACTION COLLECTIVE
+L'Utilisateur accepte que tout arbitrage soit conduit uniquement en capacité individuelle de l'Utilisateur et non comme une action collective ou autre action représentative, et l'Utilisateur renonce expressément à tout droit de déposer une action collective ou de chercher réparation sur une base collective.
+
+8. LOI APPLICABLE
+Cet Accord sera régi par et interprété conformément aux lois de l'État de Californie, sans égard à ses dispositions de conflit de lois.
+
+9. ACCORD COMPLET
+Cet Accord constitue l'accord complet entre les parties et remplace toutes les négociations, représentations ou accords antérieurs relatifs à l'objet des présentes.
+
+EN FOI DE QUOI, les parties ont exécuté cet Accord à la date mentionnée ci-dessus.
+
+TECHCORP INC.
+
+Par: _________________________
+Nom: John Smith
+Titre: Directeur Général

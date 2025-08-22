@@ -1,0 +1,40 @@
+{
+    "version": "1.0.0",
+    "last_updated": "2025-08-22",
+    "sections": {
+        "jurisdictions": {
+            "description": "Comprehensive jurisdiction mapping",
+            "files": [
+                "jurisdictions.json",
+                "legal_systems.json"
+            ]
+        },
+        "regulations": {
+            "description": "Global regulatory frameworks",
+            "files": [
+                "gdpr_guidelines.json",
+                "ccpa_compliance.json",
+                "hipaa_rules.json"
+            ]
+        },
+        "standard_clauses": {
+            "description": "Reusable legal clause library",
+            "files": [
+                "data_processing_clauses.json",
+                "confidentiality_terms.json",
+                "service_level_agreements.json"
+            ]
+        }
+    },
+    "metadata": {
+        "primary_jurisdictions": [
+            "US", "EU", "UK", "CA", "AU"
+        ],
+        "supported_industries": [
+            "Technology", 
+            "Finance", 
+            "Healthcare", 
+            "E-commerce"
+        ]
+    }
+}

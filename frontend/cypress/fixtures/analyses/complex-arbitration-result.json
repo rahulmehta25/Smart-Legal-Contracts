@@ -1,0 +1,75 @@
+{
+  "document_id": "doc-complex",
+  "has_arbitration": true,
+  "confidence": 0.97,
+  "clause_type": "multi_tier_international",
+  "explanation": "The document contains a sophisticated multi-tier dispute resolution process with mandatory arbitration as the final step. The process begins with direct negotiation, proceeds to mediation through CPR, and culminates in binding arbitration under ICC rules with a three-arbitrator panel seated in Geneva, Switzerland.",
+  "keywords": [
+    "multi-tier dispute resolution",
+    "binding arbitration",
+    "ICC International Court of Arbitration",
+    "three arbitrators",
+    "Geneva, Switzerland",
+    "CPR mediation",
+    "international arbitration",
+    "English language",
+    "final and binding"
+  ],
+  "processing_time": 3.4,
+  "arbitration_details": {
+    "arbitration_body": "ICC International Court of Arbitration",
+    "location": "Geneva, Switzerland",
+    "number_of_arbitrators": 3,
+    "language": "English",
+    "expedited": false,
+    "multi_tier": true,
+    "jury_waiver": true,
+    "class_action_waiver": false,
+    "governing_law": "Swiss law",
+    "seat_of_arbitration": "Geneva, Switzerland",
+    "arbitrator_selection": "party appointment with chairman selection",
+    "institutional_rules": "ICC Arbitration Rules 2021"
+  },
+  "multi_tier_process": [
+    {
+      "step": 1,
+      "type": "direct_negotiation",
+      "duration": "30 days",
+      "description": "Good faith negotiations between parties"
+    },
+    {
+      "step": 2,
+      "type": "mediation",
+      "duration": "60 days",
+      "description": "Mediation administered by CPR International",
+      "institution": "CPR International Institute for Conflict Prevention & Resolution"
+    },
+    {
+      "step": 3,
+      "type": "arbitration",
+      "duration": "as required",
+      "description": "Final and binding arbitration under ICC Rules",
+      "institution": "ICC International Court of Arbitration"
+    }
+  ],
+  "clause_text": "DISPUTE RESOLUTION: Any dispute arising out of or in connection with this contract shall be settled according to the following procedure: (1) Direct negotiation between parties for thirty (30) days; (2) If unresolved, mediation administered by CPR International for sixty (60) days; (3) If mediation fails, final and binding arbitration under the Rules of Arbitration of the International Chamber of Commerce by three arbitrators, with the seat of arbitration in Geneva, Switzerland, and proceedings conducted in English.",
+  "clause_location": {
+    "section": "Article 23",
+    "page": 45,
+    "paragraph": 1
+  },
+  "confidence_breakdown": {
+    "keyword_strength": 0.98,
+    "context_clarity": 0.97,
+    "legal_terminology": 0.99,
+    "clause_completeness": 0.96,
+    "institutional_clarity": 0.98
+  },
+  "international_aspects": {
+    "cross_border": true,
+    "institutional_arbitration": true,
+    "seat_jurisdiction": "Switzerland",
+    "enforcement_considerations": "New York Convention applicable"
+  },
+  "timestamp": "2024-01-15T14:35:42Z"
+}

@@ -1,0 +1,298 @@
+{
+  "test_documents": {
+    "contracts": {
+      "software_licenses": [
+        {
+          "file": "contracts/software_license_en.txt",
+          "language": "en",
+          "legal_system": "common_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": true,
+          "complexity": "standard",
+          "test_scenarios": [
+            "clear_arbitration_clause",
+            "class_action_waiver",
+            "jury_trial_waiver",
+            "institutional_arbitration"
+          ]
+        },
+        {
+          "file": "contracts/software_license_es.txt",
+          "language": "es",
+          "legal_system": "civil_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": true,
+          "complexity": "standard",
+          "test_scenarios": [
+            "translation_accuracy",
+            "legal_term_preservation",
+            "cross_lingual_detection"
+          ]
+        },
+        {
+          "file": "contracts/software_license_fr.txt",
+          "language": "fr",
+          "legal_system": "civil_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": false,
+          "complexity": "standard",
+          "test_scenarios": [
+            "french_legal_terminology",
+            "civil_law_arbitration",
+            "jurisdiction_mapping"
+          ]
+        },
+        {
+          "file": "contracts/software_license_de.txt",
+          "language": "de",
+          "legal_system": "civil_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": true,
+          "complexity": "standard",
+          "test_scenarios": [
+            "german_compound_terms",
+            "schiedsverfahren_detection",
+            "binding_translation"
+          ]
+        },
+        {
+          "file": "contracts/software_license_zh_cn.txt",
+          "language": "zh-cn",
+          "legal_system": "civil_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": true,
+          "complexity": "standard",
+          "test_scenarios": [
+            "chinese_character_detection",
+            "cjk_arbitration_terms",
+            "ideographic_processing"
+          ]
+        },
+        {
+          "file": "contracts/software_license_ja.txt",
+          "language": "ja",
+          "legal_system": "civil_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": true,
+          "complexity": "standard",
+          "test_scenarios": [
+            "japanese_arbitration_terms",
+            "hiragana_katakana_detection",
+            "japanese_legal_concepts"
+          ]
+        }
+      ]
+    },
+    "terms_of_service": {
+      "saas_agreements": [
+        {
+          "file": "terms_of_service/saas_terms_en.txt",
+          "language": "en",
+          "legal_system": "common_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": true,
+          "opt_out_provision": true,
+          "complexity": "detailed",
+          "test_scenarios": [
+            "comprehensive_arbitration_clause",
+            "opt_out_mechanism",
+            "consumer_arbitration_rules",
+            "detailed_waiver_language"
+          ]
+        }
+      ]
+    },
+    "negative_examples": {
+      "privacy_policies": [
+        {
+          "file": "negative_examples/privacy_policy_en.txt",
+          "language": "en",
+          "legal_system": "common_law",
+          "arbitration_present": false,
+          "arbitration_type": null,
+          "institution": null,
+          "class_action_waiver": false,
+          "jury_waiver": false,
+          "complexity": "standard",
+          "test_scenarios": [
+            "no_arbitration_clause",
+            "false_positive_prevention",
+            "privacy_vs_arbitration"
+          ]
+        }
+      ]
+    },
+    "complex_scenarios": {
+      "hidden_arbitration": [
+        {
+          "file": "complex_scenarios/hidden_arbitration_en.txt",
+          "language": "en",
+          "legal_system": "common_law",
+          "arbitration_present": true,
+          "arbitration_type": "binding",
+          "institution": "AAA",
+          "class_action_waiver": true,
+          "jury_waiver": true,
+          "complexity": "very_high",
+          "arbitration_location": "section_h_subsection_24",
+          "test_scenarios": [
+            "buried_arbitration_clause",
+            "dense_legal_text",
+            "complex_document_structure",
+            "multi_section_analysis",
+            "sophisticated_language"
+          ]
+        }
+      ]
+    }
+  },
+  "test_scenarios": {
+    "language_detection": {
+      "description": "Test accuracy of language detection across different scripts and languages",
+      "test_cases": [
+        "single_language_documents",
+        "mixed_language_content",
+        "short_text_detection",
+        "character_based_fallback",
+        "confidence_scoring"
+      ]
+    },
+    "translation_quality": {
+      "description": "Validate translation accuracy and legal term preservation",
+      "test_cases": [
+        "legal_term_preservation",
+        "context_aware_translation",
+        "jurisdiction_specific_terminology",
+        "batch_translation_consistency",
+        "translation_confidence_scoring"
+      ]
+    },
+    "arbitration_detection": {
+      "description": "Test arbitration clause detection across languages and legal systems",
+      "test_cases": [
+        "clear_arbitration_clauses",
+        "hidden_arbitration_clauses",
+        "conditional_arbitration",
+        "multi_tier_dispute_resolution",
+        "cross_lingual_pattern_matching"
+      ]
+    },
+    "cross_lingual_similarity": {
+      "description": "Test similarity scoring between equivalent clauses in different languages",
+      "test_cases": [
+        "equivalent_clause_matching",
+        "cross_lingual_embedding_alignment",
+        "semantic_similarity_across_languages",
+        "legal_concept_mapping"
+      ]
+    },
+    "performance_testing": {
+      "description": "Benchmark performance across different languages and document sizes",
+      "test_cases": [
+        "processing_time_by_language",
+        "memory_usage_optimization",
+        "batch_processing_efficiency",
+        "cache_effectiveness",
+        "model_loading_time"
+      ]
+    },
+    "edge_cases": {
+      "description": "Test handling of edge cases and error conditions",
+      "test_cases": [
+        "unsupported_languages",
+        "corrupted_text_handling",
+        "extremely_long_documents",
+        "mixed_scripts_in_single_document",
+        "translation_failures"
+      ]
+    }
+  },
+  "legal_systems": {
+    "common_law": {
+      "languages": ["en"],
+      "characteristics": [
+        "precedent_based",
+        "adversarial_system",
+        "jury_trials",
+        "broad_arbitrator_powers"
+      ],
+      "arbitration_features": [
+        "AAA_rules_common",
+        "JAMS_popular",
+        "class_action_waivers_typical",
+        "jury_trial_waivers_common"
+      ]
+    },
+    "civil_law": {
+      "languages": ["es", "fr", "de", "zh-cn", "ja", "pt", "it", "ru", "ko"],
+      "characteristics": [
+        "codified_law",
+        "inquisitorial_system",
+        "formal_procedures",
+        "limited_discovery"
+      ],
+      "arbitration_features": [
+        "ICC_rules_common",
+        "formal_procedures_required",
+        "judicial_assistance_available",
+        "compensatory_damages_focus"
+      ]
+    },
+    "islamic_law": {
+      "languages": ["ar"],
+      "characteristics": [
+        "sharia_based",
+        "mediation_emphasis",
+        "religious_foundation",
+        "community_resolution"
+      ],
+      "arbitration_features": [
+        "sharia_compliance_required",
+        "mediation_preferred",
+        "religious_arbitrators",
+        "moral_considerations"
+      ]
+    }
+  },
+  "quality_metrics": {
+    "detection_accuracy": {
+      "target_precision": 0.95,
+      "target_recall": 0.92,
+      "target_f1_score": 0.93,
+      "false_positive_rate_max": 0.05
+    },
+    "translation_quality": {
+      "legal_term_preservation_rate": 0.98,
+      "semantic_similarity_threshold": 0.85,
+      "fluency_score_minimum": 0.80,
+      "context_preservation_rate": 0.90
+    },
+    "performance_benchmarks": {
+      "max_processing_time_per_document": "5s",
+      "max_memory_usage": "2GB",
+      "cache_hit_ratio_target": 0.80,
+      "concurrent_requests_supported": 100
+    }
+  }
+}

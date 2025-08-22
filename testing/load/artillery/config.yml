@@ -1,0 +1,351 @@
+# Artillery.io Load Testing Configuration
+# Enterprise-scale testing with 10,000+ virtual users
+
+config:
+  target: "http://localhost:8000"
+  
+  # Phases for load testing
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm-up"
+    
+    # Ramp-up phase
+    - duration: 300
+      arrivalRate: 10
+      rampTo: 100
+      name: "Ramp-up to 100 RPS"
+    
+    # Sustained load
+    - duration: 600
+      arrivalRate: 100
+      name: "Sustained 100 RPS"
+    
+    # Spike test
+    - duration: 60
+      arrivalRate: 500
+      name: "Spike to 500 RPS"
+    
+    # Recovery
+    - duration: 120
+      arrivalRate: 50
+      name: "Recovery phase"
+  
+  # Processor for custom logic
+  processor: "./processor.js"
+  
+  # Plugins
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+    publish-metrics:
+      - type: statsd
+        host: localhost
+        port: 8125
+        prefix: "artillery"
+    
+  # Environment variables
+  environments:
+    staging:
+      target: "https://staging.example.com"
+      phases:
+        - duration: 300
+          arrivalRate: 50
+    production:
+      target: "https://api.example.com"
+      phases:
+        - duration: 600
+          arrivalRate: 200
+  
+  # Default headers
+  defaults:
+    headers:
+      User-Agent: "Artillery/LoadTest"
+      Accept: "application/json"
+  
+  # Connection settings
+  http:
+    timeout: 30
+    pool: 100  # Connection pool size
+  
+  # WebSocket settings
+  ws:
+    rejectUnauthorized: false
+    
+  # Variables
+  variables:
+    baseUrl: "{{ $processEnvironment.BASE_URL }}"
+    testDuration: 1200
+
+# Scenarios
+scenarios:
+  # User authentication and dashboard flow
+  - name: "User Journey"
+    weight: 40
+    flow:
+      # Login
+      - post:
+          url: "/api/auth/login"
+          json:
+            username: "{{ $randomString(8) }}@example.com"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.userId"
+              as: "userId"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: token
+      
+      # Set auth header for subsequent requests
+      - function: "setAuthHeader"
+      
+      # Load dashboard
+      - get:
+          url: "/api/dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - responseTime:
+                - max: 500  # Max 500ms response time
+      
+      # View reports
+      - get:
+          url: "/api/reports/{{ $randomItem(reportTypes) }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      
+      # Search
+      - get:
+          url: "/api/search"
+          qs:
+            q: "{{ $randomItem(searchTerms) }}"
+            limit: 50
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: results
+      
+      # Think time
+      - think: 2
+  
+  # CRUD operations scenario
+  - name: "CRUD Operations"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            username: "admin@example.com"
+            password: "admin123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Create entity
+      - post:
+          url: "/api/entities"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Entity_{{ $randomNumber(1, 10000) }}"
+            type: "{{ $randomItem(entityTypes) }}"
+            value: "{{ $randomNumber(100, 10000) }}"
+            metadata:
+              created_at: "{{ $timestamp() }}"
+          capture:
+            - json: "$.id"
+              as: "entityId"
+          expect:
+            - statusCode: 201
+      
+      # Read entity
+      - get:
+          url: "/api/entities/{{ entityId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      
+      # Update entity
+      - put:
+          url: "/api/entities/{{ entityId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            value: "{{ $randomNumber(100, 5000) }}"
+            updated_at: "{{ $timestamp() }}"
+          expect:
+            - statusCode: 200
+      
+      # Delete entity
+      - delete:
+          url: "/api/entities/{{ entityId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 204
+  
+  # Analytics and aggregation scenario
+  - name: "Analytics"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            username: "analyst@example.com"
+            password: "analyst123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Complex aggregation
+      - post:
+          url: "/api/analytics/aggregate"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            start_date: "2024-01-01"
+            end_date: "2024-12-31"
+            group_by: "{{ $randomItem(groupByOptions) }}"
+            metrics:
+              - revenue
+              - users
+              - transactions
+            filters:
+              region: "{{ $randomItem(regions) }}"
+              product_category: "{{ $randomItem(categories) }}"
+          expect:
+            - statusCode: 200
+            - responseTime:
+                - max: 2000  # Complex queries allowed up to 2s
+      
+      # Export report
+      - post:
+          url: "/api/analytics/export"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            format: "{{ $randomItem(exportFormats) }}"
+            include_charts: true
+          expect:
+            - statusCode: 202  # Accepted for async processing
+  
+  # File operations scenario
+  - name: "File Operations"
+    weight: 5
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            username: "user@example.com"
+            password: "user123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Upload file
+      - post:
+          url: "/api/files/upload"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          formData:
+            file:
+              value: "{{ $randomBytes(1048576) }}"  # 1MB file
+              options:
+                filename: "test_{{ $randomString(8) }}.dat"
+                contentType: "application/octet-stream"
+          capture:
+            - json: "$.fileId"
+              as: "fileId"
+          expect:
+            - statusCode: 200
+      
+      # Download file
+      - get:
+          url: "/api/files/{{ fileId }}/download"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+  
+  # WebSocket scenario
+  - name: "WebSocket Real-time"
+    weight: 5
+    engine: "ws"
+    flow:
+      - connect:
+          target: "ws://localhost:8000/ws"
+      
+      - send:
+          data:
+            type: "subscribe"
+            channel: "updates"
+            userId: "{{ $randomNumber(1, 10000) }}"
+      
+      - think: 5
+      
+      - loop:
+          count: 10
+          steps:
+            - send:
+                data:
+                  type: "message"
+                  content: "Test message {{ $loopCount }}"
+            - think: 1
+      
+      - send:
+          data:
+            type: "unsubscribe"
+            channel: "updates"
+
+# Custom variables
+payload:
+  reportTypes:
+    - "sales"
+    - "performance"
+    - "users"
+    - "inventory"
+  
+  searchTerms:
+    - "product"
+    - "user"
+    - "order"
+    - "report"
+    - "analytics"
+  
+  entityTypes:
+    - "TypeA"
+    - "TypeB"
+    - "TypeC"
+  
+  groupByOptions:
+    - "day"
+    - "week"
+    - "month"
+    - "quarter"
+  
+  regions:
+    - "North"
+    - "South"
+    - "East"
+    - "West"
+  
+  categories:
+    - "Electronics"
+    - "Clothing"
+    - "Food"
+    - "Books"
+  
+  exportFormats:
+    - "csv"
+    - "excel"
+    - "pdf"
+    - "json"

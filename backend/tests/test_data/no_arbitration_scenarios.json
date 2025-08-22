@@ -1,0 +1,25 @@
+{
+  "category": "no_arbitration",
+  "scenario_count": 1,
+  "scenarios": [
+    {
+      "id": "negative_001",
+      "name": "Court Jurisdiction Only",
+      "description": "Document specifying court jurisdiction without arbitration",
+      "document_text": "DISPUTE RESOLUTION\n            \n            Any disputes arising under this agreement shall be resolved exclusively \n            in the state and federal courts located in New York County, New York. \n            The parties hereby consent to the personal jurisdiction of such courts \n            and waive any objection to venue in such courts. Each party shall bear \n            its own attorney's fees and costs.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.05,
+        "clause_type": null,
+        "keywords": [],
+        "jurisdiction": "New York County, New York",
+        "court_selection": true
+      },
+      "difficulty_level": "easy",
+      "tags": [
+        "court_jurisdiction",
+        "no_arbitration"
+      ]
+    }
+  ]
+}

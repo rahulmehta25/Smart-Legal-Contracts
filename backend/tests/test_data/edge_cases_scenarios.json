@@ -1,0 +1,24 @@
+{
+  "category": "edge_cases",
+  "scenario_count": 1,
+  "scenarios": [
+    {
+      "id": "edge_001",
+      "name": "Special Characters Document",
+      "description": "Document with Unicode and special characters",
+      "document_text": "ACUERDO DE ARBITRAJE / ARBITRATION AGREEMENT\n            \n            Cualquier disputa será resuelta mediante arbitraje vinculante / \n            Any dispute shall be resolved through binding arbitration administered \n            by the American Arbitration Association (AAA) in accordance with its \n            Commercial Rules.\n            \n            Special characters test: àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n            Currency symbols: $ € £ ¥ ₹\n            Mathematical: ∑ ∆ π ∞ ≤ ≥ ≠",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.88,
+        "clause_type": "mandatory_binding",
+        "unicode_handling": true
+      },
+      "difficulty_level": "medium",
+      "tags": [
+        "unicode",
+        "special_characters",
+        "multilingual"
+      ]
+    }
+  ]
+}

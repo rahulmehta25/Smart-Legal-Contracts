@@ -1,0 +1,28 @@
+{
+  "category": "false_positive_prevention",
+  "scenario_count": 1,
+  "scenarios": [
+    {
+      "id": "false_pos_001",
+      "name": "Financial Arbitrage Terms",
+      "description": "Document using arbitrage in financial context",
+      "document_text": "INVESTMENT STRATEGY\n            \n            The fund manager may engage in arbitrage strategies to exploit price \n            differentials in various markets. These arbitrage opportunities may include \n            currency arbitrage, merger arbitrage, and statistical arbitrage. The \n            arbitrage desk will operate under strict risk management protocols.\n            \n            Any disputes arising under this investment agreement shall be resolved \n            in the courts of New York.",
+      "expected_result": {
+        "has_arbitration": false,
+        "confidence": 0.05,
+        "clause_type": null,
+        "keywords": [
+          "arbitrage"
+        ],
+        "financial_context": true,
+        "court_jurisdiction": true
+      },
+      "difficulty_level": "medium",
+      "tags": [
+        "arbitrage",
+        "financial",
+        "false_positive"
+      ]
+    }
+  ]
+}

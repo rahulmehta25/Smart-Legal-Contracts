@@ -1,0 +1,19 @@
+{
+  "total_scenarios": 9,
+  "categories": {
+    "clear_arbitration": 2,
+    "hidden_arbitration": 1,
+    "no_arbitration": 1,
+    "ambiguous": 1,
+    "false_positive_prevention": 1,
+    "complex_arbitration": 1,
+    "performance": 1,
+    "edge_cases": 1
+  },
+  "difficulty_distribution": {
+    "easy": 2,
+    "medium": 5,
+    "hard": 1,
+    "expert": 1
+  }
+}

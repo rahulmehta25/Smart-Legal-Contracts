@@ -1,0 +1,146 @@
+{
+  "large_documents": [
+    {
+      "id": "large_001",
+      "filename": "comprehensive_services_agreement.txt",
+      "description": "Large document with arbitration clause buried deep in text",
+      "size_pages": 50,
+      "arbitration_present": true,
+      "arbitration_location": "page 47, section 23.5",
+      "content_preview": "This is a comprehensive services agreement containing 50 pages of detailed terms...",
+      "expected_processing_time_seconds": 5.0,
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.88,
+        "clause_type": "mandatory_binding"
+      }
+    },
+    {
+      "id": "large_002", 
+      "filename": "complex_merger_agreement.txt",
+      "description": "Very large merger agreement with multiple arbitration references",
+      "size_pages": 150,
+      "arbitration_present": true,
+      "arbitration_location": "multiple sections",
+      "content_preview": "MERGER AND ACQUISITION AGREEMENT between Company A and Company B...",
+      "expected_processing_time_seconds": 12.0,
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.94,
+        "clause_type": "complex_multi_tier"
+      }
+    }
+  ],
+  
+  "stress_test_documents": [
+    {
+      "id": "stress_001",
+      "filename": "repetitive_arbitration_text.txt", 
+      "description": "Document with arbitration keyword repeated many times",
+      "keyword_count": {
+        "arbitration": 500,
+        "binding": 200,
+        "dispute": 300
+      },
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.99,
+        "processing_should_not_timeout": true
+      }
+    },
+    {
+      "id": "stress_002",
+      "filename": "minimal_punctuation.txt",
+      "description": "Document with minimal punctuation and formatting",
+      "content_preview": "arbitration clause binding disputes resolved through arbitration no periods commas or structure just continuous text with arbitration terms scattered throughout",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.75,
+        "robustness_test": true
+      }
+    }
+  ],
+  
+  "encoding_test_documents": [
+    {
+      "id": "encoding_001",
+      "filename": "unicode_arbitration.txt",
+      "description": "Document with Unicode characters and arbitration clause",
+      "content_preview": "Arbitratiön Agreement with special characters: ñoño, café, résumé. Binding arbitration required for all disputes.",
+      "encoding": "utf-8",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.90,
+        "unicode_handling": true
+      }
+    },
+    {
+      "id": "encoding_002",
+      "filename": "mixed_encoding.txt",
+      "description": "Document with mixed encoding issues",
+      "content_preview": "Contract with encoding issues: â€™arbitrationâ€™ clause for dispute resolution",
+      "encoding": "mixed",
+      "expected_result": {
+        "has_arbitration": true,
+        "confidence": 0.70,
+        "encoding_robustness": true
+      }
+    }
+  ],
+  
+  "performance_benchmarks": {
+    "small_document": {
+      "size_words": 100,
+      "max_processing_time_ms": 100,
+      "target_accuracy": 0.95
+    },
+    "medium_document": {
+      "size_words": 1000,
+      "max_processing_time_ms": 500,
+      "target_accuracy": 0.92
+    },
+    "large_document": {
+      "size_words": 10000,
+      "max_processing_time_ms": 2000,
+      "target_accuracy": 0.88
+    },
+    "very_large_document": {
+      "size_words": 50000,
+      "max_processing_time_ms": 8000,
+      "target_accuracy": 0.85
+    }
+  },
+  
+  "concurrent_processing_tests": {
+    "light_load": {
+      "concurrent_requests": 5,
+      "documents_per_request": 1,
+      "max_total_time_seconds": 3.0
+    },
+    "medium_load": {
+      "concurrent_requests": 20,
+      "documents_per_request": 1,
+      "max_total_time_seconds": 8.0
+    },
+    "heavy_load": {
+      "concurrent_requests": 50,
+      "documents_per_request": 2,
+      "max_total_time_seconds": 15.0
+    }
+  },
+  
+  "memory_usage_tests": {
+    "baseline_memory_mb": 100,
+    "max_memory_increase_mb": 500,
+    "memory_leak_threshold_mb": 50,
+    "gc_frequency_documents": 100
+  },
+  
+  "accuracy_test_suite": {
+    "precision_target": 0.85,
+    "recall_target": 0.88,
+    "f1_score_target": 0.86,
+    "false_positive_rate_max": 0.10,
+    "false_negative_rate_max": 0.12
+  }
+}
