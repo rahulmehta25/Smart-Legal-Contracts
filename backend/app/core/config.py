@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
+from functools import lru_cache
 import os
 
 
@@ -15,20 +16,31 @@ class Settings(BaseSettings):
     
     # Server
     host: str = "0.0.0.0"
-    port: int = 8000
+    port: int = int(os.getenv("PORT", "8000"))
     
-    # Database
-    database_url: str = "sqlite:///./arbitration_rag.db"
+    # Environment detection
+    environment: str = os.getenv("ENVIRONMENT", "production")
+    
+    # Database - Production ready
+    database_url: str = os.getenv(
+        "DATABASE_URL", 
+        "postgresql://user:password@localhost:5432/arbitration_db"
+    )
+    database_pool_size: int = 10
+    database_max_overflow: int = 20
+    database_pool_timeout: int = 30
+    database_pool_recycle: int = 3600
     
     # Vector Store
     vector_store_path: str = "./chroma_db"
     vector_collection_name: str = "arbitration_docs"
     embedding_model: str = "all-MiniLM-L6-v2"
     
-    # Security
-    secret_key: str = "your-secret-key-change-in-production"
+    # Security - Production secure defaults
+    secret_key: str = os.getenv("SECRET_KEY", "change-this-in-production-please")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
     
     # RAG Pipeline
     chunk_size: int = 1000
@@ -38,7 +50,7 @@ class Settings(BaseSettings):
     
     # File Upload
     max_file_size: int = 10 * 1024 * 1024  # 10MB
-    allowed_file_types: List[str] = ["text/plain", "application/pdf", "text/markdown"]
+    allowed_file_types: str = "text/plain,application/pdf,text/markdown"
     upload_directory: str = "./uploads"
     
     # Logging
@@ -46,16 +58,31 @@ class Settings(BaseSettings):
     log_file: Optional[str] = None
     
     # CORS
-    allowed_origins: List[str] = ["*"]
+    allowed_origins: List[str] = [
+        "https://smart-legal-contracts.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ] if os.getenv("ENVIRONMENT", "development") == "production" else ["*"]
     allow_credentials: bool = True
     
-    # Rate Limiting
-    rate_limit_requests: int = 100
-    rate_limit_window: int = 60  # seconds
+    # Rate Limiting - Production settings
+    rate_limit_requests: int = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
+    rate_limit_window: int = int(os.getenv("RATE_LIMIT_WINDOW", "60"))  # seconds
     
-    # Model Configuration
-    device: str = "auto"  # "auto", "cpu", or "cuda"
-    batch_size: int = 32
+    # Redis configuration for rate limiting and caching
+    redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    redis_max_connections: int = 10
+    
+    # Model Configuration - Production optimized
+    device: str = os.getenv("MODEL_DEVICE", "cpu")  # "auto", "cpu", or "cuda"
+    batch_size: int = int(os.getenv("BATCH_SIZE", "16"))  # Smaller for production
+    
+    # Health check configuration
+    health_check_timeout: int = 30
+    
+    # Production optimization flags
+    enable_docs: bool = os.getenv("ENABLE_DOCS", "false").lower() == "true"
+    enable_metrics: bool = os.getenv("ENABLE_METRICS", "true").lower() == "true"
     
     class Config:
         env_file = ".env"
@@ -63,15 +90,30 @@ class Settings(BaseSettings):
         case_sensitive = False
 
 
-# Create settings instance
-settings = Settings()
-
-
+# Create settings instance with caching
+@lru_cache()
 def get_settings() -> Settings:
     """
-    Get application settings
+    Get cached application settings
     """
-    return settings
+    return Settings()
+
+
+settings = get_settings()
+
+
+# Helper function to get allowed file types as a list
+def get_allowed_file_types() -> List[str]:
+    """Convert comma-separated file types string to list"""
+    return [ft.strip() for ft in settings.allowed_file_types.split(",") if ft.strip()]
+
+
+# Legacy function for backward compatibility
+def get_app_settings() -> Settings:
+    """
+    Get application settings (legacy function)
+    """
+    return get_settings()
 
 
 # Environment-specific configurations
