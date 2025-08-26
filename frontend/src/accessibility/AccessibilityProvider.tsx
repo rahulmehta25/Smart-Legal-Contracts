@@ -12,7 +12,6 @@ import {
   IAccessibilityTheme,
   AccessibilityThemeType,
   IAccessibilityViolation,
-  IScreenReaderConfig,
   IKeyboardNavigationConfig,
   IFocusManager,
   FontSize

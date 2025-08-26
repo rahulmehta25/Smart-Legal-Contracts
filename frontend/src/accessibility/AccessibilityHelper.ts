@@ -218,7 +218,7 @@ export class AccessibilityHelper implements IAccessibilityHelper {
 
     // Implicit roles based on element type
     const tagName = element.tagName.toLowerCase();
-    const implicitRoles: Record<string, string> = {
+    const implicitRoles: Record<string, string | null> = {
       'button': 'button',
       'a': element.hasAttribute('href') ? 'link' : null,
       'img': element.hasAttribute('alt') ? 'img' : 'presentation',
@@ -325,12 +325,15 @@ export class AccessibilityHelper implements IAccessibilityHelper {
     if (!rgb) return 0;
 
     // Convert to relative luminance
-    const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(c => {
-      c = c / 255;
-      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    });
+    const r = rgb.r / 255;
+    const g = rgb.g / 255;
+    const b = rgb.b / 255;
+    
+    const rLuminance = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+    const gLuminance = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+    const bLuminance = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
 
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return 0.2126 * rLuminance + 0.7152 * gLuminance + 0.0722 * bLuminance;
   }
 
   /**
@@ -338,7 +341,7 @@ export class AccessibilityHelper implements IAccessibilityHelper {
    */
   private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
     const match = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
-    if (!match) return null;
+    if (!match || !match[1] || !match[2] || !match[3]) return null;
 
     return {
       r: parseInt(match[1], 16),
@@ -352,7 +355,7 @@ export class AccessibilityHelper implements IAccessibilityHelper {
    */
   private parseRgb(color: string): { r: number; g: number; b: number } | null {
     const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    if (!match) return null;
+    if (!match || !match[1] || !match[2] || !match[3]) return null;
 
     return {
       r: parseInt(match[1], 10),
@@ -436,7 +439,7 @@ export class AccessibilityHelper implements IAccessibilityHelper {
     return {
       code,
       message,
-      element,
+      ...(element && { element }),
       severity,
       fixable: this.isFixable(code),
       guideline: this.getWCAGGuideline(code)
