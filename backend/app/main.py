@@ -9,6 +9,21 @@ from loguru import logger
 from app.db.database import init_db
 from app.db.vector_store import init_vector_store
 from app.api import documents_router, analysis_router, users_router
+from app.api.health import router as health_router
+from app.core.config import get_settings
+from app.core.logging_config import configure_logging, RequestLoggingMiddleware
+from app.core.error_handlers import (
+    api_error_handler,
+    http_exception_handler,
+    validation_error_handler,
+    database_error_handler,
+    general_exception_handler,
+    APIError,
+    DatabaseConnectionError
+)
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from sqlalchemy.exc import SQLAlchemyError
 
 
 @asynccontextmanager
@@ -17,6 +32,8 @@ async def lifespan(app: FastAPI):
     Lifespan events for the FastAPI application
     """
     # Startup
+    # Configure logging first
+    configure_logging()
     logger.info("Starting Arbitration RAG API...")
     
     try:
@@ -38,61 +55,47 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Arbitration RAG API...")
 
 
-# Create FastAPI application
+# Get settings
+settings = get_settings()
+
+# Create FastAPI application with conditional docs
 app = FastAPI(
     title="Arbitration RAG API",
     description="RAG system for detecting arbitration clauses in Terms of Use documents",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs" if settings.enable_docs else None,
+    redoc_url="/redoc" if settings.enable_docs else None,
     lifespan=lifespan
 )
+
+# Add request logging middleware
+app.add_middleware(RequestLoggingMiddleware)
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this properly for production
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=settings.allowed_origins,
+    allow_credentials=settings.allow_credentials,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
 
-# Exception handlers
-@app.exception_handler(ValueError)
-async def value_error_handler(request, exc):
-    return JSONResponse(
-        status_code=400,
-        content={"detail": str(exc)}
-    )
-
-
-@app.exception_handler(Exception)
-async def general_exception_handler(request, exc):
-    logger.error(f"Unhandled exception: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
+# Comprehensive exception handlers
+app.add_exception_handler(APIError, api_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_error_handler)
+app.add_exception_handler(SQLAlchemyError, database_error_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
 
 # Include API routes
+app.include_router(health_router)  # Health checks at root level
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(analysis_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 
 
-# Health check endpoint
-@app.get("/health")
-async def health_check():
-    """
-    Health check endpoint
-    """
-    return {
-        "status": "healthy",
-        "service": "Arbitration RAG API",
-        "version": "1.0.0"
-    }
 
 
 # Root endpoint
