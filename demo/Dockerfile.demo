@@ -1,0 +1,142 @@
+# Demo-specific Dockerfile for Arbitration Clause Detector Backend
+# Extends the main application with demo-specific features and data
+
+FROM python:3.11-slim as base
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    libpq-dev \
+    postgresql-client \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY backend/requirements.txt ./
+COPY demo/requirements-demo.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-demo.txt
+
+# Demo stage with additional demo features
+FROM base as demo
+
+# Copy application code
+COPY backend/ ./backend/
+COPY demo/sample-data/ ./demo-data/
+COPY demo/config/ ./config/
+
+# Copy demo-specific configurations
+COPY demo/demo-config.py ./backend/app/demo_config.py
+
+# Create demo directories
+RUN mkdir -p /app/demo-data/documents \
+    /app/demo-data/exports \
+    /app/demo-data/uploads \
+    /app/logs
+
+# Set demo environment variables
+ENV ENV=demo \
+    DEMO_MODE=true \
+    PYTHONPATH=/app/backend
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Create entrypoint script for demo
+RUN cat > /app/demo-entrypoint.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Starting Arbitration Clause Detector Demo..."
+
+# Wait for database
+echo "Waiting for database..."
+while ! pg_isready -h ${DATABASE_HOST:-demo-postgres} -p ${DATABASE_PORT:-5432} -U ${DATABASE_USER:-demo_user}; do
+    echo "Database not ready, waiting..."
+    sleep 2
+done
+
+echo "Database is ready!"
+
+# Wait for Redis
+echo "Waiting for Redis..."
+while ! nc -z ${REDIS_HOST:-demo-redis} ${REDIS_PORT:-6379}; do
+    echo "Redis not ready, waiting..."
+    sleep 2
+done
+
+echo "Redis is ready!"
+
+# Wait for ChromaDB
+echo "Waiting for ChromaDB..."
+while ! curl -f http://${CHROMA_HOST:-demo-chroma}:${CHROMA_PORT:-8000}/api/v1/heartbeat; do
+    echo "ChromaDB not ready, waiting..."
+    sleep 2
+done
+
+echo "ChromaDB is ready!"
+
+# Run database migrations if needed
+echo "Running database setup..."
+cd /app/backend
+python -c "
+from app.db.database import init_db
+try:
+    init_db()
+    print('Database initialized successfully')
+except Exception as e:
+    print(f'Database init warning: {e}')
+"
+
+# Initialize vector store if needed
+echo "Initializing vector store..."
+python -c "
+from app.db.vector_store import init_vector_store
+try:
+    init_vector_store()
+    print('Vector store initialized successfully')
+except Exception as e:
+    print(f'Vector store init warning: {e}')
+"
+
+# Load demo data if enabled
+if [ "${LOAD_SAMPLE_DATA:-true}" = "true" ]; then
+    echo "Loading demo sample data..."
+    python -c "
+import os
+import asyncio
+from app.demo_config import load_demo_data
+
+async def load_data():
+    try:
+        await load_demo_data()
+        print('Demo data loaded successfully')
+    except Exception as e:
+        print(f'Demo data loading warning: {e}')
+
+if __name__ == '__main__':
+    asyncio.run(load_data())
+"
+fi
+
+echo "Starting FastAPI server..."
+exec python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+EOF
+
+RUN chmod +x /app/demo-entrypoint.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/app/demo-entrypoint.sh"]

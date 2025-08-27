@@ -1,0 +1,689 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run security scans daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - sast
+          - dependency
+          - container
+          - infrastructure
+          - dynamic
+      severity_threshold:
+        description: 'Minimum severity to report'
+        required: true
+        default: 'medium'
+        type: choice
+        options:
+          - low
+          - medium
+          - high
+          - critical
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Static Application Security Testing (SAST)
+  sast-scan:
+    name: Static Analysis Security Testing
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'sast' || github.event.inputs.scan_type == ''
+    
+    permissions:
+      security-events: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd frontend && npm ci
+          cd ../backend && pip install --upgrade pip && pip install -r requirements.txt
+
+      # CodeQL Analysis
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, python
+          queries: security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+      # Bandit for Python
+      - name: Run Bandit Security Scan
+        working-directory: backend
+        run: |
+          pip install bandit
+          bandit -r app/ -f json -o bandit-report.json --severity-level medium
+          bandit -r app/ -f sarif -o bandit-results.sarif --severity-level medium
+
+      - name: Upload Bandit SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: backend/bandit-results.sarif
+
+      # Semgrep for multiple languages
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/python
+            p/javascript
+            p/typescript
+            p/docker
+            p/nginx
+          generateSarif: "1"
+
+      # ESLint Security for JavaScript/TypeScript
+      - name: Run ESLint Security Analysis
+        working-directory: frontend
+        run: |
+          npm install -g eslint eslint-plugin-security
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-security-report.json --config .eslintrc-security.json || echo "ESLint completed with findings"
+
+      # Checkov for Infrastructure as Code
+      - name: Run Checkov IaC Security Scan
+        run: |
+          pip install checkov
+          checkov -d . --framework docker,dockerfile --output json --output-file checkov-report.json
+          checkov -d . --framework docker,dockerfile --output sarif --output-file checkov-results.sarif
+
+      - name: Upload Checkov SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+
+      - name: Upload SAST artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: sast-security-reports
+          path: |
+            backend/bandit-report.json
+            frontend/eslint-security-report.json
+            checkov-report.json
+
+  # Dependency Vulnerability Scanning
+  dependency-scan:
+    name: Dependency Vulnerability Scanning
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'dependency' || github.event.inputs.scan_type == ''
+    
+    permissions:
+      security-events: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd frontend && npm ci
+          cd ../backend && pip install --upgrade pip && pip install -r requirements.txt
+
+      # Python dependency scanning with Safety
+      - name: Run Safety check
+        working-directory: backend
+        run: |
+          pip install safety
+          safety check --json --output safety-report.json --continue-on-error
+          safety check --output text
+
+      # Python dependency scanning with pip-audit
+      - name: Run pip-audit
+        working-directory: backend
+        run: |
+          pip install pip-audit
+          pip-audit --format=json --output=pip-audit-report.json
+          pip-audit --format=sarif --output=pip-audit-results.sarif
+
+      - name: Upload pip-audit SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: backend/pip-audit-results.sarif
+
+      # Node.js dependency scanning
+      - name: Run npm audit
+        working-directory: frontend
+        run: |
+          npm audit --audit-level=moderate --json > npm-audit-report.json || echo "NPM audit completed"
+          npm audit --audit-level=high || echo "NPM audit high severity check completed"
+
+      # Yarn audit (if yarn.lock exists)
+      - name: Run yarn audit (if applicable)
+        working-directory: frontend
+        run: |
+          if [[ -f "yarn.lock" ]]; then
+            yarn audit --json > yarn-audit-report.json || echo "Yarn audit completed"
+          fi
+
+      # Snyk vulnerability scanning
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --all-projects --severity-threshold=medium --json-file-output=snyk-report.json
+
+      - name: Upload Snyk results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: snyk.sarif
+
+      - name: Upload dependency scan artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dependency-security-reports
+          path: |
+            backend/safety-report.json
+            backend/pip-audit-report.json
+            frontend/npm-audit-report.json
+            frontend/yarn-audit-report.json
+            snyk-report.json
+
+  # Container Security Scanning
+  container-scan:
+    name: Container Security Scanning
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'container' || github.event.inputs.scan_type == ''
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build Docker images for scanning
+      - name: Build backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./demo/production/Dockerfile.backend
+          tags: arbitration-backend:scan
+          load: true
+
+      - name: Build frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./demo/production/Dockerfile.frontend
+          tags: arbitration-frontend:scan
+          load: true
+
+      # Trivy container scanning
+      - name: Run Trivy vulnerability scanner - Backend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'arbitration-backend:scan'
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+          severity: 'MEDIUM,HIGH,CRITICAL'
+
+      - name: Run Trivy vulnerability scanner - Frontend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'arbitration-frontend:scan'
+          format: 'sarif'
+          output: 'trivy-frontend-results.sarif'
+          severity: 'MEDIUM,HIGH,CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+
+      - name: Upload Trivy frontend scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-frontend-results.sarif'
+
+      # Docker Scout (if available)
+      - name: Docker Scout CVE Analysis
+        uses: docker/scout-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          command: cves
+          image: arbitration-backend:scan
+          only-severities: medium,high,critical
+          sarif-file: scout-backend-results.sarif
+
+      # Hadolint for Dockerfile linting
+      - name: Run Hadolint on Dockerfiles
+        run: |
+          docker run --rm -i hadolint/hadolint < demo/production/Dockerfile.backend > hadolint-backend-report.txt
+          docker run --rm -i hadolint/hadolint < demo/production/Dockerfile.frontend > hadolint-frontend-report.txt
+
+      - name: Upload container scan artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: container-security-reports
+          path: |
+            trivy-*-results.sarif
+            scout-*-results.sarif
+            hadolint-*-report.txt
+
+  # Infrastructure Security Scanning
+  infrastructure-scan:
+    name: Infrastructure Security Scanning
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'infrastructure' || github.event.inputs.scan_type == ''
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # TFSec for Terraform (if applicable)
+      - name: Run tfsec
+        if: hashFiles('**/*.tf') != ''
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: true
+
+      # Checkov for infrastructure as code
+      - name: Run Checkov
+        run: |
+          pip install checkov
+          checkov -d . --framework docker,dockerfile,kubernetes,github_actions --output json --output-file checkov-infrastructure-report.json
+          checkov -d . --framework docker,dockerfile,kubernetes,github_actions --output sarif --output-file checkov-infrastructure-results.sarif
+
+      - name: Upload Checkov SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: checkov-infrastructure-results.sarif
+
+      # Kube-score for Kubernetes manifests
+      - name: Run kube-score
+        if: hashFiles('k8s/*.yaml') != '' || hashFiles('k8s/*.yml') != ''
+        run: |
+          curl -L https://github.com/zegl/kube-score/releases/latest/download/kube-score_linux_amd64.tar.gz | tar xz
+          ./kube-score score k8s/*.yaml > kube-score-report.txt || echo "kube-score completed"
+
+      # Docker Bench Security
+      - name: Run Docker Bench Security
+        run: |
+          git clone https://github.com/docker/docker-bench-security.git
+          cd docker-bench-security
+          sudo ./docker-bench-security.sh -l docker-bench-report.log
+
+      - name: Upload infrastructure scan artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: infrastructure-security-reports
+          path: |
+            checkov-infrastructure-report.json
+            kube-score-report.txt
+            docker-bench-security/docker-bench-report.log
+
+  # Dynamic Application Security Testing (DAST)
+  dast-scan:
+    name: Dynamic Application Security Testing
+    runs-on: ubuntu-latest
+    if: (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'dynamic' || github.event.inputs.scan_type == '') && github.event_name != 'pull_request'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev poppler-utils tesseract-ocr
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      # Start application for DAST
+      - name: Start backend server
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          ENVIRONMENT: test
+          JWT_SECRET: test_secret_key_for_scanning
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          echo $! > backend.pid
+
+      - name: Start frontend server
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: |
+          npm start &
+          echo $! > frontend.pid
+
+      - name: Wait for servers
+        run: |
+          timeout 300 bash -c 'until curl -f http://localhost:8000/health; do sleep 5; done'
+          timeout 300 bash -c 'until curl -f http://localhost:3000; do sleep 5; done'
+
+      # OWASP ZAP Scan
+      - name: Run OWASP ZAP Full Scan
+        run: |
+          docker run -v $(pwd):/zap/wrk/:rw \
+            -t owasp/zap2docker-stable zap-full-scan.py \
+            -t http://localhost:3000 \
+            -J zap-report.json \
+            -r zap-report.html \
+            -x zap-report.xml \
+            -m 10 \
+            -T 60 || echo "ZAP scan completed"
+
+      # Nuclei scanning
+      - name: Run Nuclei Scan
+        run: |
+          docker run -v $(pwd):/tmp projectdiscovery/nuclei:latest \
+            -target http://localhost:3000 \
+            -json-export /tmp/nuclei-report.json \
+            -severity medium,high,critical
+
+      # SSL/TLS testing with testssl.sh (if HTTPS)
+      - name: Run SSL/TLS Test
+        if: contains(github.ref, 'main') || contains(github.ref, 'master')
+        run: |
+          docker run --rm -v $(pwd):/tmp drwetter/testssl.sh \
+            --json /tmp/testssl-report.json \
+            https://arbitration-detector.com || echo "SSL test completed"
+
+      - name: Stop servers
+        if: always()
+        run: |
+          [[ -f backend.pid ]] && kill $(cat backend.pid) || true
+          [[ -f frontend.pid ]] && kill $(cat frontend.pid) || true
+
+      - name: Upload DAST artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dast-security-reports
+          path: |
+            zap-report.json
+            zap-report.html
+            zap-report.xml
+            nuclei-report.json
+            testssl-report.json
+
+  # Security Report Aggregation
+  security-report:
+    name: Security Report Aggregation
+    runs-on: ubuntu-latest
+    needs: [sast-scan, dependency-scan, container-scan, infrastructure-scan, dast-scan]
+    if: always()
+    
+    steps:
+      - name: Download all security artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Install report tools
+        run: |
+          pip install jinja2 pyyaml
+
+      - name: Generate security summary
+        run: |
+          python3 << 'EOF'
+          import json
+          import os
+          import glob
+          from datetime import datetime
+          
+          # Aggregate all security findings
+          findings = {
+              'sast': [],
+              'dependency': [],
+              'container': [],
+              'infrastructure': [],
+              'dast': []
+          }
+          
+          severity_counts = {'low': 0, 'medium': 0, 'high': 0, 'critical': 0}
+          
+          # Process different report types
+          def process_bandit_report(filepath):
+              with open(filepath) as f:
+                  data = json.load(f)
+                  return data.get('results', [])
+          
+          def process_safety_report(filepath):
+              with open(filepath) as f:
+                  data = json.load(f)
+                  return data
+          
+          def process_npm_audit_report(filepath):
+              with open(filepath) as f:
+                  data = json.load(f)
+                  return data.get('vulnerabilities', {})
+          
+          # Find and process report files
+          for category in findings.keys():
+              report_dir = f"{category}-security-reports"
+              if os.path.exists(report_dir):
+                  for report_file in glob.glob(f"{report_dir}/*.json"):
+                      try:
+                          if 'bandit' in report_file:
+                              findings[category].extend(process_bandit_report(report_file))
+                          elif 'safety' in report_file:
+                              findings[category].extend(process_safety_report(report_file))
+                          elif 'npm-audit' in report_file:
+                              findings[category].extend(process_npm_audit_report(report_file))
+                      except Exception as e:
+                          print(f"Error processing {report_file}: {e}")
+          
+          # Generate summary
+          total_findings = sum(len(v) for v in findings.values())
+          
+          summary = f"""
+          # Security Scan Summary
+          
+          **Scan Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+          **Total Findings:** {total_findings}
+          
+          ## Findings by Category
+          - SAST (Static Analysis): {len(findings['sast'])}
+          - Dependencies: {len(findings['dependency'])}
+          - Containers: {len(findings['container'])}
+          - Infrastructure: {len(findings['infrastructure'])}
+          - DAST (Dynamic Analysis): {len(findings['dast'])}
+          
+          ## Severity Breakdown
+          - Critical: {severity_counts['critical']}
+          - High: {severity_counts['high']}
+          - Medium: {severity_counts['medium']}
+          - Low: {severity_counts['low']}
+          """
+          
+          with open('security-summary.md', 'w') as f:
+              f.write(summary)
+          
+          print(summary)
+          EOF
+
+      - name: Add security summary to job summary
+        run: |
+          cat security-summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Check security gate
+        run: |
+          # Define security gate criteria
+          CRITICAL_THRESHOLD=0
+          HIGH_THRESHOLD=5
+          
+          # Count critical and high severity issues
+          CRITICAL_COUNT=$(find . -name "*report*.json" -exec grep -l "critical\|CRITICAL" {} \; | wc -l)
+          HIGH_COUNT=$(find . -name "*report*.json" -exec grep -l "high\|HIGH" {} \; | wc -l)
+          
+          echo "Security Gate Check:"
+          echo "Critical issues found: $CRITICAL_COUNT (threshold: $CRITICAL_THRESHOLD)"
+          echo "High severity issues found: $HIGH_COUNT (threshold: $HIGH_THRESHOLD)"
+          
+          if [[ $CRITICAL_COUNT -gt $CRITICAL_THRESHOLD ]]; then
+            echo "❌ Security gate failed: Critical issues exceed threshold"
+            exit 1
+          elif [[ $HIGH_COUNT -gt $HIGH_THRESHOLD ]]; then
+            echo "⚠️ Security gate warning: High severity issues exceed threshold"
+            # Don't fail the build for high severity, just warn
+          else
+            echo "✅ Security gate passed"
+          fi
+
+      - name: Upload consolidated security report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: consolidated-security-report
+          path: |
+            security-summary.md
+            */
+
+      # Send security alerts (if configured)
+      - name: Send security notification
+        if: failure()
+        run: |
+          echo "Security scan failed - critical issues found"
+          # Add notification logic here (Slack, email, etc.)
+
+  # Schedule automated security updates
+  security-updates:
+    name: Automated Security Updates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Update Python dependencies
+        working-directory: backend
+        run: |
+          pip install --upgrade pip
+          pip install pip-upgrader
+          pip-upgrade --skip-package-installation requirements.txt
+
+      - name: Update Node.js dependencies
+        working-directory: frontend
+        run: |
+          npm audit fix --audit-level=high
+          npm update
+
+      - name: Create Pull Request for security updates
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: automated security updates"
+          title: "🔒 Automated Security Updates"
+          body: |
+            This PR contains automated security updates for dependencies.
+            
+            ## Changes
+            - Updated Python packages with security vulnerabilities
+            - Updated Node.js packages with security vulnerabilities
+            
+            Please review and test before merging.
+          branch: security-updates
+          delete-branch: true

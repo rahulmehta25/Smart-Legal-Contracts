@@ -1,0 +1,89 @@
+# Advanced AI and RAG Requirements
+# Install with: pip install -r requirements-ai.txt
+
+# Core AI/ML Libraries
+torch>=2.0.0
+transformers>=4.35.0
+sentence-transformers>=2.2.2
+spacy>=3.6.0
+scikit-learn>=1.3.0
+
+# NLP Models and Data
+# Run after installation:
+# python -m spacy download en_core_web_sm
+# python -m spacy download en_core_web_trf
+
+# Vector Databases and Embeddings
+chromadb>=0.4.0
+faiss-cpu>=1.7.4  # Use faiss-gpu for GPU support
+qdrant-client>=1.6.0
+
+# Advanced ML/DL
+xgboost>=2.0.0
+lightgbm>=4.1.0
+catboost>=1.2.0
+
+# Explainable AI
+shap>=0.43.0
+lime>=0.2.0.1
+
+# Graph Processing
+networkx>=3.1
+
+# Document Processing
+pypdf>=3.17.0
+python-docx>=1.1.0
+pytesseract>=0.3.10  # For OCR, requires tesseract-ocr system package
+pdfplumber>=0.10.0
+
+# Legal NLP (if available)
+# legal-bert  # Install from Hugging Face
+# blackstone  # UK legal NLP
+
+# Optimization and Performance
+numba>=0.58.0
+ray>=2.8.0  # For distributed computing
+joblib>=1.3.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Async and Parallel Processing
+aiofiles>=23.2.0
+asyncio>=3.4.3
+concurrent-futures>=3.1.1
+
+# Monitoring and Logging
+tensorboard>=2.14.0
+wandb>=0.16.0  # Weights & Biases for experiment tracking
+
+# API and Web
+fastapi>=0.104.0
+pydantic>=2.5.0
+uvicorn>=0.24.0
+
+# Database
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+psycopg2-binary>=2.9.0
+
+# Caching
+redis>=5.0.0
+aiocache>=0.12.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Development
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.1.0
+mypy>=1.7.0
+
+# Additional ML Tools
+optuna>=3.4.0  # Hyperparameter optimization
+mlflow>=2.8.0  # ML lifecycle management

@@ -1,0 +1,180 @@
+{
+  "test_suite": "Frontend-Backend Integration Tests",
+  "execution_time_seconds": 1.79,
+  "total_tests": 19,
+  "passed": 5,
+  "failed": 3,
+  "skipped": 11,
+  "partial": 0,
+  "success_rate": 62.5,
+  "timestamp": "2025-08-23T14:33:37.972718",
+  "base_url": "http://localhost:8000",
+  "test_results": [
+    {
+      "test_name": "Health Check",
+      "status": "PASS",
+      "timestamp": "2025-08-23T14:33:36.211661",
+      "details": {
+        "status_code": 200,
+        "service": "Arbitration RAG API",
+        "version": "1.0.0"
+      },
+      "error": null
+    },
+    {
+      "test_name": "Root Endpoint",
+      "status": "PASS",
+      "timestamp": "2025-08-23T14:33:36.215514",
+      "details": {
+        "status_code": 200,
+        "message": "Arbitration RAG API",
+        "version": "1.0.0"
+      },
+      "error": null
+    },
+    {
+      "test_name": "API v1 Overview",
+      "status": "PASS",
+      "timestamp": "2025-08-23T14:33:36.219517",
+      "details": {
+        "status_code": 200,
+        "endpoints_count": 9,
+        "features_count": 17
+      },
+      "error": null
+    },
+    {
+      "test_name": "CORS Headers",
+      "status": "FAIL",
+      "timestamp": "2025-08-23T14:33:36.221882",
+      "details": {
+        "status_code": 405,
+        "cors_headers_present": false,
+        "allow_origin": null,
+        "allow_methods": null
+      },
+      "error": null
+    },
+    {
+      "test_name": "Error Handling - 404",
+      "status": "PASS",
+      "timestamp": "2025-08-23T14:33:36.231740",
+      "details": {
+        "status_code": 404,
+        "error_format": "proper"
+      },
+      "error": null
+    },
+    {
+      "test_name": "Error Handling - Invalid JSON",
+      "status": "PASS",
+      "timestamp": "2025-08-23T14:33:36.258984",
+      "details": {
+        "status_code": 422,
+        "properly_handled": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "User Registration",
+      "status": "FAIL",
+      "timestamp": "2025-08-23T14:33:36.370062",
+      "details": {
+        "status_code": 500,
+        "response": {
+          "detail": "Internal server error"
+        }
+      },
+      "error": null
+    },
+    {
+      "test_name": "User Login",
+      "status": "FAIL",
+      "timestamp": "2025-08-23T14:33:37.827896",
+      "details": {
+        "status_code": 500,
+        "response": {
+          "detail": "Internal server error"
+        }
+      },
+      "error": null
+    },
+    {
+      "test_name": "Token Verification",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.840731",
+      "details": {},
+      "error": "No auth token available"
+    },
+    {
+      "test_name": "User Profile",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.841445",
+      "details": {},
+      "error": "No auth token available"
+    },
+    {
+      "test_name": "Document Upload",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.844844",
+      "details": {},
+      "error": "No auth token available"
+    },
+    {
+      "test_name": "Document Retrieval",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.845562",
+      "details": {},
+      "error": "No auth token or document ID"
+    },
+    {
+      "test_name": "Document List",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.847692",
+      "details": {},
+      "error": "No auth token available"
+    },
+    {
+      "test_name": "Quick Text Analysis",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.862915",
+      "details": {},
+      "error": "No auth token available"
+    },
+    {
+      "test_name": "Document Analysis",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.862988",
+      "details": {},
+      "error": "No auth token or document ID"
+    },
+    {
+      "test_name": "Analysis Retrieval",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.895664",
+      "details": {},
+      "error": "No auth token or analysis ID"
+    },
+    {
+      "test_name": "Analysis Statistics",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.919131",
+      "details": {},
+      "error": "No auth token available"
+    },
+    {
+      "test_name": "WebSocket Connection",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.920160",
+      "details": {},
+      "error": "No auth token available"
+    },
+    {
+      "test_name": "WebSocket Statistics",
+      "status": "SKIP",
+      "timestamp": "2025-08-23T14:33:37.921373",
+      "details": {},
+      "error": "No auth token available"
+    }
+  ]
+}

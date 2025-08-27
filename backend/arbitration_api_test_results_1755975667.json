@@ -1,0 +1,2502 @@
+{
+  "api_name": "Arbitration RAG API",
+  "test_timestamp": "2025-08-23T15:01:07.054067",
+  "summary": {
+    "total_tests": 19,
+    "successful": 10,
+    "failed": 9,
+    "success_rate": 52.63157894736842,
+    "execution_time": 1.712122917175293
+  },
+  "endpoint_status": {
+    "working_endpoints": 7,
+    "database_dependent": 1,
+    "auth_required": 1,
+    "not_found": 4,
+    "connection_errors": 0
+  },
+  "results": [
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:05.347885",
+      "details": {
+        "status": "healthy",
+        "service": "Arbitration RAG API",
+        "version": "1.0.0"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:05.348479",
+      "details": {
+        "message": "Arbitration RAG API",
+        "description": "RAG system for detecting arbitration clauses in Terms of Use documents",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:05.348955",
+      "details": {
+        "version": "1.0.0",
+        "endpoints": {
+          "documents": "/api/v1/documents",
+          "analysis": "/api/v1/analysis",
+          "users": "/api/v1/users",
+          "pdf_processing": "/api/upload/pdf",
+          "batch_processing": "/api/batch/upload",
+          "job_status": "/api/jobs/{id}/status",
+          "websocket": "/ws",
+          "websocket_stats": "/api/websocket/stats",
+          "websocket_rooms": "/api/websocket/rooms"
+        },
+        "features": [
+          "Document upload and processing",
+          "Arbitration clause detection",
+          "Vector similarity search",
+          "User authentication",
+          "Analysis history and statistics",
+          "PDF text extraction with OCR",
+          "Multi-format document processing",
+          "Batch file processing",
+          "Asynchronous job processing",
+          "File storage and retrieval",
+          "Real-time WebSocket connections",
+          "Live analysis progress tracking",
+          "Collaborative document annotation",
+          "User presence indicators",
+          "Real-time notifications",
+          "Document sharing and collaboration",
+          "Cursor tracking and synchronization"
+        ]
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/docs",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:05.349666",
+      "details": {
+        "text": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <link type=\"text/css\" rel=\"stylesheet\" href=\"https://..."
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/redoc",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:05.350038",
+      "details": {
+        "text": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <title>Arbitration RAG API - ReDoc</title>\n    <!-- n..."
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/openapi.json",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:05.369580",
+      "details": {
+        "openapi": "3.1.0",
+        "info": {
+          "title": "Arbitration RAG API",
+          "description": "RAG system for detecting arbitration clauses in Terms of Use documents",
+          "version": "1.0.0"
+        },
+        "paths": {
+          "/api/v1/documents/upload": {
+            "post": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Upload Document",
+              "description": "Upload and process a document",
+              "operationId": "upload_document_api_v1_documents_upload_post",
+              "requestBody": {
+                "content": {
+                  "multipart/form-data": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Body_upload_document_api_v1_documents_upload_post"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/DocumentUploadResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/documents/": {
+            "post": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Create Document",
+              "description": "Create a document from text content",
+              "operationId": "create_document_api_v1_documents__post",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/DocumentCreate"
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/DocumentResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "get": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Get Documents",
+              "description": "Get list of documents with pagination",
+              "operationId": "get_documents_api_v1_documents__get",
+              "parameters": [
+                {
+                  "name": "skip",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0,
+                    "title": "Skip"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "default": 100,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "processed_only",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "boolean",
+                    "default": false,
+                    "title": "Processed Only"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/DocumentResponse"
+                        },
+                        "title": "Response Get Documents Api V1 Documents  Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/documents/{document_id}/process": {
+            "post": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Process Document",
+              "description": "Process a document through the RAG pipeline",
+              "operationId": "process_document_api_v1_documents__document_id__process_post",
+              "parameters": [
+                {
+                  "name": "document_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Document Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/documents/{document_id}": {
+            "get": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Get Document",
+              "description": "Get a specific document by ID",
+              "operationId": "get_document_api_v1_documents__document_id__get",
+              "parameters": [
+                {
+                  "name": "document_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Document Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/DocumentResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "delete": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Delete Document",
+              "description": "Delete a document and all its associated data",
+              "operationId": "delete_document_api_v1_documents__document_id__delete",
+              "parameters": [
+                {
+                  "name": "document_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Document Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/documents/{document_id}/chunks": {
+            "get": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Get Document Chunks",
+              "description": "Get all chunks for a document",
+              "operationId": "get_document_chunks_api_v1_documents__document_id__chunks_get",
+              "parameters": [
+                {
+                  "name": "document_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Document Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/DocumentChunkResponse"
+                        },
+                        "title": "Response Get Document Chunks Api V1 Documents  Document Id  Chunks Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/documents/search/": {
+            "get": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Search Documents",
+              "description": "Search documents using vector similarity",
+              "operationId": "search_documents_api_v1_documents_search__get",
+              "parameters": [
+                {
+                  "name": "query",
+                  "in": "query",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "minLength": 1,
+                    "title": "Query"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 50,
+                    "minimum": 1,
+                    "default": 10,
+                    "title": "Limit"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/documents/{document_id}/reprocess": {
+            "post": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Reprocess Document",
+              "description": "Reprocess an existing document",
+              "operationId": "reprocess_document_api_v1_documents__document_id__reprocess_post",
+              "parameters": [
+                {
+                  "name": "document_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Document Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/documents/stats/overview": {
+            "get": {
+              "tags": [
+                "documents"
+              ],
+              "summary": "Get Document Statistics",
+              "description": "Get document statistics and overview",
+              "operationId": "get_document_statistics_api_v1_documents_stats_overview_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/analyze": {
+            "post": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Analyze Document",
+              "description": "Analyze a document for arbitration clauses",
+              "operationId": "analyze_document_api_v1_analysis_analyze_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/AnalysisRequest"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ArbitrationAnalysisResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/quick-analyze": {
+            "post": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Quick Analyze Text",
+              "description": "Quick analysis of text without storing in database",
+              "operationId": "quick_analyze_text_api_v1_analysis_quick_analyze_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/QuickAnalysisRequest"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/QuickAnalysisResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/": {
+            "get": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Get Analyses",
+              "description": "Get list of analyses with pagination",
+              "operationId": "get_analyses_api_v1_analysis__get",
+              "parameters": [
+                {
+                  "name": "skip",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0,
+                    "title": "Skip"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "default": 100,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "has_arbitration_only",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "boolean",
+                    "default": false,
+                    "title": "Has Arbitration Only"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ArbitrationAnalysisResponse"
+                        },
+                        "title": "Response Get Analyses Api V1 Analysis  Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/{analysis_id}": {
+            "get": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Get Analysis",
+              "description": "Get a specific analysis by ID",
+              "operationId": "get_analysis_api_v1_analysis__analysis_id__get",
+              "parameters": [
+                {
+                  "name": "analysis_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Analysis Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ArbitrationAnalysisResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "delete": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Delete Analysis",
+              "description": "Delete an analysis",
+              "operationId": "delete_analysis_api_v1_analysis__analysis_id__delete",
+              "parameters": [
+                {
+                  "name": "analysis_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Analysis Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/document/{document_id}": {
+            "get": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Get Document Analyses",
+              "description": "Get all analyses for a specific document",
+              "operationId": "get_document_analyses_api_v1_analysis_document__document_id__get",
+              "parameters": [
+                {
+                  "name": "document_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Document Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ArbitrationAnalysisResponse"
+                        },
+                        "title": "Response Get Document Analyses Api V1 Analysis Document  Document Id  Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/document/{document_id}/latest": {
+            "get": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Get Latest Document Analysis",
+              "description": "Get the latest analysis for a specific document",
+              "operationId": "get_latest_document_analysis_api_v1_analysis_document__document_id__latest_get",
+              "parameters": [
+                {
+                  "name": "document_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "Document Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ArbitrationAnalysisResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/stats/overview": {
+            "get": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Get Analysis Statistics",
+              "description": "Get analysis statistics and overview",
+              "operationId": "get_analysis_statistics_api_v1_analysis_stats_overview_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/search/clause-type/{clause_type}": {
+            "get": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Search By Clause Type",
+              "description": "Search analyses by clause type",
+              "operationId": "search_by_clause_type_api_v1_analysis_search_clause_type__clause_type__get",
+              "parameters": [
+                {
+                  "name": "clause_type",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "title": "Clause Type"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 50,
+                    "title": "Limit"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ArbitrationAnalysisResponse"
+                        },
+                        "title": "Response Search By Clause Type Api V1 Analysis Search Clause Type  Clause Type  Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/analysis/stats/clause-types": {
+            "get": {
+              "tags": [
+                "analysis"
+              ],
+              "summary": "Get Clause Types Summary",
+              "description": "Get summary of clause types found across all analyses",
+              "operationId": "get_clause_types_summary_api_v1_analysis_stats_clause_types_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/users/register": {
+            "post": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Register User",
+              "description": "Register a new user",
+              "operationId": "register_user_api_v1_users_register_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/UserCreate"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/UserResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/users/login": {
+            "post": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Login User",
+              "description": "Login user and get access token",
+              "operationId": "login_user_api_v1_users_login_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/UserLogin"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Token"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/users/me": {
+            "get": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Get Current User Info",
+              "description": "Get current user information",
+              "operationId": "get_current_user_info_api_v1_users_me_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/UserResponse"
+                      }
+                    }
+                  }
+                }
+              },
+              "security": [
+                {
+                  "HTTPBearer": []
+                }
+              ]
+            },
+            "put": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Update Current User",
+              "description": "Update current user information",
+              "operationId": "update_current_user_api_v1_users_me_put",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "additionalProperties": true,
+                      "type": "object",
+                      "title": "Update Data"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/UserResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              },
+              "security": [
+                {
+                  "HTTPBearer": []
+                }
+              ]
+            }
+          },
+          "/api/v1/users/": {
+            "get": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Get Users",
+              "description": "Get list of users (requires authentication)",
+              "operationId": "get_users_api_v1_users__get",
+              "security": [
+                {
+                  "HTTPBearer": []
+                }
+              ],
+              "parameters": [
+                {
+                  "name": "skip",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "default": 0,
+                    "title": "Skip"
+                  }
+                },
+                {
+                  "name": "limit",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "default": 100,
+                    "title": "Limit"
+                  }
+                },
+                {
+                  "name": "active_only",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "boolean",
+                    "default": true,
+                    "title": "Active Only"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/UserResponse"
+                        },
+                        "title": "Response Get Users Api V1 Users  Get"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/users/{user_id}": {
+            "get": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Get User",
+              "description": "Get user by ID (requires authentication)",
+              "operationId": "get_user_api_v1_users__user_id__get",
+              "security": [
+                {
+                  "HTTPBearer": []
+                }
+              ],
+              "parameters": [
+                {
+                  "name": "user_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "User Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/UserResponse"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/users/change-password": {
+            "post": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Change Password",
+              "description": "Change user password",
+              "operationId": "change_password_api_v1_users_change_password_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "additionalProperties": true,
+                      "type": "object",
+                      "title": "Password Data"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              },
+              "security": [
+                {
+                  "HTTPBearer": []
+                }
+              ]
+            }
+          },
+          "/api/v1/users/deactivate/{user_id}": {
+            "post": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Deactivate User",
+              "description": "Deactivate a user account (requires authentication)",
+              "operationId": "deactivate_user_api_v1_users_deactivate__user_id__post",
+              "security": [
+                {
+                  "HTTPBearer": []
+                }
+              ],
+              "parameters": [
+                {
+                  "name": "user_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "integer",
+                    "title": "User Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1/users/stats/overview": {
+            "get": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Get User Statistics",
+              "description": "Get user statistics (requires authentication)",
+              "operationId": "get_user_statistics_api_v1_users_stats_overview_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              },
+              "security": [
+                {
+                  "HTTPBearer": []
+                }
+              ]
+            }
+          },
+          "/api/v1/users/verify-token": {
+            "post": {
+              "tags": [
+                "users"
+              ],
+              "summary": "Verify Token",
+              "description": "Verify if a token is valid",
+              "operationId": "verify_token_api_v1_users_verify_token_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "additionalProperties": true,
+                      "type": "object",
+                      "title": "Token Data"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/health": {
+            "get": {
+              "summary": "Health Check",
+              "description": "Health check endpoint",
+              "operationId": "health_check_health_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/": {
+            "get": {
+              "summary": "Root",
+              "description": "Root endpoint with API information",
+              "operationId": "root__get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/v1": {
+            "get": {
+              "summary": "Api Overview",
+              "description": "API v1 overview",
+              "operationId": "api_overview_api_v1_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "components": {
+          "schemas": {
+            "AnalysisRequest": {
+              "properties": {
+                "analysis_type": {
+                  "type": "string",
+                  "title": "Analysis Type",
+                  "description": "Type of analysis",
+                  "default": "arbitration_detection"
+                },
+                "document_id": {
+                  "type": "integer",
+                  "title": "Document Id",
+                  "description": "ID of document to analyze"
+                },
+                "analysis_options": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Analysis Options",
+                  "description": "Analysis configuration options"
+                }
+              },
+              "type": "object",
+              "required": [
+                "document_id"
+              ],
+              "title": "AnalysisRequest",
+              "description": "Schema for analysis requests"
+            },
+            "ArbitrationAnalysisResponse": {
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "title": "Id"
+                },
+                "document_id": {
+                  "type": "integer",
+                  "title": "Document Id"
+                },
+                "has_arbitration_clause": {
+                  "type": "boolean",
+                  "title": "Has Arbitration Clause"
+                },
+                "confidence_score": {
+                  "type": "number",
+                  "maximum": 1.0,
+                  "minimum": 0.0,
+                  "title": "Confidence Score"
+                },
+                "analysis_summary": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Analysis Summary"
+                },
+                "analyzed_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Analyzed At"
+                },
+                "analysis_version": {
+                  "type": "string",
+                  "title": "Analysis Version",
+                  "default": "1.0"
+                },
+                "processing_time_ms": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Processing Time Ms"
+                },
+                "clauses": {
+                  "items": {
+                    "$ref": "#/components/schemas/ArbitrationClauseResponse"
+                  },
+                  "type": "array",
+                  "title": "Clauses",
+                  "default": []
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "document_id",
+                "has_arbitration_clause",
+                "confidence_score",
+                "analyzed_at"
+              ],
+              "title": "ArbitrationAnalysisResponse",
+              "description": "Schema for arbitration-specific analysis responses"
+            },
+            "ArbitrationClauseResponse": {
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "title": "Id"
+                },
+                "clause_text": {
+                  "type": "string",
+                  "title": "Clause Text"
+                },
+                "clause_type": {
+                  "type": "string",
+                  "title": "Clause Type"
+                },
+                "confidence_score": {
+                  "type": "number",
+                  "maximum": 1.0,
+                  "minimum": 0.0,
+                  "title": "Confidence Score"
+                },
+                "start_position": {
+                  "type": "integer",
+                  "title": "Start Position"
+                },
+                "end_position": {
+                  "type": "integer",
+                  "title": "End Position"
+                },
+                "page_number": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Page Number"
+                },
+                "section_title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Section Title"
+                },
+                "explanation": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Explanation"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "clause_text",
+                "clause_type",
+                "confidence_score",
+                "start_position",
+                "end_position"
+              ],
+              "title": "ArbitrationClauseResponse",
+              "description": "Schema for individual arbitration clause findings"
+            },
+            "Body_upload_document_api_v1_documents_upload_post": {
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "format": "binary",
+                  "title": "File"
+                }
+              },
+              "type": "object",
+              "required": [
+                "file"
+              ],
+              "title": "Body_upload_document_api_v1_documents_upload_post"
+            },
+            "DocumentChunkResponse": {
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "title": "Id"
+                },
+                "document_id": {
+                  "type": "integer",
+                  "title": "Document Id"
+                },
+                "chunk_index": {
+                  "type": "integer",
+                  "title": "Chunk Index"
+                },
+                "content": {
+                  "type": "string",
+                  "title": "Content"
+                },
+                "content_length": {
+                  "type": "integer",
+                  "title": "Content Length"
+                },
+                "chunk_hash": {
+                  "type": "string",
+                  "title": "Chunk Hash"
+                },
+                "page_number": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Page Number"
+                },
+                "section_title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Section Title"
+                },
+                "embedding_model": {
+                  "type": "string",
+                  "title": "Embedding Model"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Created At"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "document_id",
+                "chunk_index",
+                "content",
+                "content_length",
+                "chunk_hash",
+                "embedding_model",
+                "created_at"
+              ],
+              "title": "DocumentChunkResponse",
+              "description": "Schema for document chunk responses"
+            },
+            "DocumentCreate": {
+              "properties": {
+                "filename": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "title": "Filename",
+                  "description": "Document filename"
+                },
+                "document_type": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Document Type",
+                  "description": "Type of document"
+                },
+                "language": {
+                  "type": "string",
+                  "maxLength": 10,
+                  "title": "Language",
+                  "description": "Document language",
+                  "default": "en"
+                },
+                "tags": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Tags",
+                  "description": "Document tags"
+                },
+                "content": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Content",
+                  "description": "Document text content"
+                },
+                "content_type": {
+                  "type": "string",
+                  "title": "Content Type",
+                  "description": "MIME type of the document",
+                  "default": "text/plain"
+                },
+                "file_size": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "exclusiveMinimum": 0.0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "File Size",
+                  "description": "File size in bytes"
+                },
+                "is_public": {
+                  "type": "boolean",
+                  "title": "Is Public",
+                  "description": "Whether document is public",
+                  "default": false
+                }
+              },
+              "type": "object",
+              "required": [
+                "filename"
+              ],
+              "title": "DocumentCreate",
+              "description": "Schema for creating a new document"
+            },
+            "DocumentResponse": {
+              "properties": {
+                "filename": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "title": "Filename",
+                  "description": "Document filename"
+                },
+                "document_type": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Document Type",
+                  "description": "Type of document"
+                },
+                "language": {
+                  "type": "string",
+                  "maxLength": 10,
+                  "title": "Language",
+                  "description": "Document language",
+                  "default": "en"
+                },
+                "tags": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Tags",
+                  "description": "Document tags"
+                },
+                "id": {
+                  "type": "integer",
+                  "title": "Id"
+                },
+                "user_id": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "User Id"
+                },
+                "organization_id": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Organization Id"
+                },
+                "file_path": {
+                  "type": "string",
+                  "title": "File Path"
+                },
+                "file_type": {
+                  "type": "string",
+                  "title": "File Type"
+                },
+                "file_size": {
+                  "type": "integer",
+                  "title": "File Size"
+                },
+                "content_hash": {
+                  "type": "string",
+                  "title": "Content Hash"
+                },
+                "upload_date": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Upload Date"
+                },
+                "last_processed": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Last Processed"
+                },
+                "processing_status": {
+                  "type": "string",
+                  "title": "Processing Status"
+                },
+                "processing_progress": {
+                  "type": "integer",
+                  "title": "Processing Progress",
+                  "default": 0
+                },
+                "total_pages": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Total Pages"
+                },
+                "total_chunks": {
+                  "type": "integer",
+                  "title": "Total Chunks",
+                  "default": 0
+                },
+                "version": {
+                  "type": "integer",
+                  "title": "Version",
+                  "default": 1
+                },
+                "is_public": {
+                  "type": "boolean",
+                  "title": "Is Public",
+                  "default": false
+                },
+                "retention_until": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Retention Until"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Created At"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Updated At"
+                }
+              },
+              "type": "object",
+              "required": [
+                "filename",
+                "id",
+                "file_path",
+                "file_type",
+                "file_size",
+                "content_hash",
+                "upload_date",
+                "processing_status",
+                "created_at",
+                "updated_at"
+              ],
+              "title": "DocumentResponse",
+              "description": "Schema for document responses"
+            },
+            "DocumentUploadResponse": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "title": "Message"
+                },
+                "document_id": {
+                  "type": "integer",
+                  "title": "Document Id"
+                },
+                "filename": {
+                  "type": "string",
+                  "title": "Filename"
+                },
+                "chunks_created": {
+                  "type": "integer",
+                  "title": "Chunks Created",
+                  "default": 0
+                },
+                "processing_status": {
+                  "type": "string",
+                  "title": "Processing Status",
+                  "default": "pending"
+                }
+              },
+              "type": "object",
+              "required": [
+                "message",
+                "document_id",
+                "filename"
+              ],
+              "title": "DocumentUploadResponse",
+              "description": "Schema for document upload responses"
+            },
+            "HTTPValidationError": {
+              "properties": {
+                "detail": {
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationError"
+                  },
+                  "type": "array",
+                  "title": "Detail"
+                }
+              },
+              "type": "object",
+              "title": "HTTPValidationError"
+            },
+            "QuickAnalysisRequest": {
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "maxLength": 50000,
+                  "minLength": 1,
+                  "title": "Text",
+                  "description": "Text to analyze"
+                },
+                "options": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Options",
+                  "description": "Analysis options"
+                }
+              },
+              "type": "object",
+              "required": [
+                "text"
+              ],
+              "title": "QuickAnalysisRequest",
+              "description": "Schema for quick text analysis requests"
+            },
+            "QuickAnalysisResponse": {
+              "properties": {
+                "has_arbitration_clause": {
+                  "type": "boolean",
+                  "title": "Has Arbitration Clause"
+                },
+                "confidence_score": {
+                  "type": "number",
+                  "maximum": 1.0,
+                  "minimum": 0.0,
+                  "title": "Confidence Score"
+                },
+                "clauses_found": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Clauses Found",
+                  "default": []
+                },
+                "summary": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Summary"
+                },
+                "processing_time_ms": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Processing Time Ms"
+                }
+              },
+              "type": "object",
+              "required": [
+                "has_arbitration_clause",
+                "confidence_score"
+              ],
+              "title": "QuickAnalysisResponse",
+              "description": "Schema for quick analysis responses"
+            },
+            "Token": {
+              "properties": {
+                "access_token": {
+                  "type": "string",
+                  "title": "Access Token"
+                },
+                "token_type": {
+                  "type": "string",
+                  "title": "Token Type",
+                  "default": "bearer"
+                },
+                "expires_in": {
+                  "type": "integer",
+                  "title": "Expires In"
+                },
+                "refresh_token": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Refresh Token"
+                }
+              },
+              "type": "object",
+              "required": [
+                "access_token",
+                "expires_in"
+              ],
+              "title": "Token",
+              "description": "Schema for authentication tokens"
+            },
+            "UserCreate": {
+              "properties": {
+                "username": {
+                  "type": "string",
+                  "maxLength": 50,
+                  "minLength": 3,
+                  "title": "Username"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "title": "Email"
+                },
+                "full_name": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Full Name"
+                },
+                "is_active": {
+                  "type": "boolean",
+                  "title": "Is Active",
+                  "default": true
+                },
+                "password": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "minLength": 8,
+                  "title": "Password",
+                  "description": "User password"
+                }
+              },
+              "type": "object",
+              "required": [
+                "username",
+                "email",
+                "password"
+              ],
+              "title": "UserCreate",
+              "description": "Schema for user creation"
+            },
+            "UserLogin": {
+              "properties": {
+                "username": {
+                  "type": "string",
+                  "title": "Username",
+                  "description": "Username or email"
+                },
+                "password": {
+                  "type": "string",
+                  "title": "Password",
+                  "description": "User password"
+                }
+              },
+              "type": "object",
+              "required": [
+                "username",
+                "password"
+              ],
+              "title": "UserLogin",
+              "description": "Schema for user login"
+            },
+            "UserResponse": {
+              "properties": {
+                "username": {
+                  "type": "string",
+                  "maxLength": 50,
+                  "minLength": 3,
+                  "title": "Username"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "title": "Email"
+                },
+                "full_name": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Full Name"
+                },
+                "is_active": {
+                  "type": "boolean",
+                  "title": "Is Active",
+                  "default": true
+                },
+                "id": {
+                  "type": "integer",
+                  "title": "Id"
+                },
+                "organization_id": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Organization Id"
+                },
+                "last_login": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Last Login"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Created At"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Updated At"
+                }
+              },
+              "type": "object",
+              "required": [
+                "username",
+                "email",
+                "id",
+                "created_at",
+                "updated_at"
+              ],
+              "title": "UserResponse",
+              "description": "Schema for user responses"
+            },
+            "ValidationError": {
+              "properties": {
+                "loc": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "array",
+                  "title": "Location"
+                },
+                "msg": {
+                  "type": "string",
+                  "title": "Message"
+                },
+                "type": {
+                  "type": "string",
+                  "title": "Error Type"
+                }
+              },
+              "type": "object",
+              "required": [
+                "loc",
+                "msg",
+                "type"
+              ],
+              "title": "ValidationError"
+            }
+          },
+          "securitySchemes": {
+            "HTTPBearer": {
+              "type": "http",
+              "scheme": "bearer"
+            }
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/users/register",
+      "method": "POST",
+      "status_code": 500,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:07.026083",
+      "details": {
+        "detail": "Error creating user: (psycopg2.OperationalError) connection to server at \"localhost\" (::1), port 5432 failed: FATAL:  role \"arbitration_user\" does not exist\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/users/login",
+      "method": "POST",
+      "status_code": 401,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.031552",
+      "details": {},
+      "error": "Incorrect username or password"
+    },
+    {
+      "endpoint": "/api/v1/users/verify-token",
+      "method": "POST",
+      "status_code": 200,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.032592",
+      "details": {},
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/documents/",
+      "method": "GET",
+      "status_code": 200,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.036053",
+      "details": {},
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/documents/stats/overview",
+      "method": "GET",
+      "status_code": 200,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.039081",
+      "details": {},
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/analysis/",
+      "method": "GET",
+      "status_code": 200,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.043307",
+      "details": {},
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/analysis/quick-analyze",
+      "method": "POST",
+      "status_code": 200,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.046582",
+      "details": {},
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/analysis/stats/overview",
+      "method": "GET",
+      "status_code": 200,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.051140",
+      "details": {},
+      "error": null
+    },
+    {
+      "endpoint": "/api/websocket/stats",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.051667",
+      "details": {},
+      "error": "Not Found"
+    },
+    {
+      "endpoint": "/api/websocket/rooms",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "timestamp": "2025-08-23T15:01:07.052108",
+      "details": {},
+      "error": "Not Found"
+    },
+    {
+      "endpoint": "/api/v1/nonexistent",
+      "method": "GET",
+      "status_code": 404,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:07.052497",
+      "details": {
+        "detail": "Not Found"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/nonexistent",
+      "method": "GET",
+      "status_code": 404,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:07.052910",
+      "details": {
+        "detail": "Not Found"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1",
+      "method": "OPTIONS",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T15:01:07.053455",
+      "details": {
+        "text": "OK"
+      },
+      "error": null
+    }
+  ],
+  "recommendations": [
+    "Install PostgreSQL dependencies: pip install psycopg2-binary",
+    "Set up database connection (PostgreSQL)",
+    "Configure database tables/migrations",
+    "Set up environment variables for database",
+    "Test user authentication flow",
+    "Test document upload functionality",
+    "Test text analysis capabilities",
+    "Set up WebSocket authentication"
+  ]
+}

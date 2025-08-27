@@ -1,0 +1,51 @@
+{
+  "name": "arbitration-detection-playwright-tests",
+  "version": "1.0.0",
+  "description": "Playwright visual tests and demo automation for arbitration detection system",
+  "scripts": {
+    "install-browsers": "playwright install",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:visual": "playwright test --grep @visual",
+    "test:demo": "playwright test --grep @demo",
+    "test:regression": "playwright test --grep @regression",
+    "test:mobile": "playwright test --grep @mobile",
+    "test:accessibility": "playwright test --grep @accessibility",
+    "update-screenshots": "playwright test --update-snapshots",
+    "generate-report": "playwright show-report",
+    "demo:quick": "node demo/quick-demo.js",
+    "demo:full": "node demo/full-demo.js",
+    "demo:screenshots": "node demo/screenshot-generator.js",
+    "demo:video": "node demo/video-demo.js",
+    "demo:interactive": "node demo/interaction-demo.js",
+    "performance:test": "node demo/performance-demo.js",
+    "audit:accessibility": "playwright test --grep @accessibility --reporter=html",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.40.0",
+    "playwright": "^1.40.0",
+    "sharp": "^0.32.6",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "@types/pixelmatch": "^5.2.6",
+    "@types/pngjs": "^6.0.4",
+    "typescript": "^5.3.0",
+    "eslint": "^8.54.0",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0"
+  },
+  "keywords": [
+    "playwright",
+    "e2e-testing",
+    "visual-testing",
+    "demo-automation",
+    "arbitration-detection"
+  ]
+}

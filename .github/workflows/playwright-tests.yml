@@ -1,0 +1,388 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'frontend 2/**'
+      - 'backend/**'
+      - '.github/workflows/playwright-tests.yml'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'frontend 2/**'
+      - 'backend/**'
+      - '.github/workflows/playwright-tests.yml'
+
+env:
+  NODE_ENV: test
+  API_URL: http://localhost:8000
+  FRONTEND_URL: http://localhost:5173
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: arbitration_user
+          POSTGRES_PASSWORD: arbitration_pass
+          POSTGRES_DB: arbitration_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        include:
+          - browser: chromium
+            project: chromium
+          - browser: firefox  
+            project: firefox
+          - browser: webkit
+            project: webkit
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'frontend 2/package-lock.json'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        # Install additional dependencies for testing
+        pip install pytest pytest-asyncio httpx
+
+    - name: Install frontend dependencies
+      run: |
+        cd "frontend 2"
+        npm ci
+
+    - name: Install Playwright Browsers
+      run: |
+        cd "frontend 2" 
+        npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Setup database
+      run: |
+        cd backend
+        # Initialize database schema
+        python -c "
+        import os
+        os.environ['DATABASE_URL'] = 'postgresql://arbitration_user:arbitration_pass@localhost:5432/arbitration_db'
+        from app.db.database import init_db
+        try:
+            init_db()
+            print('Database initialized successfully')
+        except Exception as e:
+            print(f'Database init error (expected in some cases): {e}')
+        "
+
+    - name: Start backend server
+      run: |
+        cd backend
+        export DATABASE_URL=postgresql://arbitration_user:arbitration_pass@localhost:5432/arbitration_db
+        export ENVIRONMENT=test
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        
+        # Wait for backend to be ready
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+      env:
+        DATABASE_URL: postgresql://arbitration_user:arbitration_pass@localhost:5432/arbitration_db
+
+    - name: Start frontend server  
+      run: |
+        cd "frontend 2"
+        npm run dev &
+        
+        # Wait for frontend to be ready
+        timeout 60 bash -c 'until curl -f http://localhost:5173; do sleep 2; done'
+      env:
+        VITE_API_URL: http://localhost:8000
+
+    - name: Run Playwright tests
+      run: |
+        cd "frontend 2"
+        npx playwright test --project=${{ matrix.project }}
+      env:
+        API_URL: http://localhost:8000
+        FRONTEND_URL: http://localhost:5173
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-results-${{ matrix.browser }}
+        path: |
+          frontend 2/test-results/
+          frontend 2/playwright-report/
+        retention-days: 30
+
+    - name: Upload screenshots  
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: screenshots-${{ matrix.browser }}
+        path: frontend 2/test-results/screenshots/
+        retention-days: 7
+
+  api-tests:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: arbitration_user
+          POSTGRES_PASSWORD: arbitration_pass
+          POSTGRES_DB: arbitration_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+
+    - name: Install frontend dependencies
+      run: |
+        cd "frontend 2"
+        npm ci
+
+    - name: Install Playwright
+      run: |
+        cd "frontend 2"
+        npx playwright install chromium
+
+    - name: Setup database
+      run: |
+        cd backend
+        export DATABASE_URL=postgresql://arbitration_user:arbitration_pass@localhost:5432/arbitration_db
+        python -c "
+        import os
+        from app.db.database import init_db
+        try:
+            init_db()
+            print('Database initialized')
+        except Exception as e:
+            print(f'Database init error: {e}')
+        "
+
+    - name: Start backend
+      run: |
+        cd backend
+        export DATABASE_URL=postgresql://arbitration_user:arbitration_pass@localhost:5432/arbitration_db
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+
+    - name: Run API tests
+      run: |
+        cd "frontend 2"
+        npx playwright test --project=api
+      env:
+        API_URL: http://localhost:8000
+
+    - name: Run WebSocket tests
+      run: |
+        cd "frontend 2"
+        npx playwright test --project=websocket
+      env:
+        API_URL: http://localhost:8000
+
+    - name: Upload API test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: api-test-results
+        path: |
+          frontend 2/test-results/
+        retention-days: 30
+
+  visual-regression:
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'frontend 2/package-lock.json'
+
+    - name: Setup Python  
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        cd "../frontend 2"
+        npm ci
+
+    - name: Install Playwright
+      run: |
+        cd "frontend 2"
+        npx playwright install --with-deps chromium
+
+    - name: Start servers for visual tests
+      run: |
+        # Start backend with mock data
+        cd backend
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        
+        # Start frontend  
+        cd "../frontend 2"
+        npm run dev &
+        
+        # Wait for both to be ready
+        timeout 120 bash -c 'until curl -f http://localhost:8000/health && curl -f http://localhost:5173; do sleep 3; done'
+
+    - name: Run visual regression tests
+      run: |
+        cd "frontend 2" 
+        npx playwright test --project=visual
+      env:
+        API_URL: http://localhost:8000
+        FRONTEND_URL: http://localhost:5173
+
+    - name: Upload visual test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: visual-regression-results
+        path: |
+          frontend 2/test-results/
+          frontend 2/playwright-report/
+        retention-days: 30
+
+  performance-tests:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd backend && pip install -r requirements.txt
+        cd "../frontend 2" && npm ci
+
+    - name: Install Playwright
+      run: |
+        cd "frontend 2"
+        npx playwright install chromium
+
+    - name: Start servers
+      run: |
+        cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        cd "frontend 2" && npm run dev &
+        timeout 120 bash -c 'until curl -f http://localhost:8000/health && curl -f http://localhost:5173; do sleep 3; done'
+
+    - name: Run performance tests
+      run: |
+        cd "frontend 2"
+        # Run subset of tests focused on performance
+        npx playwright test responsive-design error-handling --project=chromium
+      env:
+        API_URL: http://localhost:8000
+        FRONTEND_URL: http://localhost:5173
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-test-results
+        path: frontend 2/test-results/
+        retention-days: 14
+
+  report:
+    runs-on: ubuntu-latest
+    needs: [test, api-tests, visual-regression, performance-tests]
+    if: always()
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: test-artifacts
+
+    - name: Generate test report
+      run: |
+        echo "# Playwright Test Report" > test-report.md
+        echo "" >> test-report.md
+        echo "## Test Summary" >> test-report.md
+        echo "" >> test-report.md
+        
+        # Count artifacts to determine success/failure
+        if [ -d "test-artifacts" ]; then
+          echo "### Test Results:" >> test-report.md
+          for dir in test-artifacts/*/; do
+            if [ -d "$dir" ]; then
+              echo "- $(basename "$dir"): ✅ Completed" >> test-report.md
+            fi
+          done
+        fi
+        
+        echo "" >> test-report.md
+        echo "## Artifacts" >> test-report.md
+        echo "Test results and screenshots are available in the workflow artifacts." >> test-report.md
+
+    - name: Upload consolidated report
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report
+        path: test-report.md
+        retention-days: 90

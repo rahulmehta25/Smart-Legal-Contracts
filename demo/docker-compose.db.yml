@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: arbitration_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: arbitration_db
+      POSTGRES_USER: arbitration_user
+      POSTGRES_PASSWORD: arbitration_secure_pass_2024
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql_init:/docker-entrypoint-initdb.d
+      - ../backend/app/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - arbitration_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arbitration_user -d arbitration_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: arbitration_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redis_secure_pass_2024
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - arbitration_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: arbitration_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - arbitration_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: modern
+
+  # Database backup service
+  postgres_backup:
+    image: postgres:15-alpine
+    container_name: arbitration_backup
+    restart: "no"
+    volumes:
+      - postgres_backups:/backups
+      - ./scripts:/scripts:ro
+    networks:
+      - arbitration_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: arbitration_secure_pass_2024
+    command: >
+      sh -c "
+      while true; do
+        pg_dump -h postgres -U arbitration_user -d arbitration_db -f /backups/backup_$$(date +%Y%m%d_%H%M%S).sql
+        find /backups -name '*.sql' -mtime +7 -delete
+        sleep 86400
+      done
+      "
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  postgres_backups:
+    driver: local
+
+networks:
+  arbitration_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+# Production-ready configuration with security best practices
+# Usage:
+# docker-compose -f docker-compose.db.yml up -d
+# 
+# Connect to database:
+# Host: localhost
+# Port: 5432
+# Database: arbitration_db
+# Username: arbitration_user
+# Password: arbitration_secure_pass_2024
+#
+# Connect to Redis:
+# Host: localhost
+# Port: 6379
+# Password: redis_secure_pass_2024
+#
+# Access Adminer:
+# URL: http://localhost:8080
+#
+# Health checks and monitoring included

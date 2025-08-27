@@ -1,0 +1,435 @@
+{
+  "summary": {
+    "total_tests": 12,
+    "successful": 6,
+    "failed": 6,
+    "success_rate": 50.0,
+    "execution_time": 0.06902694702148438,
+    "timestamp": "2025-08-23T14:42:01.744137"
+  },
+  "results": [
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T14:42:01.691601",
+      "details": {
+        "status": "healthy",
+        "timestamp": 1755974521.690519,
+        "service": "AI Financial Planning Demo"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T14:42:01.692225",
+      "details": {
+        "message": "AI Financial Planning Demo API",
+        "status": "running",
+        "endpoints": [
+          "/health",
+          "/demo",
+          "/simulate",
+          "/docs"
+        ]
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "timestamp": "2025-08-23T14:42:01.692838",
+      "details": {
+        "detail": "Not Found"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/nonexistent",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "timestamp": "2025-08-23T14:42:01.693248",
+      "details": {
+        "detail": "Not Found"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/nonexistent",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "timestamp": "2025-08-23T14:42:01.693633",
+      "details": {
+        "detail": "Not Found"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1",
+      "method": "OPTIONS",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T14:42:01.694089",
+      "details": {
+        "text": "OK"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/docs",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T14:42:01.694764",
+      "details": {
+        "text": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <link type=\"text/css\" rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css\">\n    <link rel=\"shortcut icon\" href=\"https://..."
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/redoc",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T14:42:01.695125",
+      "details": {
+        "text": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <title>AI Financial Planning Demo - ReDoc</title>\n    <!-- needed for adaptive design -->\n    <meta charset=\"utf-8\"/>\n    <meta name=\"viewport\" content=\"..."
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/openapi.json",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2025-08-23T14:42:01.720694",
+      "details": {
+        "openapi": "3.1.0",
+        "info": {
+          "title": "AI Financial Planning Demo",
+          "description": "Simple Financial Planning API Demo",
+          "version": "1.0.0"
+        },
+        "paths": {
+          "/": {
+            "get": {
+              "summary": "Root",
+              "operationId": "root__get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/health": {
+            "get": {
+              "summary": "Health Check",
+              "operationId": "health_check_health_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/demo": {
+            "get": {
+              "summary": "Demo Info",
+              "operationId": "demo_info_demo_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/simulate": {
+            "post": {
+              "summary": "Run Simulation",
+              "description": "Run a simple financial simulation",
+              "operationId": "run_simulation_simulate_post",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/FinancialProfile"
+                    }
+                  }
+                },
+                "required": true
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/simulations/{simulation_id}": {
+            "get": {
+              "summary": "Get Simulation",
+              "description": "Get a specific simulation result",
+              "operationId": "get_simulation_simulations__simulation_id__get",
+              "parameters": [
+                {
+                  "name": "simulation_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "title": "Simulation Id"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/simulations": {
+            "get": {
+              "summary": "List Simulations",
+              "description": "List all simulations",
+              "operationId": "list_simulations_simulations_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/portfolio-optimization": {
+            "get": {
+              "summary": "Portfolio Optimization",
+              "description": "Get portfolio optimization recommendations",
+              "operationId": "portfolio_optimization_portfolio_optimization_get",
+              "parameters": [
+                {
+                  "name": "risk_tolerance",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "string",
+                    "default": "moderate",
+                    "title": "Risk Tolerance"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Validation Error",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/HTTPValidationError"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/market-data": {
+            "get": {
+              "summary": "Market Data",
+              "description": "Get sample market data",
+              "operationId": "market_data_market_data_get",
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "components": {
+          "schemas": {
+            "FinancialProfile": {
+              "properties": {
+                "age": {
+                  "type": "integer",
+                  "title": "Age"
+                },
+                "income": {
+                  "type": "number",
+                  "title": "Income"
+                },
+                "savings": {
+                  "type": "number",
+                  "title": "Savings"
+                },
+                "risk_tolerance": {
+                  "type": "string",
+                  "title": "Risk Tolerance"
+                }
+              },
+              "type": "object",
+              "required": [
+                "age",
+                "income",
+                "savings",
+                "risk_tolerance"
+              ],
+              "title": "FinancialProfile"
+            },
+            "HTTPValidationError": {
+              "properties": {
+                "detail": {
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationError"
+                  },
+                  "type": "array",
+                  "title": "Detail"
+                }
+              },
+              "type": "object",
+              "title": "HTTPValidationError"
+            },
+            "ValidationError": {
+              "properties": {
+                "loc": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "array",
+                  "title": "Location"
+                },
+                "msg": {
+                  "type": "string",
+                  "title": "Message"
+                },
+                "type": {
+                  "type": "string",
+                  "title": "Error Type"
+                }
+              },
+              "type": "object",
+              "required": [
+                "loc",
+                "msg",
+                "type"
+              ],
+              "title": "ValidationError"
+            }
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/ws",
+      "method": "WebSocket",
+      "status_code": 0,
+      "success": false,
+      "timestamp": "2025-08-23T14:42:01.741842",
+      "details": {},
+      "error": "BaseEventLoop.create_connection() got an unexpected keyword argument 'timeout'"
+    },
+    {
+      "endpoint": "/api/v1/documents/",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "timestamp": "2025-08-23T14:42:01.742684",
+      "details": {
+        "detail": "Not Found"
+      },
+      "error": null
+    },
+    {
+      "endpoint": "/api/v1/users/register",
+      "method": "POST",
+      "status_code": 404,
+      "success": false,
+      "timestamp": "2025-08-23T14:42:01.743216",
+      "details": {
+        "detail": "Not Found"
+      },
+      "error": null
+    }
+  ],
+  "recommendations": [
+    "\ud83d\udd0c WebSocket endpoint may need authentication token"
+  ]
+}

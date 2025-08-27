@@ -1,0 +1,270 @@
+# Promtail Configuration for Log Collection
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs
+  - job_name: containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: containerlogs
+          __path__: /var/lib/docker/containers/*/*log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs:
+      - json:
+          expressions:
+            tag:
+          source: attrs
+      - regex:
+          expression: (?P<container_name>(?:[^|]*))\|(?P<image_name>(?:[^|]*))\|(?P<image_id>(?:[^|]*))\|(?P<container_id>(?:[^|]*))
+          source: tag
+      - timestamp:
+          format: RFC3339Nano
+          source: time
+      - labels:
+          stream:
+          container_name:
+          image_name:
+          image_id:
+          container_id:
+      - output:
+          source: output
+
+  # Application logs - Backend
+  - job_name: backend-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: backend
+          service: arbitration-detector
+          __path__: /var/log/arbitration-detector/backend.log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            level:
+            timestamp:
+            message:
+            service:
+            request_id:
+            user_id:
+            ip_address:
+      - timestamp:
+          format: RFC3339
+          source: timestamp
+      - labels:
+          level:
+          service:
+          request_id:
+          user_id:
+
+  # Application logs - Frontend  
+  - job_name: frontend-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: frontend
+          service: arbitration-detector
+          __path__: /var/log/arbitration-detector/frontend.log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            level:
+            timestamp:
+            message:
+            component:
+            user_id:
+            session_id:
+      - timestamp:
+          format: RFC3339
+          source: timestamp
+      - labels:
+          level:
+          component:
+          user_id:
+
+  # Nginx access logs
+  - job_name: nginx-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          type: access
+          __path__: /var/log/nginx/access.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>[\d\.]+) - (?P<remote_user>[^ ]*) \[(?P<timestamp>[^\]]*)\] "(?P<method>\S+)(?: +(?P<path>[^\"]*?)(?: +\S*)?)?" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"(?P<request_time>.*)'
+      - timestamp:
+          format: 02/Jan/2006:15:04:05 -0700
+          source: timestamp
+      - labels:
+          method:
+          status:
+          remote_addr:
+      - metrics:
+          nginx_requests_total:
+            type: Counter
+            description: "Total number of requests"
+            config:
+              action: inc
+              match_all: true
+          nginx_request_duration_seconds:
+            type: Histogram
+            description: "Request duration"
+            config:
+              buckets: [0.1, 0.5, 1, 2, 5, 10]
+
+  # Nginx error logs
+  - job_name: nginx-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          type: error
+          __path__: /var/log/nginx/error.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<pid>\d+)#(?P<tid>\d+): \*(?P<cid>\d+) (?P<message>.*?)(?:, client: (?P<client>[\d\.]+))?(?:, server: (?P<server>[^,]+))?(?:, request: "(?P<request>[^"]*)")?(?:, host: "(?P<host>[^"]*)")?'
+      - timestamp:
+          format: 2006/01/02 15:04:05
+          source: timestamp
+      - labels:
+          level:
+          client:
+          server:
+
+  # PostgreSQL logs
+  - job_name: postgresql
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: postgresql
+          __path__: /var/log/postgresql/postgresql-*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \w+) \[(?P<pid>\d+)\] (?P<level>\w+): (?P<message>.*)'
+      - timestamp:
+          format: 2006-01-02 15:04:05.000 MST
+          source: timestamp
+      - labels:
+          level:
+          pid:
+
+  # Redis logs
+  - job_name: redis
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: redis
+          __path__: /var/log/redis/redis-server.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<pid>\d+):(?P<role>\w+) (?P<timestamp>\d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>[*#-]) (?P<message>.*)'
+      - timestamp:
+          format: 02 Jan 2006 15:04:05.000
+          source: timestamp
+      - labels:
+          level:
+          role:
+          pid:
+
+  # System logs
+  - job_name: syslog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          __path__: /var/log/syslog
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) (?P<hostname>\S+) (?P<service>\S+)(?:\[(?P<pid>\d+)\])?: (?P<message>.*)'
+      - timestamp:
+          format: Jan 02 15:04:05
+          source: timestamp
+      - labels:
+          hostname:
+          service:
+          pid:
+
+  # Docker daemon logs
+  - job_name: docker
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker
+          __path__: /var/log/docker.log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            level:
+            time:
+            msg:
+      - timestamp:
+          format: RFC3339Nano
+          source: time
+      - labels:
+          level:
+
+  # Custom application metrics extraction
+  - job_name: application-metrics
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: metrics
+          __path__: /var/log/arbitration-detector/metrics.log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp:
+            metric_name:
+            metric_value:
+            labels:
+      - timestamp:
+          format: RFC3339
+          source: timestamp
+      - labels:
+          metric_name:
+      - metrics:
+          arbitration_documents_processed:
+            type: Counter
+            description: "Number of documents processed"
+            config:
+              action: add
+              value: "{{ .metric_value }}"
+              match_all: true
+          arbitration_processing_duration:
+            type: Histogram
+            description: "Document processing duration"
+            config:
+              buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60]

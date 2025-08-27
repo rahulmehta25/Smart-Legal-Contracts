@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # Data Lakehouse Platform
+  lakehouse:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: data-lakehouse
+    environment:
+      - ENV=production
+      - SPARK_MASTER=local[*]
+      - LAKEHOUSE_DATA_ROOT=/data/lakehouse
+      - LAKEHOUSE_CHECKPOINT_ROOT=/data/checkpoints
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=lakehouse_metadata
+      - POSTGRES_USER=lakehouse
+      - POSTGRES_PASSWORD=lakehouse123
+    volumes:
+      - lakehouse_data:/data
+      - ./config:/app/config
+      - ./logs:/var/log/lakehouse
+    ports:
+      - "4040:4040"  # Spark UI
+      - "8080:8080"  # Lakehouse API
+      - "8081:8081"  # Lakehouse Admin
+      - "9090:9090"  # Metrics
+    depends_on:
+      - postgres
+      - mlflow
+      - minio
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-m", "data_lakehouse.main", "--status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # MLflow for experiment tracking
+  mlflow:
+    image: python:3.9-slim
+    container_name: mlflow-server
+    command: >
+      bash -c "
+        pip install mlflow psycopg2-binary boto3 &&
+        mlflow server
+        --backend-store-uri postgresql://lakehouse:lakehouse123@postgres:5432/mlflow
+        --default-artifact-root s3://mlflow-artifacts/
+        --host 0.0.0.0
+        --port 5000
+      "
+    environment:
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin123
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  # PostgreSQL for metadata storage
+  postgres:
+    image: postgres:13
+    container_name: lakehouse-postgres
+    environment:
+      - POSTGRES_DB=lakehouse_metadata
+      - POSTGRES_USER=lakehouse
+      - POSTGRES_PASSWORD=lakehouse123
+      - POSTGRES_MULTIPLE_DATABASES=mlflow,catalog,feature_store
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  # MinIO for object storage (S3 compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: lakehouse-minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: lakehouse-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  # Kafka for streaming data
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: lakehouse-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: lakehouse-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    ports:
+      - "9092:9092"
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lakehouse-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lakehouse-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3000:3000"
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+  # Jupyter Lab for data science
+  jupyter:
+    image: jupyter/pyspark-notebook:latest
+    container_name: lakehouse-jupyter
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=lakehouse123
+      - SPARK_OPTS=--master=local[*] --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog
+    volumes:
+      - jupyter_data:/home/jovyan/work
+      - lakehouse_data:/home/jovyan/work/data
+    ports:
+      - "8888:8888"
+    networks:
+      - lakehouse-network
+    restart: unless-stopped
+
+volumes:
+  lakehouse_data:
+  postgres_data:
+  minio_data:
+  redis_data:
+  kafka_data:
+  zookeeper_data:
+  zookeeper_logs:
+  prometheus_data:
+  grafana_data:
+  jupyter_data:
+
+networks:
+  lakehouse-network:
+    driver: bridge

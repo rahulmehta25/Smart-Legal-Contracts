@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ],
+  "installCommand": "pip install -r requirements-vercel.txt"
+}

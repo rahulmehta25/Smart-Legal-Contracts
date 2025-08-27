@@ -1,0 +1,544 @@
+# Production Kubernetes Deployment for Arbitration Detection System
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-primary
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: primary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: arbitration-detection
+      app.kubernetes.io/component: database
+      app.kubernetes.io/instance: primary
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: arbitration-detection
+        app.kubernetes.io/component: database
+        app.kubernetes.io/instance: primary
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: POSTGRES_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_MAX_CONNECTIONS
+          value: "300"
+        - name: POSTGRES_SHARED_BUFFERS
+          value: "512MB"
+        - name: POSTGRES_EFFECTIVE_CACHE_SIZE
+          value: "2GB"
+        - name: POSTGRES_WAL_BUFFERS
+          value: "16MB"
+        - name: POSTGRES_CHECKPOINT_COMPLETION_TARGET
+          value: "0.9"
+        - name: POSTGRES_RANDOM_PAGE_COST
+          value: "1.1"
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        - name: postgres-init
+          mountPath: /docker-entrypoint-initdb.d
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
+        securityContext:
+          runAsNonRoot: false
+          fsGroup: 999
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+      - name: postgres-init
+        configMap:
+          name: postgres-init-scripts
+
+---
+# Redis Master-Slave Setup
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-master
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/instance: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: arbitration-detection
+      app.kubernetes.io/component: cache
+      app.kubernetes.io/instance: master
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: arbitration-detection
+        app.kubernetes.io/component: cache
+        app.kubernetes.io/instance: master
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        args:
+        - redis-server
+        - --appendonly
+        - "yes"
+        - --maxmemory
+        - "1gb"
+        - --maxmemory-policy
+        - "allkeys-lru"
+        - --save
+        - "900 1"
+        - --save
+        - "300 10"
+        - --save
+        - "60 10000"
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        - name: redis-config
+          mountPath: /usr/local/etc/redis/redis.conf
+          subPath: redis.conf
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
+      - name: redis-config
+        configMap:
+          name: redis-config
+
+---
+# Elasticsearch Cluster
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: search
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: arbitration-detection
+      app.kubernetes.io/component: search
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: arbitration-detection
+        app.kubernetes.io/component: search
+    spec:
+      initContainers:
+      - name: increase-vm-max-map-count
+        image: busybox:1.35
+        command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        securityContext:
+          privileged: true
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+        ports:
+        - containerPort: 9200
+          name: rest
+        - containerPort: 9300
+          name: inter-node
+        env:
+        - name: cluster.name
+          value: arbitration-es-cluster
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: discovery.seed_hosts
+          value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
+        - name: cluster.initial_master_nodes
+          value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
+        - name: ES_JAVA_OPTS
+          value: "-Xms2g -Xmx2g"
+        - name: xpack.security.enabled
+          value: "false"
+        volumeMounts:
+        - name: elasticsearch-storage
+          mountPath: /usr/share/elasticsearch/data
+        resources:
+          requests:
+            memory: "3Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+        livenessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 30
+          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: elasticsearch-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "fast-ssd"
+      resources:
+        requests:
+          storage: 100Gi
+
+---
+# Backend API with Horizontal Pod Autoscaler
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: arbitration-detection
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: arbitration-detection
+        app.kubernetes.io/component: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+        config-hash: "${CONFIG_HASH}"
+    spec:
+      imagePullSecrets:
+      - name: registry-credentials
+      serviceAccountName: arbitration-backend-sa
+      initContainers:
+      - name: wait-for-dependencies
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Waiting for PostgreSQL..."
+          until nc -z postgres-service 5432; do sleep 2; done
+          echo "Waiting for Redis..."
+          until nc -z redis-service 6379; do sleep 2; done
+          echo "Waiting for Elasticsearch..."
+          until nc -z elasticsearch 9200; do sleep 2; done
+          echo "All dependencies are ready!"
+      - name: run-migrations
+        image: arbitration-backend:${IMAGE_TAG}
+        command: ['python', 'migrations/migration_runner.py']
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: DATABASE_URL
+      containers:
+      - name: backend
+        image: arbitration-backend:${IMAGE_TAG}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: REDIS_URL
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: ELASTICSEARCH_URL
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: SECRET_KEY
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: OPENAI_API_KEY
+        - name: WORKERS
+          value: "4"
+        - name: MAX_WORKERS
+          value: "8"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        - name: JAEGER_ENDPOINT
+          value: "http://jaeger-collector:14268"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: app-logs
+          mountPath: /app/logs
+        - name: model-cache
+          mountPath: /app/models
+        - name: tmp-storage
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: model-cache-pvc
+      - name: tmp-storage
+        emptyDir:
+          sizeLimit: 1Gi
+
+---
+# Frontend with CDN integration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: arbitration-detection
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: arbitration-detection
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: arbitration-detection
+        app.kubernetes.io/component: frontend
+    spec:
+      imagePullSecrets:
+      - name: registry-credentials
+      containers:
+      - name: frontend
+        image: arbitration-frontend:${IMAGE_TAG}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NEXT_PUBLIC_GRAPHQL_URL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: NEXT_PUBLIC_GRAPHQL_URL
+        - name: NEXT_PUBLIC_WS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: NEXT_PUBLIC_WS_URL
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+
+---
+# Horizontal Pod Autoscaler for Backend
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: arbitration-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: request_rate
+      target:
+        type: AverageValue
+        averageValue: 1k
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60

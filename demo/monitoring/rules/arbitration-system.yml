@@ -1,0 +1,293 @@
+# Prometheus Alerting Rules for Arbitration Detection System
+
+groups:
+  # Application Health Alerts
+  - name: application.health
+    rules:
+      - alert: BackendServiceDown
+        expr: up{job="backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "Backend service is down"
+          description: "Backend service has been down for more than 30 seconds."
+          runbook_url: "https://runbooks.arbitration-detector.com/backend-down"
+
+      - alert: FrontendServiceDown
+        expr: up{job="frontend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: frontend
+        annotations:
+          summary: "Frontend service is down"
+          description: "Frontend service has been down for more than 1 minute."
+          runbook_url: "https://runbooks.arbitration-detector.com/frontend-down"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database has been down for more than 30 seconds."
+          runbook_url: "https://runbooks.arbitration-detector.com/database-down"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache has been down for more than 1 minute."
+          runbook_url: "https://runbooks.arbitration-detector.com/redis-down"
+
+  # Performance Alerts
+  - name: application.performance
+    rules:
+      - alert: HighResponseTime
+        expr: avg_over_time(http_request_duration_seconds{quantile="0.95"}[5m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is {{ $value }}s for the last 5 minutes."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% for the last 5 minutes."
+
+      - alert: CPUUsageHigh
+        expr: (100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 80% for {{ $labels.instance }} for the last 5 minutes."
+
+      - alert: MemoryUsageHigh
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 3m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is above 85% for {{ $labels.instance }}."
+
+  # Database Alerts
+  - name: database.health
+    rules:
+      - alert: PostgreSQLTooManyConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL too many connections"
+          description: "PostgreSQL has {{ $value }}% connections used."
+
+      - alert: PostgreSQLSlowQueries
+        expr: pg_stat_activity_max_tx_duration{datname!~"template.*"} > 300
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL slow query detected"
+          description: "PostgreSQL slow query running for {{ $value }}s on database {{ $labels.datname }}."
+
+      - alert: DatabaseDiskSpaceHigh
+        expr: (1 - node_filesystem_avail_bytes{fstype!="tmpfs",mountpoint="/"} / node_filesystem_size_bytes{fstype!="tmpfs",mountpoint="/"}) * 100 > 85
+        for: 3m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database disk space running low"
+          description: "Database disk usage is above 85%."
+
+  # Redis Alerts
+  - name: redis.health
+    rules:
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 2m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value }}%."
+
+      - alert: RedisSlowLog
+        expr: increase(redis_slowlog_length[5m]) > 0
+        for: 0s
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis slow queries detected"
+          description: "Redis slow log has {{ $value }} new entries."
+
+  # SSL Certificate Alerts
+  - name: ssl.certificates
+    rules:
+      - alert: SSLCertificateExpiringSoon
+        expr: ssl_certificate_expiry_seconds < 7 * 24 * 3600
+        for: 0s
+        labels:
+          severity: warning
+          service: ssl
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."
+
+      - alert: SSLCertificateExpired
+        expr: ssl_certificate_expiry_seconds < 0
+        for: 0s
+        labels:
+          severity: critical
+          service: ssl
+        annotations:
+          summary: "SSL certificate expired"
+          description: "SSL certificate for {{ $labels.instance }} has expired."
+
+  # External Service Monitoring
+  - name: external.monitoring
+    rules:
+      - alert: WebsiteDown
+        expr: probe_success{job="blackbox"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: external
+        annotations:
+          summary: "Website is down"
+          description: "{{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: WebsiteSlowResponse
+        expr: probe_duration_seconds{job="blackbox"} > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: external
+        annotations:
+          summary: "Website slow response"
+          description: "{{ $labels.instance }} response time is {{ $value }}s."
+
+  # Business Logic Alerts
+  - name: business.logic
+    rules:
+      - alert: HighDocumentProcessingFailureRate
+        expr: rate(document_processing_failures_total[5m]) / rate(document_processing_total[5m]) * 100 > 10
+        for: 3m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "High document processing failure rate"
+          description: "Document processing failure rate is {{ $value }}%."
+
+      - alert: AIServiceDown
+        expr: ai_service_health == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ai
+        annotations:
+          summary: "AI service is down"
+          description: "AI service for arbitration detection is not responding."
+
+      - alert: QueueBacklog
+        expr: rabbitmq_queue_messages{queue!~".*dlx.*"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: queue
+        annotations:
+          summary: "High message queue backlog"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages."
+
+  # Security Alerts
+  - name: security
+    rules:
+      - alert: TooManyFailedLogins
+        expr: increase(failed_login_attempts_total[5m]) > 10
+        for: 0s
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "Too many failed login attempts"
+          description: "{{ $value }} failed login attempts in the last 5 minutes from {{ $labels.source_ip }}."
+
+      - alert: SuspiciousActivity
+        expr: rate(http_requests_total{status="404"}[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High 404 error rate"
+          description: "High rate of 404 errors: {{ $value }} requests/second."
+
+      - alert: DDOSAttack
+        expr: rate(http_requests_total[1m]) > 1000
+        for: 30s
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Possible DDoS attack"
+          description: "Very high request rate: {{ $value }} requests/second."
+
+  # Resource Utilization
+  - name: resources
+    rules:
+      - alert: DiskSpaceLow
+        expr: (1 - node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"}) * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk space usage on {{ $labels.mountpoint }} is {{ $value }}%."
+
+      - alert: InodeUsageHigh
+        expr: (1 - node_filesystem_files_free{fstype!="tmpfs"} / node_filesystem_files{fstype!="tmpfs"}) * 100 > 90
+        for: 2m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Inode usage high"
+          description: "Inode usage on {{ $labels.mountpoint }} is {{ $value }}%."
+
+      - alert: NetworkErrors
+        expr: increase(node_network_receive_errs_total[5m]) > 10 or increase(node_network_transmit_errs_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: network
+        annotations:
+          summary: "Network errors detected"
+          description: "Network errors on interface {{ $labels.device }}: {{ $value }} errors in 5 minutes."

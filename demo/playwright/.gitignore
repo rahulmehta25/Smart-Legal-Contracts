@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Test artifacts
+/test-results/
+/artifacts/
+/reports/
+playwright-report/
+
+# Screenshots
+screenshots/current/
+screenshots/diff/
+# Keep baseline screenshots in version control
+# screenshots/baseline/
+
+# Generated assets
+demo-videos/
+marketing-screenshots/
+social-media-assets/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build output
+dist/
+build/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.coverage
+.nyc_output
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Playwright browsers (downloaded automatically)
+/playwright/.cache/

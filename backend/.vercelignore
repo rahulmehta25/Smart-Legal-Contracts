@@ -1,0 +1,50 @@
+# Exclude heavy directories
+app/
+data/
+data_lakehouse/
+tests/
+models/
+evaluation_results/
+go-optimizer/
+rust-core/
+venv/
+ml_env/
+uploads/
+
+# Exclude build artifacts
+*.db
+*.pkl
+*.pyc
+__pycache__/
+.env
+.env.*
+!.env.production
+
+# Exclude documentation and reports
+*.md
+*.json
+!vercel.json
+!package.json
+
+# Exclude test files
+test_*.py
+*_test.py
+
+# Exclude Docker files
+Dockerfile*
+docker-compose*
+nginx.conf
+
+# Exclude shell scripts
+*.sh
+
+# Exclude migration files
+migrations/
+
+# Exclude configuration
+config/
+
+# Keep only API handler and minimal requirements
+!api/
+!requirements.txt
+!requirements-vercel.txt

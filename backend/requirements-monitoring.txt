@@ -1,0 +1,39 @@
+# Monitoring and Observability Dependencies
+
+# Prometheus Metrics
+prometheus-client>=0.18.0
+
+# OpenTelemetry for Distributed Tracing
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-instrumentation>=0.41b0
+opentelemetry-instrumentation-fastapi>=0.41b0
+opentelemetry-instrumentation-requests>=0.41b0
+opentelemetry-instrumentation-sqlalchemy>=0.41b0
+opentelemetry-instrumentation-redis>=0.41b0
+opentelemetry-exporter-jaeger>=1.20.0
+opentelemetry-exporter-zipkin>=1.20.0
+opentelemetry-exporter-otlp>=1.20.0
+opentelemetry-propagator-b3>=1.20.0
+
+# Error Tracking and Logging
+sentry-sdk>=1.35.0
+python-json-logger>=2.0.7
+loguru>=0.7.2
+
+# System Monitoring
+psutil>=5.9.6
+objgraph>=3.6.0
+line-profiler>=4.1.0
+py-spy>=0.3.14
+memory-profiler>=0.61.0
+
+# Database Monitoring
+motor>=3.3.2  # MongoDB async driver
+
+# Performance Testing
+locust>=2.17.0
+
+# Additional Analytics Dependencies
+httpx>=0.25.0  # For async HTTP client
+aiofiles>=23.2.1  # For async file operations

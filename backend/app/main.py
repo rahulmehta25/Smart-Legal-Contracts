@@ -10,6 +10,7 @@ from app.db.database import init_db
 from app.db.vector_store import init_vector_store
 from app.api import documents_router, analysis_router, users_router
 from app.api.health import router as health_router
+from app.api.advanced_rag_api import router as advanced_rag_router
 from app.core.config import get_settings
 from app.core.logging_config import configure_logging, RequestLoggingMiddleware
 from app.core.error_handlers import (
@@ -94,6 +95,7 @@ app.include_router(health_router)  # Health checks at root level
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(analysis_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
+app.include_router(advanced_rag_router)  # Advanced RAG endpoints
 
 
 

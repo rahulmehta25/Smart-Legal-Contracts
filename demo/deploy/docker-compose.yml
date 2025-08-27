@@ -1,0 +1,502 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with optimization
+  postgres:
+    image: postgres:15-alpine
+    container_name: arbitration-db
+    environment:
+      POSTGRES_DB: arbitration_db
+      POSTGRES_USER: arbitration_user
+      POSTGRES_PASSWORD: arbitration_pass
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # Performance optimization
+      POSTGRES_SHARED_PRELOAD_LIBRARIES: 'pg_stat_statements'
+      POSTGRES_MAX_CONNECTIONS: 200
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../init/postgres:/docker-entrypoint-initdb.d
+      - ../config/postgres.conf:/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arbitration_user -d arbitration_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - arbitration-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: arbitration-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ../config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - arbitration-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Vector Database (Chroma)
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: arbitration-vector-db
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+      - ../config/chroma-auth.txt:/chroma/auth.txt
+    environment:
+      - CHROMA_SERVER_AUTHN_CREDENTIALS_FILE=/chroma/auth.txt
+      - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.basic.BasicAuthenticationServerProvider
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Elasticsearch for document indexing and search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: arbitration-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ../config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"\\(green\\|yellow\\)\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    mem_limit: 2g
+
+  # Kibana for log visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: arbitration-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=kibana
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 200 OK'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Message Queue (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: arbitration-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=arbitration_user
+      - RABBITMQ_DEFAULT_PASS=arbitration_pass
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ../config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # FastAPI Backend with all AI services
+  backend:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      target: production
+    container_name: arbitration-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../backend:/app
+      - ../../data:/app/data
+      - ../../models:/app/models
+      - backend_logs:/app/logs
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - DATABASE_URL=postgresql://arbitration_user:arbitration_pass@postgres:5432/arbitration_db
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_URL=http://chroma:8000
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - RABBITMQ_URL=amqp://arbitration_user:arbitration_pass@rabbitmq:5672/
+      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+      - SECRET_KEY=your-secret-key-change-in-production
+      - WORKERS=4
+      - MAX_WORKERS=8
+      # AI Service Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN:-}
+      # Blockchain Configuration
+      - ETHEREUM_RPC_URL=${ETHEREUM_RPC_URL:-}
+      - POLYGON_RPC_URL=${POLYGON_RPC_URL:-}
+      - WEB3_PRIVATE_KEY=${WEB3_PRIVATE_KEY:-}
+      # Performance Monitoring
+      - PROMETHEUS_ENABLED=true
+      - JAEGER_ENDPOINT=http://jaeger:14268
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # GraphQL Server
+  graphql:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      target: graphql
+    container_name: arbitration-graphql
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://arbitration_user:arbitration_pass@postgres:5432/arbitration_db
+      - REDIS_URL=redis://redis:6379/1
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/graphql"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Data Lakehouse (Apache Spark)
+  spark-master:
+    image: bitnami/spark:3.5
+    container_name: arbitration-spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - spark_data:/opt/bitnami/spark/data
+    networks:
+      - arbitration-network
+
+  spark-worker:
+    image: bitnami/spark:3.5
+    container_name: arbitration-spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+    depends_on:
+      - spark-master
+    networks:
+      - arbitration-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: arbitration-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_GRAPHQL_URL=http://localhost:4000/graphql
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Mobile Backend Synchronization Service
+  mobile-sync:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.mobile-sync
+    container_name: arbitration-mobile-sync
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://arbitration_user:arbitration_pass@postgres:5432/arbitration_db
+      - REDIS_URL=redis://redis:6379/2
+      - FCM_SERVER_KEY=${FCM_SERVER_KEY:-}
+      - APNS_KEY_ID=${APNS_KEY_ID:-}
+      - APNS_TEAM_ID=${APNS_TEAM_ID:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - arbitration-network
+
+  # Nginx Reverse Proxy with SSL termination
+  nginx:
+    image: nginx:alpine
+    container_name: arbitration-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../ssl:/etc/ssl/certs:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+      - graphql
+    networks:
+      - arbitration-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring and Observability
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: arbitration-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../config/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - arbitration-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: arbitration-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ../config/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - arbitration-network
+
+  # Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: arbitration-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - arbitration-network
+
+  # Log aggregation
+  fluentd:
+    build:
+      context: ../config/fluentd
+      dockerfile: Dockerfile
+    container_name: arbitration-fluentd
+    volumes:
+      - ../config/fluentd/fluent.conf:/fluentd/etc/fluent.conf
+      - backend_logs:/var/log/backend
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - elasticsearch
+    networks:
+      - arbitration-network
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: arbitration.logs
+
+  # Integration Services
+  integration-service:
+    build:
+      context: ../../integrations
+      dockerfile: Dockerfile
+    container_name: arbitration-integrations
+    ports:
+      - "8003:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - DATABASE_URL=postgresql://arbitration_user:arbitration_pass@postgres:5432/arbitration_db
+      - REDIS_URL=redis://redis:6379/3
+      - SALESFORCE_CLIENT_ID=${SALESFORCE_CLIENT_ID:-}
+      - SALESFORCE_CLIENT_SECRET=${SALESFORCE_CLIENT_SECRET:-}
+      - MICROSOFT_CLIENT_ID=${MICROSOFT_CLIENT_ID:-}
+      - MICROSOFT_CLIENT_SECRET=${MICROSOFT_CLIENT_SECRET:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - arbitration-network
+
+  # Blockchain Services
+  blockchain-service:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.blockchain
+    container_name: arbitration-blockchain
+    ports:
+      - "8004:8004"
+    environment:
+      - ETHEREUM_RPC_URL=${ETHEREUM_RPC_URL:-https://mainnet.infura.io/v3/your-key}
+      - POLYGON_RPC_URL=${POLYGON_RPC_URL:-https://polygon-mainnet.infura.io/v3/your-key}
+      - SOLANA_RPC_URL=${SOLANA_RPC_URL:-https://api.mainnet-beta.solana.com}
+      - WEB3_PRIVATE_KEY=${WEB3_PRIVATE_KEY:-}
+      - DATABASE_URL=postgresql://arbitration_user:arbitration_pass@postgres:5432/arbitration_db
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - arbitration-network
+
+  # Health Check Service
+  health-checker:
+    build:
+      context: ../health-checker
+      dockerfile: Dockerfile
+    container_name: arbitration-health-checker
+    environment:
+      - CHECK_INTERVAL=30
+      - POSTGRES_URL=postgresql://arbitration_user:arbitration_pass@postgres:5432/arbitration_db
+      - REDIS_URL=redis://redis:6379/0
+      - BACKEND_URL=http://backend:8000
+      - FRONTEND_URL=http://frontend:3000
+      - GRAFANA_URL=http://grafana:3000
+      - PROMETHEUS_URL=http://prometheus:9090
+    depends_on:
+      - backend
+      - frontend
+      - postgres
+      - redis
+    networks:
+      - arbitration-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  chroma_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  spark_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  backend_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  arbitration-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1

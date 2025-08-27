@@ -1,0 +1,232 @@
+# Alertmanager Configuration for Arbitration Detection System
+global:
+  smtp_smarthost: '${SMTP_HOST}:${SMTP_PORT}'
+  smtp_from: '${FROM_EMAIL}'
+  smtp_auth_username: '${SMTP_USER}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+# The directory from which notification templates are read.
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# The root route on which each incoming alert enters.
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'web.hook'
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      group_interval: 5m
+      repeat_interval: 30m
+
+    # Database alerts
+    - match:
+        service: database
+      receiver: 'database-team'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+
+    # Security alerts
+    - match:
+        service: security
+      receiver: 'security-team'
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 15m
+
+    # Business logic alerts
+    - match:
+        service: business
+      receiver: 'business-team'
+      group_wait: 1m
+      group_interval: 10m
+      repeat_interval: 4h
+
+    # Warning alerts - less urgent
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      group_interval: 10m
+      repeat_interval: 4h
+
+# Inhibition rules allow to mute a set of alerts given that another alert is firing.
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # If service is down, don't alert on high response time
+  - source_match:
+      alertname: 'BackendServiceDown'
+    target_match:
+      alertname: 'HighResponseTime'
+    equal: ['instance']
+
+  - source_match:
+      alertname: 'FrontendServiceDown'
+    target_match:
+      alertname: 'WebsiteDown'
+    equal: ['instance']
+
+receivers:
+  # Default webhook (can be used for testing)
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://webhook-logger:8080/webhook'
+        send_resolved: true
+
+  # Critical alerts - multiple notification channels
+  - name: 'critical-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_CRITICAL}'
+        subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+        headers:
+          X-Priority: '1'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-critical'
+        title: '🚨 Critical Alert'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          {{ .Annotations.description }}
+          • Service: {{ .Labels.service }}
+          • Instance: {{ .Labels.instance }}
+          {{ if .Annotations.runbook_url }}• <{{ .Annotations.runbook_url }}|Runbook>{{ end }}
+          {{ end }}
+        send_resolved: true
+    
+    webhook_configs:
+      - url: '${PAGERDUTY_INTEGRATION_URL}'
+        send_resolved: true
+
+  # Database team alerts
+  - name: 'database-team'
+    email_configs:
+      - to: '${DBA_EMAIL}'
+        subject: 'Database Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Database Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Database: {{ .Labels.datname }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database-alerts'
+        title: '🗄️ Database Alert'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          {{ .Annotations.description }}
+          • Instance: {{ .Labels.instance }}
+          {{ if .Labels.datname }}• Database: {{ .Labels.datname }}{{ end }}
+          {{ end }}
+
+  # Security team alerts
+  - name: 'security-team'
+    email_configs:
+      - to: '${SECURITY_EMAIL}'
+        subject: '🔒 Security Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Security Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ if .Labels.source_ip }}Source IP: {{ .Labels.source_ip }}{{ end }}
+          {{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+        headers:
+          X-Priority: '1'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security-alerts'
+        title: '🔒 Security Alert'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          {{ .Annotations.description }}
+          • Instance: {{ .Labels.instance }}
+          {{ if .Labels.source_ip }}• Source IP: {{ .Labels.source_ip }}{{ end }}
+          {{ end }}
+
+  # Business team alerts
+  - name: 'business-team'
+    email_configs:
+      - to: '${BUSINESS_EMAIL}'
+        subject: 'Business Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Business Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Started: {{ .StartsAt }}
+          {{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#business-alerts'
+        title: '📊 Business Alert'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          {{ .Annotations.description }}
+          • Service: {{ .Labels.service }}
+          {{ end }}
+
+  # Warning alerts - less urgent notifications
+  - name: 'warning-alerts'
+    email_configs:
+      - to: '${DEVOPS_EMAIL}'
+        subject: 'Warning: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Warning: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-warning'
+        title: '⚠️ Warning Alert'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          {{ .Annotations.description }}
+          • Service: {{ .Labels.service }}
+          • Instance: {{ .Labels.instance }}
+          {{ end }}

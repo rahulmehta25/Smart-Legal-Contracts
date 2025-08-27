@@ -65,7 +65,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Legal tech theme colors
+				// Enhanced legal tech theme colors
 				legal: {
 					blue: 'hsl(var(--legal-blue))',
 					gold: 'hsl(var(--legal-gold))',
@@ -75,7 +75,21 @@ export default {
 					purple: 'hsl(var(--neural-purple))'
 				},
 				analysis: {
-					green: 'hsl(var(--analysis-green))'
+					green: 'hsl(var(--analysis-green))',
+					red: 'hsl(var(--analysis-red))'
+				},
+				// New status colors
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
 				}
 			},
 			backgroundImage: {

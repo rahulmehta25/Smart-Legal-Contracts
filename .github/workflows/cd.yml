@@ -1,0 +1,508 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types:
+      - completed
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (tag or sha)'
+        required: false
+        type: string
+      skip_tests:
+        description: 'Skip deployment tests'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Determine deployment strategy
+  determine-deployment:
+    name: Determine Deployment Strategy
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.determine.outputs.environment }}
+      version: ${{ steps.determine.outputs.version }}
+      deploy_staging: ${{ steps.determine.outputs.deploy_staging }}
+      deploy_production: ${{ steps.determine.outputs.deploy_production }}
+      skip_tests: ${{ steps.determine.outputs.skip_tests }}
+    
+    steps:
+      - name: Determine deployment parameters
+        id: determine
+        run: |
+          # Set defaults
+          ENVIRONMENT="staging"
+          VERSION="${{ github.sha }}"
+          DEPLOY_STAGING="false"
+          DEPLOY_PRODUCTION="false"
+          SKIP_TESTS="false"
+
+          # Handle different trigger types
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENVIRONMENT="${{ inputs.environment }}"
+            VERSION="${{ inputs.version || github.sha }}"
+            SKIP_TESTS="${{ inputs.skip_tests }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+              # Tagged release goes to production
+              ENVIRONMENT="production"
+              VERSION="${{ github.ref_name }}"
+            else
+              # Push to main/master goes to staging
+              ENVIRONMENT="staging"
+            fi
+          elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            # CI completion deploys to staging
+            ENVIRONMENT="staging"
+            # Only deploy if CI was successful
+            if [[ "${{ github.event.workflow_run.conclusion }}" != "success" ]]; then
+              echo "CI workflow failed, skipping deployment"
+              exit 0
+            fi
+          fi
+
+          # Set deployment flags
+          if [[ "$ENVIRONMENT" == "staging" ]]; then
+            DEPLOY_STAGING="true"
+          elif [[ "$ENVIRONMENT" == "production" ]]; then
+            DEPLOY_PRODUCTION="true"
+          fi
+
+          # Output results
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "deploy_staging=$DEPLOY_STAGING" >> $GITHUB_OUTPUT
+          echo "deploy_production=$DEPLOY_PRODUCTION" >> $GITHUB_OUTPUT
+          echo "skip_tests=$SKIP_TESTS" >> $GITHUB_OUTPUT
+
+          echo "Deployment Parameters:"
+          echo "- Environment: $ENVIRONMENT"
+          echo "- Version: $VERSION"
+          echo "- Deploy Staging: $DEPLOY_STAGING"
+          echo "- Deploy Production: $DEPLOY_PRODUCTION"
+          echo "- Skip Tests: $SKIP_TESTS"
+
+  # Pre-deployment validation
+  pre-deployment-validation:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    needs: [determine-deployment]
+    if: needs.determine-deployment.outputs.skip_tests != 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-deployment.outputs.version }}
+
+      - name: Validate Docker images exist
+        run: |
+          # Check if images exist in registry
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ needs.determine-deployment.outputs.version }} || exit 1
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ needs.determine-deployment.outputs.version }} || exit 1
+
+      - name: Validate configuration
+        run: |
+          # Check if required configuration files exist
+          [[ -f "demo/production/docker-compose.prod.yml" ]] || exit 1
+          [[ -f "demo/nginx/nginx.conf" ]] || exit 1
+          [[ -f "demo/scripts/deploy.sh" ]] || exit 1
+
+      - name: Validate environment variables
+        run: |
+          # Validate required environment variables are set
+          if [[ "${{ needs.determine-deployment.outputs.environment }}" == "production" ]]; then
+            [[ -n "${{ secrets.PROD_POSTGRES_PASSWORD }}" ]] || { echo "PROD_POSTGRES_PASSWORD not set"; exit 1; }
+            [[ -n "${{ secrets.PROD_JWT_SECRET }}" ]] || { echo "PROD_JWT_SECRET not set"; exit 1; }
+            [[ -n "${{ secrets.PROD_OPENAI_API_KEY }}" ]] || { echo "PROD_OPENAI_API_KEY not set"; exit 1; }
+          else
+            [[ -n "${{ secrets.STAGING_POSTGRES_PASSWORD }}" ]] || { echo "STAGING_POSTGRES_PASSWORD not set"; exit 1; }
+            [[ -n "${{ secrets.STAGING_JWT_SECRET }}" ]] || { echo "STAGING_JWT_SECRET not set"; exit 1; }
+          fi
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [determine-deployment, pre-deployment-validation]
+    if: needs.determine-deployment.outputs.deploy_staging == 'true' && (needs.pre-deployment-validation.result == 'success' || needs.pre-deployment-validation.result == 'skipped')
+    
+    environment:
+      name: staging
+      url: https://staging.arbitration-detector.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-deployment.outputs.version }}
+
+      - name: Setup deployment environment
+        run: |
+          # Create deployment directory
+          mkdir -p deployment
+          
+          # Generate environment file
+          cat > deployment/.env.staging << EOF
+          ENVIRONMENT=staging
+          POSTGRES_DB=arbitration_staging
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=${{ secrets.STAGING_POSTGRES_PASSWORD }}
+          REDIS_PASSWORD=${{ secrets.STAGING_REDIS_PASSWORD }}
+          JWT_SECRET=${{ secrets.STAGING_JWT_SECRET }}
+          OPENAI_API_KEY=${{ secrets.STAGING_OPENAI_API_KEY }}
+          FRONTEND_URL=https://staging.arbitration-detector.com
+          BACKEND_URL=https://api.staging.arbitration-detector.com
+          DOMAIN_URL=staging.arbitration-detector.com
+          GRAFANA_PASSWORD=${{ secrets.STAGING_GRAFANA_PASSWORD }}
+          EOF
+
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_PORT || 22 }}
+          script: |
+            set -e
+            
+            # Navigate to application directory
+            cd /opt/arbitration-detector
+            
+            # Pull latest code
+            git fetch origin
+            git checkout ${{ needs.determine-deployment.outputs.version }}
+            
+            # Copy environment file
+            echo "${{ steps.setup.outputs.env_file }}" > .env.production
+            
+            # Run deployment script
+            chmod +x demo/scripts/deploy.sh
+            ./demo/scripts/deploy.sh \
+              --environment staging \
+              --tag ${{ needs.determine-deployment.outputs.version }} \
+              --skip-tests
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for staging deployment to complete..."
+          sleep 60
+
+      - name: Verify staging deployment
+        run: |
+          # Health check staging environment
+          curl -f https://api.staging.arbitration-detector.com/health || exit 1
+          curl -f https://staging.arbitration-detector.com || exit 1
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against staging..."
+          # Add smoke test commands here
+          curl -f https://api.staging.arbitration-detector.com/docs || exit 1
+
+      - name: Notify staging deployment
+        run: |
+          echo "✅ Staging deployment completed successfully!"
+          echo "Version: ${{ needs.determine-deployment.outputs.version }}"
+          echo "URL: https://staging.arbitration-detector.com"
+
+  # Integration tests on staging
+  staging-integration-tests:
+    name: Staging Integration Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: needs.deploy-staging.result == 'success' && needs.determine-deployment.outputs.skip_tests != 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run integration tests against staging
+        working-directory: frontend
+        env:
+          CYPRESS_BASE_URL: https://staging.arbitration-detector.com
+          CYPRESS_API_URL: https://api.staging.arbitration-detector.com
+        run: |
+          npx cypress run \
+            --spec "cypress/e2e/integration/*.cy.ts" \
+            --config baseUrl=https://staging.arbitration-detector.com
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: staging-integration-test-results
+          path: |
+            frontend/cypress/screenshots
+            frontend/cypress/videos
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [determine-deployment, pre-deployment-validation, staging-integration-tests]
+    if: |
+      needs.determine-deployment.outputs.deploy_production == 'true' && 
+      (needs.pre-deployment-validation.result == 'success' || needs.pre-deployment-validation.result == 'skipped') &&
+      (needs.staging-integration-tests.result == 'success' || needs.staging-integration-tests.result == 'skipped')
+    
+    environment:
+      name: production
+      url: https://arbitration-detector.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-deployment.outputs.version }}
+
+      - name: Setup deployment environment
+        run: |
+          # Create deployment directory
+          mkdir -p deployment
+          
+          # Generate environment file
+          cat > deployment/.env.production << EOF
+          ENVIRONMENT=production
+          POSTGRES_DB=arbitration_prod
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=${{ secrets.PROD_POSTGRES_PASSWORD }}
+          REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}
+          JWT_SECRET=${{ secrets.PROD_JWT_SECRET }}
+          OPENAI_API_KEY=${{ secrets.PROD_OPENAI_API_KEY }}
+          FRONTEND_URL=https://arbitration-detector.com
+          BACKEND_URL=https://api.arbitration-detector.com
+          DOMAIN_URL=arbitration-detector.com
+          GRAFANA_PASSWORD=${{ secrets.PROD_GRAFANA_PASSWORD }}
+          EOF
+
+      - name: Create pre-deployment backup
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/arbitration-detector
+            
+            # Create backup before deployment
+            ./demo/scripts/backup.sh \
+              --type full \
+              --retention 7 \
+              --cloud-bucket ${{ secrets.BACKUP_BUCKET }}
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT || 22 }}
+          script: |
+            set -e
+            
+            # Navigate to application directory
+            cd /opt/arbitration-detector
+            
+            # Pull latest code
+            git fetch origin
+            git checkout ${{ needs.determine-deployment.outputs.version }}
+            
+            # Copy environment file
+            echo "${{ steps.setup.outputs.env_file }}" > .env.production
+            
+            # Run deployment script with all safety checks
+            chmod +x demo/scripts/deploy.sh
+            ./demo/scripts/deploy.sh \
+              --environment production \
+              --tag ${{ needs.determine-deployment.outputs.version }}
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for production deployment to complete..."
+          sleep 120
+
+      - name: Verify production deployment
+        run: |
+          # Health check production environment
+          curl -f https://api.arbitration-detector.com/health || exit 1
+          curl -f https://arbitration-detector.com || exit 1
+
+      - name: Run production smoke tests
+        run: |
+          echo "Running smoke tests against production..."
+          curl -f https://api.arbitration-detector.com/docs || exit 1
+          
+          # Test key endpoints
+          curl -f https://api.arbitration-detector.com/health || exit 1
+          curl -f https://arbitration-detector.com || exit 1
+
+      - name: Monitor deployment
+        run: |
+          echo "Monitoring deployment for 5 minutes..."
+          for i in {1..10}; do
+            sleep 30
+            curl -f https://api.arbitration-detector.com/health || exit 1
+            echo "Health check $i/10 passed"
+          done
+
+      - name: Notify production deployment
+        run: |
+          echo "🚀 Production deployment completed successfully!"
+          echo "Version: ${{ needs.determine-deployment.outputs.version }}"
+          echo "URL: https://arbitration-detector.com"
+
+  # Post-deployment monitoring
+  post-deployment-monitoring:
+    name: Post-deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: needs.deploy-production.result == 'success'
+    
+    steps:
+      - name: Setup monitoring
+        run: |
+          echo "Setting up post-deployment monitoring..."
+
+      - name: Extended health monitoring
+        run: |
+          echo "Running extended health checks..."
+          for i in {1..20}; do
+            sleep 60
+            
+            # Check main services
+            curl -f https://api.arbitration-detector.com/health || exit 1
+            curl -f https://arbitration-detector.com || exit 1
+            
+            echo "Extended health check $i/20 passed"
+          done
+
+      - name: Performance validation
+        run: |
+          echo "Validating performance..."
+          
+          # Check response times
+          time curl -f https://api.arbitration-detector.com/health
+          time curl -f https://arbitration-detector.com
+
+      - name: Setup alerts
+        run: |
+          echo "Setting up monitoring alerts..."
+          # Configure monitoring and alerting here
+
+  # Rollback on failure
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-deployment-monitoring]
+    if: failure() && needs.deploy-production.result == 'failure'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback production deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/arbitration-detector
+            
+            # Run rollback script
+            ./demo/scripts/rollback.sh \
+              --type full \
+              --force \
+              --auto-approve
+
+      - name: Verify rollback
+        run: |
+          sleep 60
+          curl -f https://api.arbitration-detector.com/health || exit 1
+          curl -f https://arbitration-detector.com || exit 1
+
+      - name: Notify rollback
+        run: |
+          echo "⚠️ Production deployment failed and was rolled back"
+          echo "Please investigate the deployment issues"
+
+  # Notification summary
+  notify-completion:
+    name: Notify Deployment Completion
+    runs-on: ubuntu-latest
+    needs: [determine-deployment, deploy-staging, deploy-production, post-deployment-monitoring]
+    if: always()
+    
+    steps:
+      - name: Determine notification message
+        id: message
+        run: |
+          MESSAGE=""
+          STATUS="success"
+          
+          if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+            MESSAGE="🚀 Production deployment successful!\nVersion: ${{ needs.determine-deployment.outputs.version }}\nURL: https://arbitration-detector.com"
+          elif [[ "${{ needs.deploy-staging.result }}" == "success" ]]; then
+            MESSAGE="✅ Staging deployment successful!\nVersion: ${{ needs.determine-deployment.outputs.version }}\nURL: https://staging.arbitration-detector.com"
+          else
+            MESSAGE="❌ Deployment failed!\nPlease check the logs and take appropriate action."
+            STATUS="failure"
+          fi
+          
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: Send Slack notification
+        if: vars.SLACK_WEBHOOK_URL != ''
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ steps.message.outputs.status }}
+          text: ${{ steps.message.outputs.message }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ needs.determine-deployment.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ needs.determine-deployment.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ steps.message.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.message.outputs.message }}" >> $GITHUB_STEP_SUMMARY
