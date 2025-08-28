@@ -1,6 +1,5 @@
 {
   "buildCommand": "npm run build",
-  "name": "smart-legal-contracts",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install",

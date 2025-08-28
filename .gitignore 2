@@ -56,5 +56,3 @@ venv.bak/
 
 # Docker
 .dockerignore
-.vercel
-.env*.local
