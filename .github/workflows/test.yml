@@ -124,7 +124,7 @@ jobs:
           name: backend-coverage
       
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-benchmarks
           path: backend/benchmark_results.json
@@ -185,7 +185,7 @@ jobs:
           npm run build
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend/.next/
@@ -282,14 +282,14 @@ jobs:
           CYPRESS_API_BASE_URL: http://localhost:8000/api/v1
       
       - name: Upload Cypress screenshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots
           path: frontend/cypress/screenshots/
       
       - name: Upload Cypress videos
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cypress-videos
@@ -328,7 +328,7 @@ jobs:
         uses: github/codeql-action/analyze@v2
       
       - name: Upload security reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |
@@ -374,7 +374,7 @@ jobs:
           locust -f tests/load_tests.py --headless -u 10 -r 2 -t 60s --host http://localhost:8000
       
       - name: Upload performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-results
           path: |
@@ -414,7 +414,7 @@ jobs:
           python scripts/validate_accuracy_thresholds.py --threshold 0.85
       
       - name: Upload accuracy reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: accuracy-reports
           path: |

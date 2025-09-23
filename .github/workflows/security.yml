@@ -145,7 +145,7 @@ jobs:
           sarif_file: checkov-results.sarif
 
       - name: Upload SAST artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: sast-security-reports
@@ -238,7 +238,7 @@ jobs:
           sarif_file: snyk.sarif
 
       - name: Upload dependency scan artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dependency-security-reports
@@ -325,7 +325,7 @@ jobs:
           docker run --rm -i hadolint/hadolint < demo/production/Dockerfile.frontend > hadolint-frontend-report.txt
 
       - name: Upload container scan artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: container-security-reports
@@ -379,7 +379,7 @@ jobs:
           sudo ./docker-bench-security.sh -l docker-bench-report.log
 
       - name: Upload infrastructure scan artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: infrastructure-security-reports
@@ -503,7 +503,7 @@ jobs:
           [[ -f frontend.pid ]] && kill $(cat frontend.pid) || true
 
       - name: Upload DAST artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dast-security-reports
@@ -523,7 +523,7 @@ jobs:
     
     steps:
       - name: Download all security artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Install report tools
         run: |
@@ -637,7 +637,7 @@ jobs:
           fi
 
       - name: Upload consolidated security report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: consolidated-security-report

@@ -229,7 +229,7 @@ jobs:
           bandit -r app/ -f json -o bandit-report.json || echo "Bandit check completed"
 
       - name: Upload Bandit report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bandit-report
           path: backend/bandit-report.json
@@ -354,14 +354,14 @@ jobs:
           CYPRESS_BASE_URL: http://localhost:3000
 
       - name: Upload Cypress screenshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots
           path: frontend/cypress/screenshots
 
       - name: Upload Cypress videos
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cypress-videos
@@ -434,7 +434,7 @@ jobs:
             --html performance-report.html
 
       - name: Upload performance report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-report
           path: backend/tests/load_tests/performance-report.html

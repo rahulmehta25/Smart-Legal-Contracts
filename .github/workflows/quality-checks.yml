@@ -75,7 +75,7 @@ jobs:
       
       # Upload reports
       - name: Upload quality reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: quality-reports
@@ -131,7 +131,7 @@ jobs:
       
       # Upload security reports
       - name: Upload security reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-reports
@@ -184,7 +184,7 @@ jobs:
       
       # Upload dependency reports
       - name: Upload dependency reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dependency-reports
           path: |
@@ -330,7 +330,7 @@ jobs:
       
       # Upload performance reports
       - name: Upload performance reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-reports
           path: |
@@ -366,7 +366,7 @@ jobs:
       
       # Upload metrics
       - name: Upload code metrics
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-metrics
           path: |
