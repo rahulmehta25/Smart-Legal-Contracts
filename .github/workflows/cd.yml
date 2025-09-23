@@ -1,21 +1,6 @@
 name: Continuous Deployment
 
 on:
-  push:
-    branches: [ main, master ]
-    tags: [ 'v*' ]
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - 'demo/**'
-      - 'k8s/**'
-      - 'infrastructure/**'
-      - '.github/workflows/cd.yml'
-  workflow_run:
-    workflows: ["Continuous Integration"]
-    types:
-      - completed
-    branches: [ main, master ]
   workflow_dispatch:
     inputs:
       environment:

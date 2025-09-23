@@ -1,31 +1,6 @@
 name: Security Scanning
 
 on:
-  push:
-    branches: [ main, master, develop ]
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - '.github/workflows/security.yml'
-      - 'k8s/**'
-      - 'infrastructure/**'
-      - 'Dockerfile'
-      - 'Dockerfile.*'
-      - 'demo/production/**'
-  pull_request:
-    branches: [ main, master, develop ]
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - '.github/workflows/security.yml'
-      - 'k8s/**'
-      - 'infrastructure/**'
-      - 'Dockerfile'
-      - 'Dockerfile.*'
-      - 'demo/production/**'
-  schedule:
-    # Run security scans daily at 3 AM UTC
-    - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
       scan_type:
@@ -650,7 +625,6 @@ jobs:
         if: failure()
         run: |
           echo "Security scan failed - critical issues found"
-          # Add notification logic here (Slack, email, etc.)
 
   # Schedule automated security updates
   security-updates:
