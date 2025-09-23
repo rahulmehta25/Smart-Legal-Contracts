@@ -38,7 +38,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ toLower(github.repository) }}
+  IMAGE_NAME: rahulmehta25/smart-legal-contracts
 
 jobs:
   # Determine deployment strategy
