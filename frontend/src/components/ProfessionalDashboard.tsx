@@ -129,13 +129,13 @@ export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({
 
   // Chart data
   const analysisData = [
-    { date: '2024-01-01', documents: 45, accuracy: 99.2 },
-    { date: '2024-01-02', documents: 52, accuracy: 99.4 },
-    { date: '2024-01-03', documents: 38, accuracy: 99.1 },
-    { date: '2024-01-04', documents: 61, accuracy: 99.6 },
-    { date: '2024-01-05', documents: 48, accuracy: 99.8 },
-    { date: '2024-01-06', documents: 55, accuracy: 99.7 },
-    { date: '2024-01-07', documents: 67, accuracy: 99.9 }
+    { date: '2026-03-01', documents: 45, accuracy: 99.2 },
+    { date: '2026-03-02', documents: 52, accuracy: 99.4 },
+    { date: '2026-03-03', documents: 38, accuracy: 99.1 },
+    { date: '2026-03-04', documents: 61, accuracy: 99.6 },
+    { date: '2026-03-05', documents: 48, accuracy: 99.8 },
+    { date: '2026-03-06', documents: 55, accuracy: 99.7 },
+    { date: '2026-03-07', documents: 67, accuracy: 99.9 }
   ];
 
   const riskDistribution = [
@@ -157,7 +157,7 @@ export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({
     {
       id: '1',
       documentName: 'Service Agreement - TechCorp',
-      date: '2024-01-07 14:30',
+      date: '2026-03-07 14:30',
       status: 'completed',
       score: 94,
       riskLevel: 'medium',
@@ -166,7 +166,7 @@ export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({
     {
       id: '2',
       documentName: 'Employment Contract - Legal Dept',
-      date: '2024-01-07 13:45',
+      date: '2026-03-07 13:45',
       status: 'completed',
       score: 89,
       riskLevel: 'low',
@@ -175,7 +175,7 @@ export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({
     {
       id: '3',
       documentName: 'Partnership Agreement - StartupXYZ',
-      date: '2024-01-07 12:15',
+      date: '2026-03-07 12:15',
       status: 'processing',
       score: 0,
       riskLevel: 'medium',
@@ -184,7 +184,7 @@ export const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({
     {
       id: '4',
       documentName: 'NDA - Confidential Project',
-      date: '2024-01-07 11:20',
+      date: '2026-03-07 11:20',
       status: 'completed',
       score: 96,
       riskLevel: 'low',

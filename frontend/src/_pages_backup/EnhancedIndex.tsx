@@ -28,56 +28,83 @@ import ThemeToggle from '@/components/ThemeToggle';
 import HelpSystem, { QuickHelp } from '@/components/InteractiveHelp';
 
 const EnhancedIndex: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('upload');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState(null);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   // Mock analysis results
   const mockResults = {
-    documentName: "Legal Service Agreement",
+    documentName: "SaaS Master Service Agreement - Acme Corp",
     analysisDate: new Date().toISOString(),
     overallScore: 87,
     riskAssessment: 'medium' as const,
     clausesDetected: [
       {
         id: '1',
-        type: 'Arbitration Clause',
-        text: 'Any dispute arising out of or relating to this Agreement shall be resolved through binding arbitration.',
-        confidence: 94,
-        pageNumber: 3,
-        riskLevel: 'medium' as const,
+        type: 'Mandatory Arbitration',
+        text: 'Any dispute, claim or controversy arising out of or relating to this Agreement, including the determination of the scope or applicability of this agreement to arbitrate, shall be determined by binding arbitration administered by JAMS pursuant to its Comprehensive Arbitration Rules.',
+        confidence: 97,
+        pageNumber: 12,
+        riskLevel: 'high' as const,
         category: 'Dispute Resolution'
       },
       {
         id: '2',
+        type: 'Class Action Waiver',
+        text: 'The parties agree that any arbitration shall be conducted in their individual capacities only and not as a class action or other representative action. The parties expressly waive their right to file a class action or seek relief on a class basis.',
+        confidence: 95,
+        pageNumber: 12,
+        riskLevel: 'high' as const,
+        category: 'Dispute Resolution'
+      },
+      {
+        id: '3',
         type: 'Jurisdiction Clause',
-        text: 'This Agreement shall be governed by the laws of California.',
-        confidence: 98,
-        pageNumber: 8,
+        text: 'This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of law provisions.',
+        confidence: 99,
+        pageNumber: 14,
         riskLevel: 'low' as const,
         category: 'Legal Framework'
       },
       {
-        id: '3',
+        id: '4',
         type: 'Liability Limitation',
-        text: 'In no event shall the Company be liable for indirect or consequential damages.',
-        confidence: 91,
-        pageNumber: 5,
-        riskLevel: 'high' as const,
+        text: 'In no event shall either party be liable to the other for any indirect, incidental, special, consequential, or punitive damages, regardless of the cause of action or theory of liability.',
+        confidence: 96,
+        pageNumber: 8,
+        riskLevel: 'medium' as const,
         category: 'Risk Management'
+      },
+      {
+        id: '5',
+        type: 'Confidentiality Clause',
+        text: 'Each party agrees to hold the other party\'s Confidential Information in strict confidence and not to disclose such information to any third party without prior written consent.',
+        confidence: 98,
+        pageNumber: 6,
+        riskLevel: 'low' as const,
+        category: 'Data Protection'
+      },
+      {
+        id: '6',
+        type: 'Termination for Convenience',
+        text: 'Either party may terminate this Agreement for convenience upon sixty (60) days prior written notice to the other party.',
+        confidence: 93,
+        pageNumber: 10,
+        riskLevel: 'medium' as const,
+        category: 'Contract Terms'
       }
     ],
     metrics: {
-      totalClauses: 12,
-      arbitrationClauses: 2,
-      jurisdictionClauses: 1,
-      liabilityClauses: 3,
-      confidentialityScore: 85,
+      totalClauses: 18,
+      arbitrationClauses: 3,
+      jurisdictionClauses: 2,
+      liabilityClauses: 4,
+      confidentialityScore: 88,
       enforceabilityScore: 92
     }
   };
+
+  const [activeTab, setActiveTab] = useState('upload');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<typeof mockResults | null>(mockResults);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleFileUpload = useCallback((files: File[]) => {
     setUploadedFiles(files);
@@ -463,7 +490,7 @@ const EnhancedIndex: React.FC = () => {
               Empowering legal professionals with advanced AI technology for smarter document analysis and risk assessment.
             </p>
             <div className="mt-6 text-sm text-muted-foreground">
-              © 2024 LegalAI. Professional legal document analysis platform.
+              © 2026 LegalAI. Professional legal document analysis platform.
             </div>
           </div>
         </div>
