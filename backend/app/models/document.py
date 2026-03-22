@@ -1,11 +1,10 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Float, ForeignKey, Boolean
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, List
 
-Base = declarative_base()
+from app.models.shared_base import Base
 
 
 class Document(Base):

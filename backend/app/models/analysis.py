@@ -1,12 +1,11 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Float, ForeignKey, Boolean, JSON
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from enum import Enum
 
-Base = declarative_base()
+from app.models.shared_base import Base
 
 
 class ArbitrationAnalysis(Base):
@@ -27,7 +26,7 @@ class ArbitrationAnalysis(Base):
     processing_time_ms = Column(Integer, nullable=True)
     
     # Store additional analysis data as JSON
-    metadata = Column(JSON, nullable=True)
+    analysis_metadata = Column('metadata', JSON, nullable=True)
     
     # Relationships
     document = relationship("Document", back_populates="analyses")

@@ -42,19 +42,15 @@ def get_db() -> Generator[Session, None, None]:
 
 def init_db() -> None:
     """
-    Initialize database tables
+    Initialize database tables using shared Base.
     """
-    from app.models.document import Base as DocumentBase
-    from app.models.analysis import Base as AnalysisBase
-    from app.models.user import Base as UserBase
+    from app.models.shared_base import Base
     
-    # Import all models to ensure they are registered
+    # Import all models to ensure they are registered with the shared Base
     from app.models import Document, DocumentChunk, ArbitrationAnalysis, ArbitrationClause, User
     
-    # Create all tables
-    DocumentBase.metadata.create_all(bind=engine)
-    AnalysisBase.metadata.create_all(bind=engine)
-    UserBase.metadata.create_all(bind=engine)
+    # Single create_all resolves all FKs correctly
+    Base.metadata.create_all(bind=engine)
 
 
 def create_tables():
@@ -68,13 +64,10 @@ def drop_tables():
     """
     Drop all tables (useful for testing)
     """
-    from app.models.document import Base as DocumentBase
-    from app.models.analysis import Base as AnalysisBase
-    from app.models.user import Base as UserBase
+    from app.models.shared_base import Base
+    from app.models import Document, DocumentChunk, ArbitrationAnalysis, ArbitrationClause, User
     
-    DocumentBase.metadata.drop_all(bind=engine)
-    AnalysisBase.metadata.drop_all(bind=engine)
-    UserBase.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine)
 
 
 def reset_database():

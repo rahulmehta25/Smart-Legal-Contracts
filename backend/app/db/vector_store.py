@@ -603,6 +603,36 @@ class MemoryVectorStore(VectorStore):
             logger.error(f"Error deleting embeddings from memory store: {e}")
             return False
     
+    def add_document_chunks(
+        self,
+        chunks: List[str],
+        document_id: int,
+        chunk_indices: List[int],
+        start_chars: List[int],
+        end_chars: List[int],
+        metadata: Optional[List[Dict[str, Any]]] = None
+    ) -> List[str]:
+        """Add document chunks to memory store (no real embeddings)."""
+        import uuid as _uuid
+        point_ids = []
+        for i, (chunk, chunk_idx, start, end) in enumerate(
+            zip(chunks, chunk_indices, start_chars, end_chars)
+        ):
+            point_id = str(_uuid.uuid4())
+            point_ids.append(point_id)
+            self.metadatas.append({
+                "document_id": document_id,
+                "chunk_index": chunk_idx,
+                "content": chunk,
+                "start_char": start,
+                "end_char": end,
+            })
+            # Store a zero vector as placeholder
+            self.embeddings.append(np.zeros(384, dtype=np.float32))
+            self.ids.append(point_id)
+        logger.info(f"Added {len(chunks)} document chunks to memory store")
+        return point_ids
+
     def get_embedding_count(self) -> int:
         """Get total number of embeddings in memory"""
         return len(self.embeddings)
@@ -788,6 +818,26 @@ def create_vector_store_config(
 
 
 def get_default_vector_store() -> VectorStoreManager:
-    """Get default vector store manager"""
-    config = create_vector_store_config()
-    return VectorStoreManager(config)
+    """Get default vector store manager, falling back to memory store"""
+    try:
+        config = create_vector_store_config()
+        return VectorStoreManager(config)
+    except (ImportError, Exception) as e:
+        logger.warning(f"Default vector store unavailable ({e}), falling back to memory store")
+        config = create_vector_store_config(store_type="memory")
+        return VectorStoreManager(config)
+
+
+def init_vector_store():
+    """Initialize the vector store (called during app startup)"""
+    try:
+        store = get_default_vector_store()
+        return store
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Vector store initialization failed (will retry on first use): {e}")
+        return None
+
+
+# Alias for backward compatibility
+get_vector_store = get_default_vector_store

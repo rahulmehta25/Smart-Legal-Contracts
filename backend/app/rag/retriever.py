@@ -494,6 +494,53 @@ class HybridRetriever:
         
         return results[:top_k]
 
+    def retrieve_arbitration_clauses(
+        self,
+        document_id: int,
+        top_k: int = 20,
+        min_score: float = 0.3
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve potential arbitration clauses from a document.
+        Uses keyword patterns for arbitration-related terms.
+        """
+        doc_id_str = str(document_id)
+
+        if doc_id_str not in self.document_index:
+            logger.warning(f"Document {document_id} not indexed, returning empty results")
+            return []
+
+        # Use arbitration-focused query
+        query = "arbitration clause dispute resolution binding mandatory waiver jury trial class action"
+        results = self.retrieve(query=query, document_id=doc_id_str, top_k=top_k)
+
+        # Filter by min_score
+        filtered = [r for r in results if r.get("score", 0) >= min_score]
+        return filtered
+
+    def analyze_document_arbitration_coverage(self, document_id: int) -> Dict[str, Any]:
+        """Analyze how much of a document contains arbitration-related content."""
+        doc_id_str = str(document_id)
+
+        if doc_id_str not in self.document_index:
+            return {"coverage_ratio": 0, "total_chunks": 0, "arbitration_chunks": 0}
+
+        doc_data = self.document_index[doc_id_str]
+        chunks = doc_data.get("chunks", [])
+        total = len(chunks)
+
+        arb_keywords = {"arbitration", "dispute", "waiver", "binding", "mediation", "tribunal"}
+        arb_count = sum(
+            1 for c in chunks
+            if any(kw in c.get("text", "").lower() for kw in arb_keywords)
+        )
+
+        return {
+            "coverage_ratio": arb_count / total if total else 0,
+            "total_chunks": total,
+            "arbitration_chunks": arb_count,
+        }
+
 
 class DocumentRetriever:
     """High-level document retrieval interface."""
@@ -579,3 +626,19 @@ class DocumentRetriever:
         
         doc_data = self.retriever.document_index[document_id]
         return doc_data.get('sections', [])
+
+
+@dataclass
+class RetrievalResult:
+    """Result from a retrieval operation."""
+    text: str = ""
+    score: float = 0.0
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+
+
+# Alias for backward compatibility
+ArbitrationRetriever = HybridRetriever

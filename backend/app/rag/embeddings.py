@@ -27,7 +27,7 @@ class EmbeddingConfig:
     batch_size: int = 32
     normalize_embeddings: bool = True
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
-    cache_dir: str = "/backend/data/embedding_cache"
+    cache_dir: str = "./data/embedding_cache"
 
 
 class EmbeddingGenerator:
@@ -56,9 +56,13 @@ class EmbeddingGenerator:
     
     def _setup_cache_dir(self):
         """Setup cache directory for embeddings."""
-        cache_path = Path(self.config.cache_dir)
-        cache_path.mkdir(parents=True, exist_ok=True)
-        self.cache_path = cache_path
+        try:
+            cache_path = Path(self.config.cache_dir)
+            cache_path.mkdir(parents=True, exist_ok=True)
+            self.cache_path = cache_path
+        except OSError as e:
+            logger.warning(f"Could not create cache directory: {e}. Caching disabled.")
+            self.cache_path = None
     
     def _get_cache_key(self, text: str) -> str:
         """Generate a cache key for text."""
@@ -246,10 +250,11 @@ class SemanticChunker:
             if current_size + sentence_size > self.chunk_size and current_chunk:
                 # Create chunk
                 chunk_text = ' '.join(current_chunk)
+                prev_end = chunks[-1]['end_char'] if chunks else 0
                 chunks.append({
                     'text': chunk_text,
-                    'start_char': len(' '.join(chunks)) if chunks else 0,
-                    'end_char': len(' '.join(chunks)) + len(chunk_text) if chunks else len(chunk_text),
+                    'start_char': prev_end,
+                    'end_char': prev_end + len(chunk_text),
                     'chunk_id': len(chunks)
                 })
                 

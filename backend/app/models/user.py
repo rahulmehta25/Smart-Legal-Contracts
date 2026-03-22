@@ -1,10 +1,9 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
-Base = declarative_base()
+from app.models.shared_base import Base
 
 
 class User(Base):

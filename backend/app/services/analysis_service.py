@@ -52,6 +52,19 @@ class AnalysisService:
                 logger.info(f"Returning existing analysis for document {document_id}")
                 return existing_analysis
             
+            # Index document in retriever if not already indexed
+            doc_id_str = str(document_id)
+            if doc_id_str not in self.rag_pipeline.retriever.document_index:
+                # Get document text from DB chunks
+                chunks = self.document_service.get_document_chunks(db, document_id)
+                if chunks:
+                    full_text = "\n".join(c.content for c in chunks)
+                elif hasattr(document, 'content') and document.content:
+                    full_text = document.content
+                else:
+                    raise ValueError(f"No content found for document {document_id}")
+                self.rag_pipeline.retriever.index_document(doc_id_str, full_text)
+
             # Perform analysis using RAG pipeline
             analysis_result = self.rag_pipeline.analyze_document_for_arbitration(document_id)
             

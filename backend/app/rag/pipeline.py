@@ -6,7 +6,7 @@ from loguru import logger
 from app.rag.text_processor import LegalTextProcessor, TextChunk
 from app.rag.embeddings import EmbeddingGenerator
 from app.rag.retriever import ArbitrationRetriever, RetrievalResult
-from app.db.vector_store import VectorStore
+from app.db.vector_store import MemoryVectorStore, VectorStoreConfig
 from app.models.analysis import ArbitrationAnalysis, ArbitrationClause
 
 
@@ -27,24 +27,25 @@ class RAGPipeline:
     """
     
     def __init__(self):
-        # Initialize components
-        self.text_processor = LegalTextProcessor()
-        self.embedding_generator = EmbeddingGenerator()
-        self.vector_store = VectorStore()
-        self.retriever = ArbitrationRetriever(
-            self.vector_store,
-            self.embedding_generator,
-            self.text_processor
-        )
+        try:
+            self.text_processor = LegalTextProcessor()
+            self.embedding_generator = EmbeddingGenerator()
+            self.vector_store = MemoryVectorStore(VectorStoreConfig(store_type="memory"))
+            self.retriever = ArbitrationRetriever(self.embedding_generator)
+        except Exception as e:
+            logger.warning(f"RAG Pipeline partial init: {e}. Running in demo mode.")
+            self.text_processor = None
+            self.embedding_generator = None
+            self.vector_store = None
+            self.retriever = None
         
-        # Analysis thresholds
         self.confidence_thresholds = {
             "high_confidence": 0.8,
             "medium_confidence": 0.6,
             "low_confidence": 0.4
         }
         
-        logger.info("RAG Pipeline initialized successfully")
+        logger.info("RAG Pipeline initialized")
     
     def process_document(self, 
                         document_id: int, 
@@ -208,9 +209,30 @@ class RAGPipeline:
                 "confidence_level": "none"
             }
         
+        # Helper to get score from either object or dict
+        def _score(r):
+            if isinstance(r, dict):
+                return r.get("final_score", r.get("rerank_score", r.get("score", 0)))
+            return getattr(r, "final_score", getattr(r, "score", 0))
+
+        def _text(r):
+            if isinstance(r, dict):
+                return r.get("text", "")
+            return getattr(r, "text", "")
+
+        def _signals(r):
+            if isinstance(r, dict):
+                return r.get("arbitration_signals", self._detect_signals(_text(r)))
+            return getattr(r, "arbitration_signals", self._detect_signals(_text(r)))
+
+        def _chunk_id(r):
+            if isinstance(r, dict):
+                return r.get("chunk_id", r.get("chunk_index", None))
+            return getattr(r, "chunk_id", None)
+
         # Analyze top results
-        high_confidence_results = [r for r in results if r.final_score > 0.7]
-        medium_confidence_results = [r for r in results if 0.5 < r.final_score <= 0.7]
+        high_confidence_results = [r for r in results if _score(r) > 0.7]
+        medium_confidence_results = [r for r in results if 0.5 < _score(r) <= 0.7]
         
         # Extract clauses with high arbitration signals
         detected_clauses = []
@@ -223,7 +245,7 @@ class RAGPipeline:
         }
         
         for result in results[:10]:  # Top 10 results
-            signals = result.arbitration_signals
+            signals = _signals(result)
             
             # Update overall signals
             if signals.get("binding_arbitration"):
@@ -238,12 +260,14 @@ class RAGPipeline:
             overall_signals["total_keywords"] += signals.get("arbitration_keywords_count", 0)
             
             # Add high-quality clauses
-            if result.final_score > 0.6:
+            text = _text(result)
+            score = _score(result)
+            if score > 0.6:
                 clause = {
-                    "text": result.text[:500] + "..." if len(result.text) > 500 else result.text,
-                    "relevance_score": result.final_score,
+                    "text": text[:500] + "..." if len(text) > 500 else text,
+                    "relevance_score": score,
                     "signals": signals,
-                    "chunk_id": result.chunk_id,
+                    "chunk_id": _chunk_id(result),
                     "type": self._classify_clause_type(signals)
                 }
                 detected_clauses.append(clause)
@@ -406,6 +430,20 @@ class RAGPipeline:
         total_score = base_score + signal_bonus + keyword_bonus
         return min(total_score, 1.0)
     
+    def _detect_signals(self, text: str) -> Dict[str, Any]:
+        """Detect arbitration signals from text content."""
+        text_lower = text.lower()
+        return {
+            "binding_arbitration": "binding arbitration" in text_lower,
+            "mandatory_arbitration": "mandatory arbitration" in text_lower or "shall be determined by" in text_lower,
+            "class_action_waiver": "class action" in text_lower and "waiver" in text_lower,
+            "jury_waiver": "jury" in text_lower and ("waiver" in text_lower or "waives" in text_lower),
+            "arbitration_keywords_count": sum(
+                1 for kw in ["arbitration", "dispute", "binding", "waiver", "mediation", "tribunal"]
+                if kw in text_lower
+            ),
+        }
+
     def _classify_clause_type(self, signals: Dict[str, Any]) -> str:
         """
         Classify the type of arbitration clause
