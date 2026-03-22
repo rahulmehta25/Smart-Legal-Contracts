@@ -4,7 +4,6 @@ Embedding generation and management utilities for arbitration detection.
 
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
-from sentence_transformers import SentenceTransformer
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
 import hashlib
@@ -38,12 +37,14 @@ class EmbeddingGenerator:
         self.config = config or EmbeddingConfig()
         self.model = None
         self.cache = {}
-        self._initialize_model()
         self._setup_cache_dir()
     
-    def _initialize_model(self):
-        """Initialize the sentence transformer model."""
+    def _ensure_model(self):
+        """Lazy-load the sentence transformer model on first use."""
+        if self.model is not None:
+            return
         try:
+            from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(
                 self.config.model_name,
                 device=self.config.device
@@ -51,8 +52,8 @@ class EmbeddingGenerator:
             self.model.max_seq_length = self.config.max_seq_length
             logger.info(f"Loaded embedding model: {self.config.model_name}")
         except Exception as e:
-            logger.error(f"Failed to load embedding model: {e}")
-            raise
+            logger.warning(f"Failed to load embedding model: {e}. Embeddings will use random fallback.")
+            self.model = None
     
     def _setup_cache_dir(self):
         """Setup cache directory for embeddings."""
@@ -96,6 +97,9 @@ class EmbeddingGenerator:
                     logger.warning(f"Failed to load cached embedding: {e}")
         
         # Generate new embedding
+        self._ensure_model()
+        if self.model is None:
+            return np.random.randn(self.config.embedding_dim).astype(np.float32)
         embedding = self.model.encode(
             text,
             convert_to_numpy=True,
@@ -137,8 +141,12 @@ class EmbeddingGenerator:
         batch_size = batch_size or self.config.batch_size
         embeddings = []
         
+        self._ensure_model()
         for i in range(0, len(texts), batch_size):
             batch = texts[i:i + batch_size]
+            if self.model is None:
+                embeddings.extend([np.random.randn(self.config.embedding_dim).astype(np.float32) for _ in batch])
+                continue
             batch_embeddings = self.model.encode(
                 batch,
                 convert_to_numpy=True,

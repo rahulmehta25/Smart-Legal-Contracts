@@ -6,14 +6,15 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from sqlalchemy import DateTime, String, Boolean, event, Column, Integer
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
+
+from app.models.shared_base import Base
 
 # Type variable for model classes
 ModelType = TypeVar("ModelType", bound="BaseModel")
 
-Base = declarative_base()
 
 
 class TimestampMixin:

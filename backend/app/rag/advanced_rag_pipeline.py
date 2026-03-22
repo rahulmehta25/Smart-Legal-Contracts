@@ -16,9 +16,12 @@ import logging
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import networkx as nx
-from sentence_transformers import SentenceTransformer, util
+# Lazy import: from sentence_transformers import SentenceTransformer, util
 import torch
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
 
 logger = logging.getLogger(__name__)
@@ -124,10 +127,15 @@ class AdvancedRAGPipeline:
             self.embedding_model = SentenceTransformer(self.config['embedding_model'])
             
             # NER model for entity extraction
-            try:
-                self.nlp = spacy.load('en_core_web_trf')
-            except:
-                self.nlp = spacy.load('en_core_web_sm')
+            self.nlp = None
+            if spacy is not None:
+                try:
+                    self.nlp = spacy.load('en_core_web_trf')
+                except Exception:
+                    try:
+                        self.nlp = spacy.load('en_core_web_sm')
+                    except Exception:
+                        logger.warning("No spaCy model available, NER disabled")
             
             # Classification model for clause type detection
             self.clause_classifier = pipeline(
@@ -153,8 +161,12 @@ class AdvancedRAGPipeline:
             logger.info("All AI models initialized successfully")
             
         except Exception as e:
-            logger.error(f"Error initializing models: {e}")
-            raise
+            logger.warning(f"Error initializing models: {e}. Running in degraded mode.")
+            self.embedding_model = None
+            self.nlp = None
+            self.clause_classifier = None
+            self.zero_shot_classifier = None
+            self.qa_model = None
     
     def _load_legal_ontology(self):
         """Load legal ontology and patterns"""

@@ -9,6 +9,7 @@ from app.models.shared_base import Base
 class User(Base):
     """SQLAlchemy model for users"""
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)

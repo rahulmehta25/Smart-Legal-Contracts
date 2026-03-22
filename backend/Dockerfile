@@ -1,71 +1,57 @@
-# Multi-stage production Dockerfile for FastAPI backend
-FROM python:3.11-slim as builder
-
-# Set build arguments
-ARG BUILD_ENV=production
-
-# Install system dependencies for building
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    libffi-dev \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create wheel installation directory
-WORKDIR /app
-
-# Copy requirements and install dependencies
-COPY requirements-production.txt .
-RUN pip install --no-cache-dir --user -r requirements-production.txt
-
-###################
-# Production stage
-###################
 FROM python:3.11-slim
 
-# Set environment variables for production
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app \
-    PORT=8000 \
-    ENVIRONMENT=production
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ curl && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
-# Install only runtime dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Copy Python dependencies from builder stage
-COPY --from=builder /root/.local /home/appuser/.local
-
-# Set working directory
 WORKDIR /app
 
-# Copy application code
+# Install deps (production-slim: no torch-audio, no qdrant, use CPU-only torch)
+RUN pip install --no-cache-dir \
+    fastapi>=0.68.0 \
+    "uvicorn[standard]>=0.15.0" \
+    "pydantic[email]>=1.8.0" \
+    pydantic-settings>=2.0.0 \
+    python-dotenv>=0.19.0 \
+    sqlalchemy>=2.0.0 \
+    loguru>=0.7.0 \
+    redis>=5.0.0 \
+    "passlib[bcrypt]>=1.7.4" \
+    python-jose>=3.3.0 \
+    spacy>=3.7.0 \
+    sentence-transformers>=2.6.0 \
+    transformers>=4.36.0 \
+    numpy>=1.21.0 \
+    scikit-learn>=1.0.0 \
+    python-multipart>=0.0.5 \
+    aiofiles>=23.0.0 \
+    httpx>=0.24.0 \
+    psutil>=5.9.0 \
+    python-jose[cryptography]>=3.3.0 \
+    PyJWT>=2.0.0
+
+# Set model cache to a persistent path inside the image
+ENV HF_HOME=/app/models_cache
+ENV TRANSFORMERS_CACHE=/app/models_cache
+ENV SENTENCE_TRANSFORMERS_HOME=/app/models_cache
+
+# Download spacy model and sentence-transformers model at build time
+RUN python -m spacy download en_core_web_sm
+# Model downloaded lazily at runtime to avoid HF rate limits during build
+
 COPY app/ ./app/
-COPY run.py .
 
-# Create necessary directories and set permissions
-RUN mkdir -p logs uploads chroma_db && \
-    chown -R appuser:appuser /app
+# Create directories
+RUN mkdir -p logs uploads
 
-# Switch to non-root user
-USER appuser
+ENV PORT=8080 \
+    PYTHONPATH=/app \
+    DATABASE_URL=sqlite:////tmp/arbitration_rag.db \
+    USE_QDRANT=false
 
-# Update PATH to include user-installed packages
-ENV PATH=/home/appuser/.local/bin:$PATH
+EXPOSE 8080
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
-# Expose port
-EXPOSE ${PORT}
-
-# Run the application
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Build 1774159331

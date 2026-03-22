@@ -19,6 +19,7 @@ class User(BaseModel, AuditMixin):
     """Simple user model for testing"""
     
     __tablename__ = 'users'
+    __table_args__ = {'extend_existing': True}
     
     # Basic information
     email = Column(String(255), unique=True, nullable=False, index=True)
