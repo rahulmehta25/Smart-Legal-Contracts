@@ -291,3 +291,63 @@ vercel --prod
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## System Architecture Diagram
+
+```mermaid
+flowchart TD
+    subgraph INGESTION["Document Ingestion Layer"]
+        A[/"Legal Document<br/>(PDF, DOCX, TXT)"/] --> B["Document Parser"]
+        B -->|"Raw bytes"| C["Format Detection"]
+        C -->|"Structured content"| D["Text Extraction Engine"]
+    end
+
+    subgraph PREPROCESSING["Text Preprocessing Pipeline"]
+        D -->|"Raw text"| E["Sentence Tokenization"]
+        E -->|"Sentence segments"| F["Legal NER Tagging"]
+        F -->|"Tagged entities"| G["Clause Boundary Detection"]
+        G -->|"Clause candidates"| H["Feature Engineering"]
+        H -->|"Numerical vectors"| I["Embedding Generation<br/>(Legal-BERT)"]
+    end
+
+    subgraph NEURAL_NETWORK["Deep Learning Classifier"]
+        I -->|"768-dim embeddings"| J["Transformer Encoder<br/>(12 layers)"]
+        J -->|"Contextual representations"| K["Attention Pooling"]
+        K -->|"Aggregated features"| L["Dense Layer<br/>(512 units, ReLU)"]
+        L -->|"Hidden state"| M["Classification Head<br/>(Softmax)"]
+    end
+
+    subgraph DETECTION["Arbitration Detection"]
+        M -->|"Probability scores"| N{"Clause Detected?<br/>(threshold: 0.85)"}
+        N -->|"Score < 0.85"| O[/"No Arbitration Clause<br/>Detected"/]
+        N -->|"Score >= 0.85"| P["Clause Type Classifier"]
+    end
+
+    subgraph CLASSIFICATION["Clause Type Classification"]
+        P -->|"Detected clause"| Q{"Classify Type"}
+        Q -->|"Type 1"| R1["Mandatory Arbitration"]
+        Q -->|"Type 2"| R2["Binding Mediation"]
+        Q -->|"Type 3"| R3["Non-Binding Mediation"]
+        Q -->|"Type 4"| R4["Hybrid ADR"]
+        Q -->|"Type 5"| R5["Escalation Clause"]
+    end
+
+    subgraph OUTPUT["Result Aggregation"]
+        R1 --> S["Clause Metadata<br/>Extraction"]
+        R2 --> S
+        R3 --> S
+        R4 --> S
+        R5 --> S
+        S -->|"Structured output"| T["Confidence Scoring"]
+        T -->|"Final predictions"| U[/"Classification Result<br/>(JSON)"/]
+        O --> V[/"Negative Result<br/>(JSON)"/]
+    end
+
+    style INGESTION fill:#e8f4f8,stroke:#0288d1
+    style PREPROCESSING fill:#fff3e0,stroke:#f57c00
+    style NEURAL_NETWORK fill:#f3e5f5,stroke:#7b1fa2
+    style DETECTION fill:#e8f5e9,stroke:#388e3c
+    style CLASSIFICATION fill:#fce4ec,stroke:#c2185b
+    style OUTPUT fill:#e3f2fd,stroke:#1565c0
+```
+
