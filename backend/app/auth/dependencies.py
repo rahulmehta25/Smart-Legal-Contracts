@@ -151,9 +151,15 @@ async def get_current_user(
     
     # Try API key authentication first
     if x_api_key:
-        # TODO: Implement API key validation
-        # For now, return placeholder
-        pass
+        import hashlib, os
+        valid_keys = os.getenv("API_KEYS", "").split(",")
+        key_hash = hashlib.sha256(x_api_key.encode()).hexdigest()
+        if x_api_key in valid_keys or key_hash in valid_keys:
+            return {"sub": "api_key_user", "role": "api", "api_key": True}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key",
+        )
     
     # Try JWT token authentication
     if credentials:
