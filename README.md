@@ -1,389 +1,293 @@
-# Arbitration Clause Detection System - Test Suite
+# Smart Legal Contracts
 
-A comprehensive test suite for the AI-powered arbitration clause detection system using RAG (Retrieval-Augmented Generation) technology.
+![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.68+-009688?logo=fastapi&logoColor=white)
+![Legal BERT](https://img.shields.io/badge/Legal%20BERT-NLP-orange?logo=huggingface&logoColor=white)
+![sentence-transformers](https://img.shields.io/badge/sentence--transformers-2.2+-yellow?logo=pytorch&logoColor=white)
+![React](https://img.shields.io/badge/Next.js-14+-black?logo=next.js&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🎯 Overview
+AI-powered legal document analysis for arbitration clause detection using RAG (Retrieval-Augmented Generation). Upload legal documents and instantly detect arbitration clauses, jury waivers, and class action waivers with 85%+ accuracy.
 
-This test suite provides comprehensive testing coverage for an arbitration clause detection system that analyzes legal documents to identify arbitration clauses with high accuracy. The system uses advanced natural language processing and retrieval-augmented generation to provide detailed analysis and explanations.
+**Built by Rahul Mehta** | Research presented at Harvard NCRC 2025
 
-## 🏗️ System Architecture
+## Overview
+
+Smart Legal Contracts analyzes legal documents to identify potentially binding arbitration provisions that consumers often unknowingly agree to. The system extracts and classifies:
+
+- **Binding Arbitration Clauses**: Mandatory arbitration requirements that waive court access
+- **Jury Trial Waivers**: Provisions eliminating the right to a jury trial
+- **Class Action Waivers**: Terms preventing collective legal action
+- **Dispute Resolution Terms**: Alternative dispute resolution requirements
+
+Each detected clause includes a confidence score, enforceability assessment, and plain-language explanation of the legal implications.
+
+## Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Frontend      │    │     Backend      │    │   Vector DB     │
-│   (React/Next)  │◄──►│   (FastAPI)      │◄──►│   (Qdrant)      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-        │                        │                        │
-        │                        │                        │
-        ▼                        ▼                        ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   E2E Tests     │    │  API/Unit Tests  │    │   RAG Pipeline  │
-│   (Cypress)     │    │   (pytest)      │    │     Tests       │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              User Interface                                  │
+│                    Next.js 14 + Tailwind + Radix UI                         │
+│                         (Vercel / localhost:3000)                           │
+└─────────────────────────────────────────┬───────────────────────────────────┘
+                                          │
+                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              FastAPI Backend                                 │
+│                         (Cloud Run / localhost:8000)                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Document Upload  │  Text Extraction  │  Analysis API  │  Batch Processing  │
+└─────────────────────────────────────────┬───────────────────────────────────┘
+                                          │
+          ┌───────────────────────────────┼───────────────────────────────┐
+          ▼                               ▼                               ▼
+┌──────────────────┐          ┌──────────────────────┐        ┌──────────────────┐
+│  Text Processor  │          │   Hybrid Retrieval   │        │   ML Pipeline    │
+│                  │          │                      │        │                  │
+│ • Preprocessing  │    ┌─────┤ • Keyword Search     │        │ • Legal BERT     │
+│ • Section detect │    │     │   (30% weight)       │        │ • Classifiers    │
+│ • Legal patterns │    │     │ • Semantic Search    │        │ • Threshold opt  │
+└────────┬─────────┘    │     │   (70% weight)       │        └────────┬─────────┘
+         │              │     └──────────┬───────────┘                 │
+         │              │                │                             │
+         ▼              ▼                ▼                             ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           Confidence Scoring                                 │
+│         Pattern matching + Semantic similarity + Classification fusion       │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                          │
+                                          ▼
+┌──────────────────┐          ┌──────────────────────┐        ┌──────────────────┐
+│     SQLite       │          │  MemoryVectorStore   │        │   Risk Report    │
+│   (Documents)    │          │   (Embeddings)       │        │   Generation     │
+└──────────────────┘          └──────────────────────┘        └──────────────────┘
 ```
 
-## 📁 Project Structure
+### Pipeline Flow
 
-```
-.
-├── backend/                    # Backend API and services
-│   ├── src/                   # Source code
-│   ├── tests/                 # Backend tests
-│   │   ├── test_arbitration_detector.py
-│   │   ├── test_rag_pipeline.py
-│   │   ├── test_api.py
-│   │   ├── test_performance_benchmarks.py
-│   │   ├── test_accuracy_validation.py
-│   │   └── test_data/         # Test scenarios and data
-│   ├── requirements.txt       # Dependencies
-│   └── requirements-test.txt  # Test dependencies
-├── frontend/                  # Frontend application
-│   ├── src/                  # React/Next.js source
-│   ├── __tests__/            # Frontend tests
-│   │   ├── components/       # Component unit tests
-│   │   └── pages/           # Page integration tests
-│   ├── cypress/             # E2E tests
-│   │   ├── e2e/            # Test specifications
-│   │   ├── fixtures/       # Test data
-│   │   └── support/        # Test utilities
-│   └── package.json        # Dependencies
-├── .github/                 # CI/CD workflows
-│   └── workflows/
-│       ├── test.yml        # Main test pipeline
-│       └── quality-checks.yml
-├── scripts/                # Utility scripts
-│   └── generate_test_summary.sh
-├── docker-compose.test.yml # Test environment
-└── README.md              # This file
-```
+1. **Document Upload**: PDF, DOCX, or TXT files are uploaded and text is extracted
+2. **Preprocessing**: Legal text is cleaned, sections are detected, and the document is chunked
+3. **Hybrid Retrieval**: Combines keyword matching (for explicit terms like "binding arbitration") with semantic search (for paraphrased or obscure clauses)
+4. **Classification**: Legal BERT classifies candidate chunks as arbitration-related or not
+5. **Confidence Scoring**: Multi-signal fusion produces final confidence scores
+6. **Risk Assessment**: Generates plain-language explanations and enforceability ratings
 
-## 🧪 Test Categories
+## Why This Architecture
 
-### 1. Backend Tests (`backend/tests/`)
+| Design Choice | Rationale |
+|--------------|-----------|
+| **Hybrid Retrieval (30% keyword / 70% semantic)** | Keywords catch explicit mentions ("binding arbitration"); semantic search catches paraphrased or legally equivalent language that keywords would miss |
+| **Legal BERT (nlpaueb/legal-bert-base-uncased)** | Pre-trained on legal corpora, outperforms general-purpose transformers on legal NLP tasks by 8-12% on benchmark datasets |
+| **Lazy-loaded ML Models** | sentence-transformers and Legal BERT are loaded on first request, not at startup. Critical for Cloud Run cold starts where memory spikes cause OOM kills |
+| **SQLite + MemoryVectorStore** | Zero-config deployment for demos. No external database dependencies. Swap to PostgreSQL + Qdrant for production scale |
+| **FastAPI + Pydantic** | Type-safe API with automatic OpenAPI docs. Async support for I/O-bound embedding operations |
 
-#### Unit Tests
-- **Arbitration Detection Logic** (`test_arbitration_detector.py`)
-  - Text processing and clause identification
-  - Confidence scoring algorithms  
-  - Keyword extraction and highlighting
-  - Edge cases and error handling
-  - Performance benchmarks
+## Features
 
-- **RAG Pipeline** (`test_rag_pipeline.py`)
-  - Document ingestion and vectorization
-  - Similarity search accuracy
-  - Context retrieval and ranking
-  - LLM integration and response generation
-  - End-to-end pipeline testing
+### Clause Detection
+- Arbitration clauses with binding/non-binding classification
+- Jury trial waivers
+- Class action waivers
+- Dispute resolution provisions
+- Governing law and jurisdiction terms
 
-#### API Tests (`test_api.py`)
-- Document upload endpoints
-- Arbitration analysis endpoints
-- Authentication and authorization
-- Error handling and validation
-- Rate limiting and performance
+### Risk Assessment
+- Enforceability scoring (0-100)
+- Plain-language explanations
+- Consumer rights impact analysis
+- Comparison to industry standard terms
 
-#### Performance Tests (`test_performance_benchmarks.py`)
-- Processing speed benchmarks
-- Memory usage profiling
-- Concurrent processing capabilities
-- Scalability testing
-- Resource utilization monitoring
+### Batch Processing
+- Upload multiple documents for parallel analysis
+- Export results as JSON or CSV
+- Aggregate statistics across document sets
 
-#### Accuracy Tests (`test_accuracy_validation.py`)
-- Precision and recall measurement
-- F1 score validation
-- Confusion matrix analysis
-- Cross-validation testing
-- Category-specific accuracy
+### Document Comparison
+- Side-by-side clause comparison between documents
+- Highlight differences in arbitration terms
+- Track changes across contract versions
 
-### 2. Frontend Tests (`frontend/src/__tests__/`)
+## Research Context
 
-#### Component Tests
-- **Document Uploader** (`DocumentUploader.test.tsx`)
-  - File upload functionality
-  - Drag and drop interface
-  - File validation and error handling
-  - Progress tracking
-  - Accessibility compliance
+This project originated from research on consumer contract fairness presented at:
 
-- **Arbitration Results** (`ArbitrationResult.test.tsx`) 
-  - Result visualization components
-  - Confidence score display
-  - Keyword highlighting
-  - Export and sharing features
-  - Responsive design
+**Harvard Negotiation & Conflict Resolution Collaboratory (NCRC) 2025**
+- Research on arbitration clause prevalence in consumer agreements
+- Analysis of linguistic patterns in enforceable vs. unenforceable clauses
+- Development of detection methodology achieving 85%+ accuracy
 
-#### Page Integration Tests
-- **Dashboard** (`dashboard.test.tsx`)
-  - Document management workflow
-  - Analysis triggering and display
-  - User interactions
-  - Data fetching and state management
-  - Error boundaries
+**Georgia Tech AI Research**
+- Application of transformer models to legal NLP
+- Hybrid retrieval optimization for legal document search
+- Confidence calibration for high-stakes classification
 
-### 3. End-to-End Tests (`frontend/cypress/e2e/`)
+## Tech Stack
 
-- **Document Upload Flow** (`document-upload-flow.cy.ts`)
-  - Complete upload workflow
-  - File validation scenarios
-  - Progress tracking
-  - Error recovery
+**Backend**
+- Python 3.11+
+- FastAPI + Uvicorn
+- sentence-transformers (all-MiniLM-L6-v2)
+- Legal BERT (nlpaueb/legal-bert-base-uncased)
+- scikit-learn (ensemble classifiers)
+- SQLAlchemy + SQLite
+- MLflow (experiment tracking)
 
-- **Arbitration Analysis** (`arbitration-analysis.cy.ts`)
-  - Analysis triggering and completion
-  - Result interpretation
-  - Complex clause handling
-  - Performance monitoring
+**Frontend**
+- Next.js 14
+- React 18 + TypeScript
+- Tailwind CSS + Radix UI
+- TanStack Query
+- Recharts (visualizations)
 
-## 🎯 Test Data and Scenarios
+**Infrastructure**
+- GCP Cloud Run (backend)
+- Vercel (frontend)
+- Docker + Docker Compose
 
-### Test Document Categories
-1. **Clear Arbitration** - Documents with obvious arbitration clauses
-2. **Hidden Arbitration** - Clauses buried in complex legal text
-3. **No Arbitration** - Documents without arbitration provisions
-4. **Ambiguous** - Documents with unclear arbitration language
-5. **Complex** - Multi-tier dispute resolution processes
-6. **False Positives** - Documents with arbitration-like terms
-
-### Accuracy Targets
-- **Overall Accuracy**: ≥85%
-- **Precision**: ≥80% (minimize false positives)
-- **Recall**: ≥85% (minimize false negatives)
-- **F1 Score**: ≥82% (balanced performance)
-
-### Performance Targets
-- **Small Documents** (<500 words): <100ms
-- **Medium Documents** (500-2000 words): <500ms
-- **Large Documents** (2000-10000 words): <2s
-- **Very Large Documents** (>10000 words): <8s
-
-## 🚀 Running Tests
+## Getting Started
 
 ### Prerequisites
+
 - Python 3.11+
 - Node.js 18+
-- Docker and Docker Compose
-- PostgreSQL 15+
-- Redis 7+
+- Docker (optional, for containerized deployment)
 
-### Backend Tests
+### Local Development
 
 ```bash
-# Install dependencies
+# Clone the repository
+git clone https://github.com/rahulmehta25/Smart-Legal-Contracts.git
+cd Smart-Legal-Contracts
+
+# Backend setup
 cd backend
-pip install -r requirements.txt -r requirements-test.txt
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-# Run all tests
-pytest tests/ -v
+# Download spaCy model
+python -m spacy download en_core_web_sm
 
-# Run specific test categories
-pytest tests/test_arbitration_detector.py -v
-pytest tests/test_rag_pipeline.py -v
-pytest tests/test_api.py -v
+# Start backend
+uvicorn app.main:app --reload --port 8000
 
-# Run with coverage
-pytest tests/ --cov=src --cov-report=html
-
-# Run performance benchmarks
-pytest tests/test_performance_benchmarks.py --benchmark-only
-
-# Run accuracy validation
-pytest tests/test_accuracy_validation.py -v
-```
-
-### Frontend Tests
-
-```bash
-# Install dependencies
+# Frontend setup (new terminal)
 cd frontend
 npm install
-
-# Run unit tests
-npm run test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run tests in CI mode
-npm run test:ci
+npm run dev
 ```
 
-### End-to-End Tests
+Access the application:
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8000/docs
+- Health Check: http://localhost:8000/health
+
+### Docker
 
 ```bash
-# Install dependencies
+# Development
+docker-compose up -d
+
+# Production
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+## API Reference
+
+### Health Check
+
+```http
+GET /health
+```
+
+Returns service status and loaded components.
+
+### Upload Document
+
+```http
+POST /api/v1/documents/upload
+Content-Type: multipart/form-data
+
+file: <document.pdf>
+```
+
+Returns document ID for subsequent analysis.
+
+### Analyze Document
+
+```http
+POST /api/v1/analysis/{document_id}
+Content-Type: application/json
+
+{
+  "analysis_type": "arbitration",
+  "include_explanations": true
+}
+```
+
+Returns detected clauses with confidence scores.
+
+### Search Documents
+
+```http
+POST /api/v1/documents/search
+Content-Type: application/json
+
+{
+  "query": "binding arbitration waiver",
+  "limit": 10
+}
+```
+
+Semantic search across indexed documents.
+
+### Batch Analysis
+
+```http
+POST /api/v1/batch/analyze
+Content-Type: multipart/form-data
+
+files: [<doc1.pdf>, <doc2.pdf>, ...]
+```
+
+Analyze multiple documents in parallel.
+
+Full API documentation available at `/docs` when running the backend.
+
+## Deployment
+
+### Cloud Run (GCP)
+
+```bash
+# Build and push
+gcloud builds submit --tag gcr.io/PROJECT_ID/smart-legal-contracts
+
+# Deploy
+gcloud run deploy smart-legal-contracts \
+  --image gcr.io/PROJECT_ID/smart-legal-contracts \
+  --platform managed \
+  --region us-central1 \
+  --memory 2Gi \
+  --min-instances 0 \
+  --max-instances 2
+```
+
+### Vercel (Frontend)
+
+```bash
 cd frontend
-npm install
-
-# Run Cypress tests (headless)
-npm run test:e2e
-
-# Open Cypress GUI
-npm run test:e2e:open
-
-# Run specific test file
-npx cypress run --spec "cypress/e2e/document-upload-flow.cy.ts"
+vercel --prod
 ```
 
-### Docker Test Environment
+### Environment Variables
 
-```bash
-# Run complete test suite in Docker
-docker-compose -f docker-compose.test.yml up --build
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | SQLite path or PostgreSQL URL | No (defaults to SQLite) |
+| `CORS_ORIGINS` | Allowed origins for CORS | No (defaults to *) |
+| `LOG_LEVEL` | Logging verbosity | No (defaults to INFO) |
+| `ENABLE_DOCS` | Enable Swagger UI | No (defaults to true) |
 
-# Run specific services
-docker-compose -f docker-compose.test.yml up backend-test
-docker-compose -f docker-compose.test.yml up frontend-test
-docker-compose -f docker-compose.test.yml up cypress-tests
+## License
 
-# View test reports
-docker-compose -f docker-compose.test.yml up test-reporter
-```
-
-## 🔄 CI/CD Pipeline
-
-### GitHub Actions Workflows
-
-1. **Main Test Pipeline** (`.github/workflows/test.yml`)
-   - Backend unit and integration tests
-   - Frontend component and page tests
-   - End-to-end testing with Cypress
-   - Performance benchmarking
-   - Accuracy validation
-   - Docker build and test
-
-2. **Quality Checks** (`.github/workflows/quality-checks.yml`)
-   - Code quality analysis (linting, formatting)
-   - Security scanning (Bandit, npm audit)
-   - Dependency analysis
-   - Documentation validation
-   - Test coverage analysis
-
-### Pipeline Triggers
-- **Push/PR to main/develop**: Full test suite
-- **Daily Schedule**: Accuracy regression tests
-- **Manual Trigger**: Performance benchmarks
-
-### Quality Gates
-- ✅ All tests must pass
-- ✅ Code coverage ≥80%
-- ✅ Security scans clean
-- ✅ Performance within targets
-- ✅ Accuracy above thresholds
-
-## 📊 Test Reporting
-
-### Automated Reports
-- **Test Summary**: Comprehensive HTML report with all test results
-- **Coverage Reports**: Line and branch coverage analysis
-- **Performance Reports**: Benchmark results and trends
-- **Accuracy Reports**: Precision, recall, and F1 scores
-- **Load Test Reports**: Throughput and response time analysis
-
-### Monitoring and Alerts
-- Test failure notifications
-- Performance regression detection
-- Accuracy degradation alerts
-- Coverage drop warnings
-
-## 🛠️ Test Development Guidelines
-
-### Writing Test Cases
-1. **Follow AAA Pattern**: Arrange, Act, Assert
-2. **Test Behavior**: Focus on what the system should do
-3. **Use Descriptive Names**: Clear test intent
-4. **Keep Tests Independent**: No dependencies between tests
-5. **Mock External Dependencies**: Isolate units under test
-
-### Test Data Management
-- Use factory patterns for test data generation
-- Maintain realistic test scenarios
-- Version control test datasets
-- Separate test data from production data
-
-### Performance Testing Best Practices
-- Establish baseline metrics
-- Test under realistic load conditions
-- Monitor resource utilization
-- Set clear performance criteria
-- Regular performance regression testing
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-1. **Test Database Connection**
-   ```bash
-   # Check database status
-   docker-compose -f docker-compose.test.yml ps postgres-test
-   
-   # Reset test database
-   docker-compose -f docker-compose.test.yml down -v
-   docker-compose -f docker-compose.test.yml up postgres-test
-   ```
-
-2. **Frontend Test Failures**
-   ```bash
-   # Clear node modules and reinstall
-   cd frontend
-   rm -rf node_modules package-lock.json
-   npm install
-   
-   # Update browser dependencies
-   npm run test:update-snapshots
-   ```
-
-3. **Cypress Test Issues**
-   ```bash
-   # Clear Cypress cache
-   npx cypress cache clear
-   
-   # Verify Cypress installation
-   npx cypress verify
-   
-   # Run in debug mode
-   npx cypress run --headed --no-exit
-   ```
-
-### Performance Issues
-- Check system resources (CPU, memory)
-- Verify network connectivity
-- Review log files for bottlenecks
-- Monitor database query performance
-
-## 📈 Metrics and KPIs
-
-### Test Metrics
-- **Test Coverage**: Line, branch, and function coverage
-- **Test Execution Time**: Average and 95th percentile
-- **Test Reliability**: Pass/fail rates over time
-- **Defect Detection Rate**: Issues caught by tests
-
-### System Metrics
-- **Processing Speed**: Documents per minute
-- **Accuracy Scores**: Precision, recall, F1
-- **Resource Utilization**: CPU, memory, disk I/O
-- **API Performance**: Response times, throughput
-
-## 🤝 Contributing
-
-### Adding New Tests
-1. Follow existing test structure and naming conventions
-2. Add comprehensive test scenarios for new features
-3. Update test documentation
-4. Ensure CI/CD pipeline compatibility
-
-### Test Data Contribution
-1. Add new test scenarios to appropriate categories
-2. Include expected results and metadata
-3. Test with various document types and complexities
-4. Validate accuracy with domain experts
-
-## 📝 License
-
-This test suite is part of the Arbitration Clause Detection System and follows the same licensing terms as the main project.
-
----
-
-**Note**: This is a comprehensive test suite designed to ensure the reliability, accuracy, and performance of an AI-powered legal document analysis system. The tests cover everything from unit-level validation to end-to-end user workflows, providing confidence in system behavior across various scenarios and conditions.
+MIT License. See [LICENSE](LICENSE) for details.
