@@ -35,6 +35,15 @@ class Settings(BaseSettings):
     vector_store_path: str = "./chroma_db"
     vector_collection_name: str = "arbitration_docs"
     embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_dimension: int = 384  # all-MiniLM-L6-v2 dimension
+
+    # Qdrant Configuration
+    qdrant_url: Optional[str] = os.getenv("QDRANT_URL", None)
+    qdrant_host: str = os.getenv("QDRANT_HOST", "localhost")
+    qdrant_port: int = int(os.getenv("QDRANT_PORT", "6333"))
+    qdrant_api_key: Optional[str] = os.getenv("QDRANT_API_KEY", None)
+    qdrant_collection: str = os.getenv("QDRANT_COLLECTION", "arbitration_documents")
+    use_qdrant: bool = os.getenv("USE_QDRANT", "false").lower() == "true"
     
     # Security - Production secure defaults
     secret_key: str = os.getenv("SECRET_KEY", "change-this-in-production-please")
@@ -88,6 +97,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"
 
 
 # Create settings instance with caching

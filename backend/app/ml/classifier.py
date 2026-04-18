@@ -21,7 +21,7 @@ from sklearn.preprocessing import StandardScaler
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from sentence_transformers import SentenceTransformer
+# Lazy import: from sentence_transformers import SentenceTransformer
 import mlflow
 import mlflow.sklearn
 import mlflow.pytorch

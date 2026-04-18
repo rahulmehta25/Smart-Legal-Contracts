@@ -16,7 +16,10 @@ from collections import defaultdict
 
 import requests
 from bs4 import BeautifulSoup
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 from transformers import pipeline
 import json
 

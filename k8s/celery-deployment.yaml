@@ -1,0 +1,168 @@
+# Celery Worker Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: smart-legal-contracts
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: smart-legal-contracts
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: smart-legal-contracts
+        app.kubernetes.io/component: worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      imagePullSecrets:
+      - name: registry-credentials
+      initContainers:
+      - name: wait-for-dependencies
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Waiting for Redis..."
+          until nc -z redis-service 6379; do sleep 2; done
+          echo "Waiting for PostgreSQL..."
+          until nc -z postgres-service 5432; do sleep 2; done
+          echo "Waiting for Qdrant..."
+          until nc -z qdrant-service 6333; do sleep 2; done
+          echo "All dependencies ready!"
+      containers:
+      - name: celery-worker
+        image: slc-backend:latest
+        imagePullPolicy: Always
+        command: ["celery", "-A", "app.worker.celery_app", "worker", "--loglevel=info", "--concurrency=4"]
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: REDIS_URL
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: CELERY_RESULT_BACKEND
+        - name: QDRANT_HOST
+          value: "qdrant-service"
+        - name: QDRANT_PORT
+          value: "6333"
+        - name: USE_QDRANT
+          value: "true"
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: SECRET_KEY
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: OPENAI_API_KEY
+              optional: true
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: LOG_LEVEL
+        volumeMounts:
+        - name: app-logs
+          mountPath: /app/logs
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+
+---
+# Celery Beat Scheduler Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-beat
+  namespace: arbitration-system
+  labels:
+    app.kubernetes.io/name: smart-legal-contracts
+    app.kubernetes.io/component: scheduler
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 1  # Only one beat scheduler
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: smart-legal-contracts
+      app.kubernetes.io/component: scheduler
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: smart-legal-contracts
+        app.kubernetes.io/component: scheduler
+    spec:
+      imagePullSecrets:
+      - name: registry-credentials
+      containers:
+      - name: celery-beat
+        image: slc-backend:latest
+        imagePullPolicy: Always
+        command: ["celery", "-A", "app.worker.celery_app", "beat", "--loglevel=info"]
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              name: arbitration-config
+              key: CELERY_RESULT_BACKEND
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: arbitration-secrets
+              key: SECRET_KEY
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false

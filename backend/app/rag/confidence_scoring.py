@@ -8,11 +8,22 @@ from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor
-from sklearn.preprocessing import StandardScaler
-import shap
-import lime
-import lime.lime_text
+try:
+    from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor
+    from sklearn.preprocessing import StandardScaler
+except ImportError:
+    RandomForestClassifier = None
+    GradientBoostingRegressor = None
+    StandardScaler = None
+try:
+    import shap
+except ImportError:
+    shap = None
+try:
+    import lime
+    import lime.lime_text
+except ImportError:
+    lime = None
 from collections import defaultdict
 import json
 

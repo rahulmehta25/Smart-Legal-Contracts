@@ -34,7 +34,7 @@ class Document(Base):
     processing_status = Column(String(50), default='pending')
     total_pages = Column(Integer)
     total_chunks = Column(Integer, default=0)
-    metadata = Column(SQLiteJSON)
+    doc_metadata = Column('metadata', SQLiteJSON)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -80,7 +80,7 @@ class Document(Base):
             'total_pages': self.total_pages,
             'total_chunks': self.total_chunks,
             'detection_count': self.detection_count,
-            'metadata': self.metadata
+            'metadata': self.doc_metadata
         }
 
 

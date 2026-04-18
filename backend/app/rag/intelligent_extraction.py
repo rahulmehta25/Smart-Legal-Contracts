@@ -9,7 +9,10 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 from transformers import pipeline, AutoTokenizer, AutoModelForTokenClassification
 import torch
 from sklearn.feature_extraction.text import CountVectorizer

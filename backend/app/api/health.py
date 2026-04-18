@@ -112,7 +112,23 @@ async def detailed_health_check(db: Session = Depends(get_db)):
             "status": "unhealthy",
             "error": str(e)
         }
-    
+
+    # Qdrant connectivity check (if configured)
+    if settings.use_qdrant:
+        try:
+            from app.db.qdrant_store import get_qdrant_store
+            qdrant_store = get_qdrant_store()
+            qdrant_health = qdrant_store.health_check()
+            health_status["checks"]["qdrant"] = qdrant_health
+            if qdrant_health.get("status") == "unhealthy":
+                health_status["status"] = "degraded"
+        except Exception as e:
+            health_status["checks"]["qdrant"] = {
+                "status": "unhealthy",
+                "error": str(e)
+            }
+            health_status["status"] = "degraded"
+
     return health_status
 
 

@@ -10,7 +10,7 @@ from transformers import (
     AutoTokenizer, AutoModel, TrainingArguments, Trainer,
     DataCollatorWithPadding, AutoConfig
 )
-from sentence_transformers import SentenceTransformer, InputExample, losses
+# Lazy import: from sentence_transformers import SentenceTransformer, InputExample, losses
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import pandas as pd

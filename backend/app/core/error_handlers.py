@@ -77,11 +77,28 @@ def create_error_response(
     )
 
 
+# Import new exception types
+from app.core.exceptions import BaseAPIException
+
+
 # Exception handlers
+async def base_api_exception_handler(request: Request, exc: BaseAPIException) -> JSONResponse:
+    """Handle new BaseAPIException and subclasses"""
+    logger.error(f"API Error: {exc.message} (Code: {exc.error_code.value}, Status: {exc.status_code})")
+
+    return create_error_response(
+        status_code=exc.status_code,
+        message=exc.message,
+        error_code=exc.error_code.value,
+        details=exc.details if exc.details else None,
+        request_id=getattr(request.state, 'request_id', None)
+    )
+
+
 async def api_error_handler(request: Request, exc: APIError) -> JSONResponse:
-    """Handle custom API errors"""
+    """Handle custom API errors (legacy)"""
     logger.error(f"API Error: {exc.message} (Status: {exc.status_code})")
-    
+
     return create_error_response(
         status_code=exc.status_code,
         message=exc.message,

@@ -17,7 +17,7 @@ from collections import defaultdict
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
+# Lazy import: from sentence_transformers import SentenceTransformer
 import spacy
 from transformers import AutoTokenizer, AutoModel
 import torch

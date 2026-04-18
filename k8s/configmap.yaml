@@ -14,8 +14,17 @@ data:
   
   # Redis configuration
   REDIS_URL: "redis://redis-service:6379/0"
-  
-  # Chroma vector database configuration
+
+  # Celery configuration
+  CELERY_BROKER_URL: "redis://redis-service:6379/1"
+  CELERY_RESULT_BACKEND: "redis://redis-service:6379/2"
+
+  # Qdrant vector database configuration
+  QDRANT_HOST: "qdrant-service"
+  QDRANT_PORT: "6333"
+  USE_QDRANT: "true"
+
+  # Legacy Chroma vector database configuration (deprecated)
   CHROMA_URL: "http://chroma-service:8000"
   
   # Backend configuration

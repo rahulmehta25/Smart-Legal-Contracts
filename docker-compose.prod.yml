@@ -1,20 +1,25 @@
+# Production Docker Compose for Smart Legal Contracts
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+# Required env vars: POSTGRES_PASSWORD, SECRET_KEY, JWT_SECRET, GRAFANA_PASSWORD
+
 version: '3.8'
 
 services:
   # PostgreSQL Database with production settings
   postgres:
     image: postgres:15-alpine
-    container_name: arbitration-db-prod
+    container_name: slc-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-arbitration_db}
-      POSTGRES_USER: ${POSTGRES_USER:-arbitration_user}
+      POSTGRES_DB: ${POSTGRES_DB:-smartlegal}
+      POSTGRES_USER: ${POSTGRES_USER:-smartlegal}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/migrations/alembic/versions:/docker-entrypoint-initdb.d:ro
       - ./backup:/backup
     command: >
       postgres
@@ -32,25 +37,32 @@ services:
       -c log_disconnections=on
       -c log_lock_waits=on
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arbitration_user} -d ${POSTGRES_DB:-arbitration_db}"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartlegal} -d ${POSTGRES_DB:-smartlegal}"]
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
           cpus: '2.0'
           memory: 2G
         reservations:
-          cpus: '1.0'
-          memory: 1G
+          cpus: '0.5'
+          memory: 512M
     networks:
-      - arbitration-network
+      - slc-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Redis with production configuration
+  # Redis for caching and Celery broker
   redis:
     image: redis:7-alpine
-    container_name: arbitration-redis-prod
+    container_name: slc-redis
+    restart: unless-stopped
     command: >
       redis-server
       --appendonly yes
@@ -60,15 +72,15 @@ services:
       --save 900 1
       --save 300 10
       --save 60 10000
+      --requirepass ${REDIS_PASSWORD:-}
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-      - ./redis/redis.conf:/etc/redis/redis.conf:ro
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
     deploy:
       resources:
@@ -76,91 +88,198 @@ services:
           cpus: '1.0'
           memory: 1G
         reservations:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '0.25'
+          memory: 256M
     networks:
-      - arbitration-network
+      - slc-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Vector Database (Chroma) with production settings
-  chroma:
-    image: ghcr.io/chroma-core/chroma:latest
-    container_name: arbitration-vector-db-prod
-    ports:
-      - "8001:8000"
-    volumes:
-      - chroma_data:/chroma/chroma
-      - ./chroma/auth.txt:/chroma/auth.txt:ro
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: slc-qdrant
+    restart: unless-stopped
     environment:
-      - CHROMA_SERVER_AUTHN_CREDENTIALS_FILE=/chroma/auth.txt
-      - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.basic.BasicAuthenticationServerProvider
-      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["${FRONTEND_URL:?FRONTEND_URL is required}"]
-    networks:
-      - arbitration-network
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__STORAGE__STORAGE_PATH: /qdrant/storage
+      QDRANT__STORAGE__SNAPSHOTS_PATH: /qdrant/snapshots
+      QDRANT__LOG_LEVEL: INFO
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+      - qdrant_snapshots:/qdrant/snapshots
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 10s
     deploy:
       resources:
         limits:
           cpus: '2.0'
-          memory: 2G
+          memory: 4G
         reservations:
-          cpus: '1.0'
+          cpus: '0.5'
           memory: 1G
+    networks:
+      - slc-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # FastAPI Backend with production configuration
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: production
-    container_name: arbitration-backend-prod
+      args:
+        BUILD_ENV: production
+    image: slc-backend:${VERSION:-latest}
+    container_name: slc-backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/app/data:ro
-      - ./models:/app/models:ro
-      - ./logs:/app/logs
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
     environment:
-      - NODE_ENV=production
-      - DEBUG=false
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-arbitration_user}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-arbitration_db}
-      - REDIS_URL=redis://redis:6379/0
-      - CHROMA_URL=http://chroma:8000
-      - CORS_ORIGINS=${FRONTEND_URL:?FRONTEND_URL is required}
-      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
-      - LOG_LEVEL=info
-      - WORKERS=4
+      ENVIRONMENT: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartlegal}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartlegal}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-}@redis:6379/2
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      USE_QDRANT: "true"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://smartlegal.example.com}
+      ENABLE_DOCS: ${ENABLE_DOCS:-false}
+      ENABLE_METRICS: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      WORKERS: ${WORKERS:-4}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      chroma:
+      qdrant:
         condition: service_healthy
     networks:
-      - arbitration-network
+      - slc-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # Celery Worker for async document processing
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    image: slc-backend:${VERSION:-latest}
+    container_name: slc-celery-worker
+    restart: unless-stopped
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartlegal}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartlegal}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-}@redis:6379/2
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      USE_QDRANT: "true"
+      SECRET_KEY: ${SECRET_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    networks:
+      - slc-network
     deploy:
       resources:
         limits:
           cpus: '2.0'
           memory: 2G
         reservations:
-          cpus: '1.0'
-          memory: 1G
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # Celery Beat Scheduler for periodic tasks
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    image: slc-backend:${VERSION:-latest}
+    container_name: slc-celery-beat
+    restart: unless-stopped
+    command: celery -A app.worker.celery_app beat --loglevel=info
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartlegal}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-smartlegal}
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-}@redis:6379/2
+      SECRET_KEY: ${SECRET_KEY}
+    depends_on:
+      - redis
+      - celery-worker
+    networks:
+      - slc-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Next.js Frontend with production build
   frontend:
@@ -168,56 +287,59 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: production
-    container_name: arbitration-frontend-prod
+    image: slc-frontend:${VERSION:-latest}
+    container_name: slc-frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${BACKEND_URL:?BACKEND_URL is required}
-      - HOSTNAME=0.0.0.0
-      - PORT=3000
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${BACKEND_URL:-http://localhost:8000}
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
     depends_on:
       backend:
         condition: service_healthy
     networks:
-      - arbitration-network
+      - slc-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 30s
     deploy:
       resources:
         limits:
           cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
           memory: 512M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Nginx with SSL and production configuration
+  # Nginx Reverse Proxy with SSL
   nginx:
     image: nginx:alpine
-    container_name: arbitration-proxy-prod
+    container_name: slc-nginx
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/prod.nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d/prod:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./ssl:/etc/ssl/certs:ro
-      - ./logs/nginx:/var/log/nginx
+      - nginx_logs:/var/log/nginx
     depends_on:
       - backend
       - frontend
     networks:
-      - arbitration-network
+      - slc-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -227,15 +349,18 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
           memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Monitoring: Prometheus
+  # Prometheus Metrics Collection
   prometheus:
-    image: prom/prometheus:latest
-    container_name: arbitration-prometheus
+    image: prom/prometheus:v2.47.0
+    container_name: slc-prometheus
+    restart: unless-stopped
     ports:
       - "9090:9090"
     volumes:
@@ -245,51 +370,70 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    depends_on:
+      - backend
     networks:
-      - arbitration-network
+      - slc-network
     deploy:
       resources:
         limits:
           cpus: '1.0'
           memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Monitoring: Grafana
+  # Grafana Dashboard
   grafana:
-    image: grafana/grafana:latest
-    container_name: arbitration-grafana
+    image: grafana/grafana:10.2.0
+    container_name: slc-grafana
+    restart: unless-stopped
     ports:
       - "3001:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana-provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana-dashboard.json:/var/lib/grafana/dashboards/main.json:ro
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_DOMAIN=${DOMAIN:?DOMAIN is required}
-      - GF_SMTP_ENABLED=true
-      - GF_SMTP_HOST=${SMTP_HOST}
-      - GF_SMTP_FROM_ADDRESS=${SMTP_FROM}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-piechart-panel
     depends_on:
       - prometheus
     networks:
-      - arbitration-network
+      - slc-network
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '1.0'
           memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   postgres_data:
     driver: local
   redis_data:
     driver: local
-  chroma_data:
+  qdrant_data:
+    driver: local
+  qdrant_snapshots:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
+  nginx_logs:
     driver: local
   prometheus_data:
     driver: local
@@ -297,8 +441,8 @@ volumes:
     driver: local
 
 networks:
-  arbitration-network:
+  slc-network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.21.0.0/16
+        - subnet: 172.30.0.0/16

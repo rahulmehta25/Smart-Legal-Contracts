@@ -1,7 +1,10 @@
 import re
 from typing import List, Dict, Any, Tuple
 from dataclasses import dataclass
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 from loguru import logger
 
 
@@ -24,11 +27,12 @@ class LegalTextProcessor:
     
     def __init__(self):
         # Load spaCy model for legal text processing
-        try:
-            self.nlp = spacy.load("en_core_web_sm")
-        except OSError:
-            logger.warning("spaCy model not found. Install with: python -m spacy download en_core_web_sm")
-            self.nlp = None
+        self.nlp = None
+        if spacy is not None:
+            try:
+                self.nlp = spacy.load("en_core_web_sm")
+            except OSError:
+                logger.warning("spaCy model not found. Install with: python -m spacy download en_core_web_sm")
         
         # Arbitration-related keywords and phrases
         self.arbitration_keywords = {

@@ -27,7 +27,10 @@ from sklearn.metrics import (
     mean_squared_error, mean_absolute_error, r2_score
 )
 from transformers import pipeline, AutoTokenizer
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 import nltk
 from datasets import load_dataset
 import matplotlib.pyplot as plt
