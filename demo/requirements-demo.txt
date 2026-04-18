@@ -1,6 +1,9 @@
 # Additional requirements for demo environment
 # These extend the base backend requirements with demo-specific features
 
+# Streamlit UI for the interactive demo (demo/app.py and demo/workflows/*.py)
+streamlit==1.39.0
+
 # Enhanced analytics and monitoring
 prometheus-client==0.19.0
 grafana-api==1.0.3
