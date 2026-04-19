@@ -257,3 +257,6 @@ pyyaml>=6.0
 tqdm>=4.66.0
 rich>=13.6.0  # Better terminal output
 loguru>=0.7.0  # Advanced logging
+
+# Async Postgres driver for the portfolio-pg slc database (app/db/asyncpg_pool.py)
+asyncpg>=0.29.0
