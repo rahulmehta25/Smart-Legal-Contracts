@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAnalysis, useDocument } from "@/lib/hooks";
@@ -34,6 +34,7 @@ import {
 } from "@/lib/utils";
 import { toast } from "sonner";
 import { staggerContainer, staggerItem, fadeInScale } from "@/components/ui/motion";
+import { posthog } from "@/lib/posthog";
 import type { ArbitrationClause, RiskLevel } from "@/types/api";
 
 function ClauseCard({ clause, index }: { clause: ArbitrationClause; index: number }) {
@@ -173,6 +174,15 @@ export default function AnalysisPage({ params }: { params: Promise<{ id: string 
   const analysisId = parseInt(id, 10);
   const { data: analysis, isLoading, error } = useAnalysis(analysisId);
   const { data: document } = useDocument(analysis?.document_id || 0);
+
+  useEffect(() => {
+    if (!analysis) return;
+    const narrationOn = !!posthog.getFeatureFlag?.('slc-risk-memo-narration');
+    posthog.capture?.('risk_memo_view', {
+      analysis_id: analysisId,
+      narration_available: narrationOn,
+    });
+  }, [analysis, analysisId]);
 
   if (isLoading) {
     return (

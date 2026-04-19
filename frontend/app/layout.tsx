@@ -7,6 +7,7 @@ import { QueryProvider } from '@/components/providers/query-provider';
 import { Navigation } from '@/components/layout/navigation';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { PostHogProvider } from '@/components/analytics/posthog-provider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -54,6 +55,7 @@ export default function RootLayout({
         </QueryProvider>
         <Analytics />
         <SpeedInsights />
+        <PostHogProvider />
       </body>
     </html>
   );
