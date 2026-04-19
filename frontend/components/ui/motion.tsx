@@ -44,13 +44,15 @@ export function CountUp({
   prefix?: string;
   suffix?: string;
 }) {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(end);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
+  const animated = useRef(false);
 
   useEffect(() => {
-    if (!inView) return;
-
+    if (!inView || animated.current) return;
+    animated.current = true;
+    setCount(0);
     const startTime = performance.now();
 
     function update(currentTime: number) {
