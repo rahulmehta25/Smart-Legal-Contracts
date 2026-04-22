@@ -22,34 +22,21 @@ Upload a contract. Get a classified risk breakdown. Ask GPT-4 to rewrite the hos
 
 ## Architecture
 
-![System architecture](docs/architecture.png)
+See [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) and [`docs/RAG Architecture for Legal Analysis/`](docs/) for the full rationale: why Legal-BERT over general embeddings, why a curated clause library instead of zero-shot, where LLMs help and where they don't.
 
-See [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) for the full rationale: why Legal-BERT over general embeddings, why a curated clause library instead of zero-shot, where LLMs help and where they don't.
-
-## Run the demo
+## Run locally
 
 ```bash
 git clone https://github.com/rahulmehta25/Smart-Legal-Contracts
 cd Smart-Legal-Contracts
 cp .env.example .env
-# add OPENAI_API_KEY + Postgres
-docker compose up -d db
+# set OPENAI_API_KEY and POSTGRES_* values
+docker compose up -d postgres
 make install
-make seed-clause-library
-make demo  # launches Streamlit on http://localhost:8501
+make run-backend  # FastAPI on http://localhost:8000
 ```
 
-Upload `data/samples/hostile-nda.pdf` to see the flagging in action.
-
-## Demo
-
-[Watch the 3-minute walkthrough](docs/demos/slc-demo.mp4)
-
-## Screenshots
-
-![Streamlit demo with flagged clauses](docs/screenshots/demo.png)
-![GPT-4 rewrite with diff view](docs/screenshots/rewrite.png)
-![Clause library admin](docs/screenshots/library.png)
+`make help` lists all available targets.
 
 ## Status
 
