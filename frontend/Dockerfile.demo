@@ -1,0 +1,205 @@
+# Demo-specific Dockerfile for Arbitration Clause Detector Frontend
+# Extends the main frontend with demo-specific features and configurations
+
+FROM node:18-alpine as base
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY /demo/package*.json ./demo/
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Development stage for demo
+FROM base as demo-development
+
+# Install all dependencies including dev dependencies
+RUN npm ci
+
+# Copy source code
+COPY . ./base/
+COPY /demo/ ./demo/
+
+# Create demo-specific configuration
+RUN cat > /app/next.config.demo.js << 'EOF'
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Demo-specific configuration
+  env: {
+    DEMO_MODE: 'true',
+    NEXT_PUBLIC_DEMO_MODE: 'true',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws',
+  },
+  
+  // Enhanced features for demo
+  experimental: {
+    appDir: true,
+  },
+  
+  // Demo-specific rewrites
+  async rewrites() {
+    return [
+      {
+        source: '/demo/:path*',
+        destination: '/demo/:path*',
+      },
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
+      },
+    ];
+  },
+  
+  // Demo-specific headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Demo-Mode',
+            value: 'true',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+        ],
+      },
+    ];
+  },
+  
+  // Webpack configuration for demo
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Demo-specific webpack config
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@demo': '/app/demo',
+      '@base': '/app/base',
+    };
+    
+    return config;
+  },
+};
+
+module.exports = nextConfig;
+EOF
+
+# Copy demo-specific package.json if it doesn't exist
+RUN if [ ! -f /app/demo/package.json ]; then \
+    cat > /app/demo/package.json << 'EOF'
+{
+  "name": "arbitration-detector-demo-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "framer-motion": "^10.16.5",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-hook-form": "^7.48.2",
+    "react-query": "^3.39.3",
+    "lucide-react": "^0.294.0",
+    "@headlessui/react": "^1.7.17",
+    "recharts": "^2.8.0",
+    "react-markdown": "^9.0.1",
+    "react-syntax-highlighter": "^15.5.0"
+  }
+}
+EOF
+fi
+
+# Set up demo environment
+ENV NODE_ENV=development \
+    NEXT_PUBLIC_DEMO_MODE=true \
+    WATCHPACK_POLLING=true
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+
+# Create demo entrypoint
+RUN cat > /app/demo-entrypoint.sh << 'EOF'
+#!/bin/sh
+set -e
+
+echo "Starting Arbitration Clause Detector Demo Frontend..."
+
+# Wait for backend API
+echo "Waiting for backend API..."
+while ! wget --spider --quiet "${NEXT_PUBLIC_API_URL}/health" 2>/dev/null; do
+    echo "Backend API not ready, waiting..."
+    sleep 2
+done
+
+echo "Backend API is ready!"
+
+# Install demo-specific dependencies if needed
+if [ -f /app/demo/package.json ]; then
+    echo "Installing demo dependencies..."
+    cd /app/demo && npm install
+fi
+
+# Merge demo pages with base frontend
+echo "Setting up demo pages..."
+mkdir -p /app/base/pages/demo
+mkdir -p /app/base/components/demo
+mkdir -p /app/base/public/demo
+
+# Copy demo-specific files
+if [ -d /app/demo/pages ]; then
+    cp -r /app/demo/pages/* /app/base/pages/demo/ 2>/dev/null || true
+fi
+
+if [ -d /app/demo/components ]; then
+    cp -r /app/demo/components/* /app/base/components/demo/ 2>/dev/null || true
+fi
+
+if [ -d /app/demo/public ]; then
+    cp -r /app/demo/public/* /app/base/public/demo/ 2>/dev/null || true
+fi
+
+# Use demo-specific Next.js config
+cp /app/next.config.demo.js /app/base/next.config.js
+
+# Start the development server
+cd /app/base
+echo "Starting Next.js development server..."
+exec npm run dev
+EOF
+
+RUN chmod +x /app/demo-entrypoint.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/app/demo-entrypoint.sh"]
+
+# Production stage for demo
+FROM base as demo-production
+
+# Copy all source code
+COPY . ./base/
+COPY /demo/ ./demo/
+
+# Set production environment
+ENV NODE_ENV=production \
+    NEXT_PUBLIC_DEMO_MODE=true
+
+# Build the application
+RUN cd /app/base && npm run build
+
+# Expose port
+EXPOSE 3000
+
+# Start production server
+CMD ["npm", "run", "start", "-w", "/app/base"]

@@ -1,0 +1,12 @@
+# Commit message template
+# Use conventional commit format:
+# feat: add new feature
+# fix: bug fix
+# docs: documentation changes
+# refactor: code refactoring
+# test: add or update tests
+# chore: maintenance tasks
+#
+# Keep messages professional and descriptive
+# Focus on WHAT changed and WHY
+# Use imperative mood (e.g., "Add user authentication")

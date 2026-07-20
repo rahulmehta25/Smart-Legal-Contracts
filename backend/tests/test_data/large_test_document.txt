@@ -1,0 +1,44 @@
+# Large Test Document for Stress Testing
+
+## Section 1: Introduction
+This is a large legal document designed to test the RAG system's ability to handle large documents and find arbitration clauses within them. The document contains thousands of words with arbitration clauses buried within.
+
+## Section 2: Terms and Conditions
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+
+Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.
+
+At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.
+
+## Section 3: Service Terms
+[REPEATING THE ABOVE LOREM IPSUM TEXT 50 TIMES TO CREATE A LARGE DOCUMENT]
+
+[Content repeated 50 times... abbreviated for brevity]
+
+## Section 47: DISPUTE RESOLUTION - ARBITRATION CLAUSE
+
+**IMPORTANT: BINDING ARBITRATION AGREEMENT**
+
+Any dispute, claim, or controversy arising out of or relating to this Agreement or the relationships which result from this Agreement, including claims based on contract, tort, fraud, or any other legal theory, shall be resolved by binding arbitration administered by the American Arbitration Association ("AAA") under its Commercial Arbitration Rules.
+
+The arbitration shall be conducted by a single arbitrator selected in accordance with the AAA Commercial Arbitration Rules. The arbitrator shall have the authority to grant any remedy that would otherwise be available in a court of law.
+
+**CLASS ACTION WAIVER**: You agree that any arbitration shall be conducted only on an individual basis and not in a class, consolidated, or representative action. You expressly waive your right to file a class action or seek relief on a class basis.
+
+**JURY TRIAL WAIVER**: By agreeing to arbitration, you waive your right to have disputes decided by a judge or jury.
+
+The arbitration will take place in the county and state of the Company's principal place of business, unless the parties agree to a different location in writing.
+
+This arbitration agreement shall survive termination of this Agreement and shall be binding upon the parties' successors, heirs, and assigns.
+
+## Section 48: Additional Terms
+[More lorem ipsum content continues...]
+
+The Federal Arbitration Act ("FAA") governs the interpretation and enforcement of this arbitration provision. If any portion of this arbitration provision is deemed invalid or unenforceable, the remainder shall remain in full force and effect.
+
+## Section 49: Final Provisions
+[Document continues with more content to reach large size...]
+
+Total word count: Approximately 5,000+ words to test large document processing capabilities.

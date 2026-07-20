@@ -1,0 +1,286 @@
+{
+  "corrupted_documents": [
+    {
+      "id": "corrupt_001",
+      "description": "Document with invalid UTF-8 sequences",
+      "content": "Legal document with invalid bytes: \\xff\\xfe\\x80\\x81",
+      "expected_behavior": "graceful_handling_with_fallback"
+    },
+    {
+      "id": "corrupt_002", 
+      "description": "Document with mixed encoding",
+      "content": "Términos y Condiciones - This document contains mixed encoding \\xe1\\xe2\\xe3",
+      "expected_behavior": "detect_encoding_and_process"
+    },
+    {
+      "id": "corrupt_003",
+      "description": "Document with null bytes",
+      "content": "Legal agreement\\x00\\x00 with null bytes in content",
+      "expected_behavior": "sanitize_and_process"
+    }
+  ],
+  
+  "malformed_legal_documents": [
+    {
+      "id": "malformed_001",
+      "description": "Document with broken section numbering",
+      "content": "Section 1.1.1.1.1.1.1 Invalid deep nesting\n\nSection 2.a.b.c.d.e Invalid enumeration\n\nAll disputes shall be resolved through binding arbitration according to Section 999.999.999 which does not exist.",
+      "expected_arbitration": true,
+      "expected_confidence": "medium"
+    },
+    {
+      "id": "malformed_002",
+      "description": "Document with circular references",
+      "content": "As defined in Section 5, see Section 10 for arbitration.\nAs defined in Section 10, see Section 5 for dispute resolution.\nBinding arbitration per Section 5 is mandatory per Section 10.",
+      "expected_arbitration": true,
+      "expected_confidence": "medium"
+    },
+    {
+      "id": "malformed_003",
+      "description": "Document with contradictory clauses",
+      "content": "1. All disputes must be resolved through binding arbitration.\n2. The parties expressly waive arbitration and agree to court jurisdiction.\n3. Notwithstanding clause 2, arbitration is mandatory.\n4. This agreement contains no arbitration provisions.",
+      "expected_arbitration": true,
+      "expected_confidence": "low"
+    }
+  ],
+
+  "ambiguous_arbitration_language": [
+    {
+      "id": "ambiguous_001",
+      "description": "Conditional arbitration with complex conditions",
+      "content": "If the dispute amount exceeds $10,000 and both parties agree and state law permits, then binding arbitration may apply, unless otherwise agreed in writing or prohibited by applicable federal law.",
+      "expected_arbitration": true,
+      "expected_confidence": "low"
+    },
+    {
+      "id": "ambiguous_002",
+      "description": "Implied arbitration through AAA rules reference",
+      "content": "All disputes shall be resolved according to the Commercial Arbitration Rules of the American Arbitration Association, with proceedings conducted in accordance with the Federal Arbitration Act.",
+      "expected_arbitration": true,
+      "expected_confidence": "high"
+    },
+    {
+      "id": "ambiguous_003",
+      "description": "Obfuscated arbitration language",
+      "content": "Parties agree to alternative dispute resolution through neutral third-party adjudicators whose final determinations shall be binding and enforceable, with waiver of judicial proceedings.",
+      "expected_arbitration": true,
+      "expected_confidence": "medium"
+    },
+    {
+      "id": "ambiguous_004",
+      "description": "Arbitration with extensive carve-outs",
+      "content": "Binding arbitration applies to all disputes except: intellectual property, injunctive relief, small claims under $5,000, real property, employment matters, consumer protection claims, and any disputes that cannot be arbitrated under law.",
+      "expected_arbitration": true,
+      "expected_confidence": "medium"
+    }
+  ],
+
+  "edge_case_scenarios": [
+    {
+      "id": "edge_001",
+      "description": "Document with only special characters",
+      "content": "!@#$%^&*()_+-=[]{}|;':\",./<>?`~",
+      "expected_arbitration": false,
+      "expected_confidence": "none"
+    },
+    {
+      "id": "edge_002",
+      "description": "Document with repetitive text",
+      "content": "arbitration arbitration arbitration arbitration arbitration arbitration arbitration arbitration arbitration arbitration",
+      "expected_arbitration": false,
+      "expected_confidence": "low"
+    },
+    {
+      "id": "edge_003", 
+      "description": "Single sentence arbitration clause",
+      "content": "Arbitration.",
+      "expected_arbitration": false,
+      "expected_confidence": "very_low"
+    },
+    {
+      "id": "edge_004",
+      "description": "Very long single sentence",
+      "content": "This agreement contains a binding arbitration clause which means that if there is any dispute arising from or relating to this agreement or the breach thereof, such dispute shall be resolved through final and binding arbitration administered by the American Arbitration Association under its Commercial Arbitration Rules, and judgment on the award rendered by the arbitrator may be entered in any court having jurisdiction thereof, and the parties hereby waive their right to a jury trial and agree that any claims shall be brought individually and not as part of a class action or representative proceeding.",
+      "expected_arbitration": true,
+      "expected_confidence": "high"
+    },
+    {
+      "id": "edge_005",
+      "description": "Mixed language document", 
+      "content": "Este acuerdo está sujeto a arbitraje vinculante. This agreement is subject to binding arbitration. Cet accord est soumis à un arbitrage exécutoire.",
+      "expected_arbitration": true,
+      "expected_confidence": "high"
+    }
+  ],
+
+  "large_document_scenarios": [
+    {
+      "id": "large_001",
+      "description": "Document with arbitration clause buried in large text",
+      "content_template": "{filler_text}\n\nBURIED ARBITRATION CLAUSE: All disputes arising under this agreement shall be resolved through final and binding arbitration.\n\n{filler_text}",
+      "filler_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 1000,
+      "expected_arbitration": true,
+      "expected_confidence": "high"
+    },
+    {
+      "id": "large_002",
+      "description": "Document with multiple false positive triggers",
+      "content_template": "This document discusses arbitration in general terms. {false_positive_text} However, this agreement does not contain binding arbitration clauses.",
+      "false_positive_text": "Arbitration is mentioned here. Alternative dispute resolution including arbitration is discussed. The arbitration process is explained. " * 100,
+      "expected_arbitration": false,
+      "expected_confidence": "low"
+    }
+  ],
+
+  "security_test_scenarios": [
+    {
+      "id": "security_001",
+      "description": "SQL injection attempt in document content",
+      "content": "'; DROP TABLE documents; -- This agreement contains arbitration clauses.",
+      "expected_arbitration": true,
+      "security_concern": "sql_injection",
+      "expected_behavior": "sanitize_input_detect_arbitration"
+    },
+    {
+      "id": "security_002",
+      "description": "Path traversal attempt in filename",
+      "filename": "../../etc/passwd",
+      "content": "Standard arbitration agreement text.",
+      "expected_arbitration": true,
+      "security_concern": "path_traversal",
+      "expected_behavior": "sanitize_filename_process_content"
+    },
+    {
+      "id": "security_003",
+      "description": "XSS attempt in document content",
+      "content": "<script>alert('xss')</script> Binding arbitration clause applies to all disputes.",
+      "expected_arbitration": true,
+      "security_concern": "xss",
+      "expected_behavior": "sanitize_html_detect_arbitration"
+    },
+    {
+      "id": "security_004",
+      "description": "Command injection attempt",
+      "content": "$(rm -rf /) && echo 'Arbitration agreement terms and conditions'",
+      "expected_arbitration": true,
+      "security_concern": "command_injection",
+      "expected_behavior": "treat_as_text_detect_arbitration"
+    }
+  ],
+
+  "network_failure_scenarios": [
+    {
+      "id": "network_001",
+      "description": "Database connection timeout simulation",
+      "simulation_type": "database_timeout",
+      "expected_behavior": "retry_with_exponential_backoff",
+      "fallback_behavior": "cache_or_degrade_gracefully"
+    },
+    {
+      "id": "network_002",
+      "description": "Redis cache unavailable",
+      "simulation_type": "redis_unavailable",
+      "expected_behavior": "continue_without_cache",
+      "performance_impact": "acceptable_degradation"
+    },
+    {
+      "id": "network_003",
+      "description": "Vector store corruption",
+      "simulation_type": "vector_store_corrupt",
+      "expected_behavior": "fallback_to_pattern_matching",
+      "recovery_action": "rebuild_vector_store"
+    }
+  ],
+
+  "dependency_failure_scenarios": [
+    {
+      "id": "deps_001",
+      "description": "spaCy model not available",
+      "missing_dependency": "en_core_web_sm",
+      "expected_behavior": "fallback_to_simple_tokenization",
+      "functionality_impact": "reduced_accuracy_acceptable"
+    },
+    {
+      "id": "deps_002",
+      "description": "Sentence transformers model download failure",
+      "missing_dependency": "sentence-transformers/all-MiniLM-L6-v2",
+      "expected_behavior": "fallback_to_pattern_matching",
+      "functionality_impact": "reduced_semantic_understanding"
+    },
+    {
+      "id": "deps_003",
+      "description": "CUDA not available on system",
+      "missing_dependency": "cuda_runtime",
+      "expected_behavior": "fallback_to_cpu_processing",
+      "performance_impact": "slower_but_functional"
+    }
+  ],
+
+  "concurrency_test_scenarios": [
+    {
+      "id": "concurrency_001",
+      "description": "Multiple users processing same document",
+      "scenario_type": "concurrent_same_document",
+      "expected_behavior": "consistent_results_no_race_condition"
+    },
+    {
+      "id": "concurrency_002",
+      "description": "Cache race condition during embedding generation",
+      "scenario_type": "cache_race_condition",
+      "expected_behavior": "cache_coherency_maintained"
+    },
+    {
+      "id": "concurrency_003",
+      "description": "Database connection pool exhaustion",
+      "scenario_type": "connection_pool_exhaustion",
+      "expected_behavior": "queue_requests_or_fail_gracefully"
+    }
+  ],
+
+  "recovery_test_scenarios": [
+    {
+      "id": "recovery_001",
+      "description": "System recovery after complete failure",
+      "failure_type": "all_components_failed",
+      "recovery_steps": [
+        "restart_core_services",
+        "verify_database_connectivity", 
+        "rebuild_vector_indices",
+        "validate_model_loading",
+        "run_health_checks"
+      ],
+      "expected_recovery_time": "under_5_minutes"
+    },
+    {
+      "id": "recovery_002", 
+      "description": "Partial recovery with degraded functionality",
+      "failure_type": "vector_store_only",
+      "expected_behavior": "continue_with_pattern_matching_only",
+      "functionality_level": "basic_arbitration_detection"
+    }
+  ],
+
+  "performance_stress_scenarios": [
+    {
+      "id": "perf_001",
+      "description": "Memory exhaustion during large batch processing",
+      "stress_type": "memory_pressure",
+      "test_parameters": {
+        "document_count": 100,
+        "document_size_mb": 5,
+        "concurrent_requests": 10
+      },
+      "expected_behavior": "graceful_degradation_or_queueing"
+    },
+    {
+      "id": "perf_002",
+      "description": "CPU exhaustion during embedding generation",
+      "stress_type": "cpu_intensive",
+      "test_parameters": {
+        "embedding_requests": 1000,
+        "concurrent_threads": 20
+      },
+      "expected_behavior": "request_throttling_and_backpressure"
+    }
+  ]
+}

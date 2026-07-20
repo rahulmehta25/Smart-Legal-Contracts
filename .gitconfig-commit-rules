@@ -1,0 +1,22 @@
+# Git Commit Rules for Clean Professional Messages
+# 
+# NEVER include in commit messages:
+# - Robot emoji (🤖) or ANY emojis
+# - References to "Claude", "Claude Code", or "AI"
+# - Links to claude.ai or any Claude-related URLs
+# - "Co-Authored-By: Claude" or similar attribution
+# - "Generated with" or similar phrases
+# - Any indication that commits were AI-assisted
+#
+# ALWAYS make commit messages:
+# - Professional and descriptive
+# - Focus on WHAT changed and WHY
+# - Use imperative mood
+# - Follow conventional commit format
+#
+# Examples:
+# ✅ feat: add user authentication module with JWT support
+# ✅ fix: resolve memory leak in data processing pipeline
+# ✅ refactor: improve database connection handling performance
+# ❌ 🤖 Add authentication (Generated with Claude Code)
+# ❌ AI-assisted implementation of user login

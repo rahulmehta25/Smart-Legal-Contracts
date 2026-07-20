@@ -1,6 +1,14 @@
 name: Continuous Deployment
 
 on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types:
+      - completed
+    branches: [ main, master ]
   workflow_dispatch:
     inputs:
       environment:
@@ -23,7 +31,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: rahulmehta25/smart-legal-contracts
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   # Determine deployment strategy
@@ -251,7 +259,7 @@ jobs:
             --config baseUrl=https://staging.arbitration-detector.com
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: staging-integration-test-results

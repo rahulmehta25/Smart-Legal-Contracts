@@ -1,0 +1,7 @@
+This is a sample document with invalid encoding sequences: ÿþàáâãäå
+And some more problematic characters: •™£¢∞§¶•ªº–≠
+This document contains arbitration clauses despite the encoding issues.
+
+ARBITRATION AGREEMENT: All disputes shall be resolved through binding arbitration.
+
+Additional corrupted content: ±‡€‹›ﬁﬂ‡°·‚—±
