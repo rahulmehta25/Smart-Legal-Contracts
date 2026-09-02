@@ -33,6 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn("min-h-screen bg-ivory font-sans text-ink antialiased")}>
+        <noscript>
+          <style>{`[data-reveal],.animate-fade-rise{opacity:1!important;transform:none!important;animation:none!important}`}</style>
+        </noscript>
         <QueryProvider>
           <div className="flex min-h-screen flex-col">
             <Navigation />

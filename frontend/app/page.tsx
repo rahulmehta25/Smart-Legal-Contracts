@@ -75,8 +75,8 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       <section className="band band-ivory">
-        <div className="page-wrap grid items-end gap-16 py-20 lg:grid-cols-12 lg:gap-12 lg:py-28">
-          <div className="lg:col-span-7">
+        <div className="page-wrap grid items-start gap-12 py-20 lg:grid-cols-12 lg:gap-10 lg:py-28">
+          <div className="lg:col-span-6">
             <p className="eyebrow animate-fade-rise">Contract review</p>
             <h1 className="display mt-5 max-w-3xl text-[2.6rem] sm:text-5xl lg:text-[3.6rem] animate-fade-rise stagger-1">
               Know the dispute terms before you sign.
@@ -96,16 +96,16 @@ export default function HomePage() {
             </p>
           </div>
 
-          <Reveal className="lg:col-span-5" delay={0.12}>
+          <div className="lg:col-span-6 animate-fade-rise stagger-2">
             <Link
               href={SAMPLE_DEMO_PATH}
-              className="group block"
+              className="group block h-full"
               aria-label="Open sample analysis"
             >
-              <article className="paper-sheet relative px-6 py-7 sm:px-8">
+              <article className="paper-sheet relative h-full px-6 py-7 sm:px-8">
                 <div className="absolute bottom-0 left-0 top-0 w-[2px] bg-brass" />
                 <p className="eyebrow">Sample analysis</p>
-                <h2 className="mt-3 font-serif text-2xl font-medium tracking-tight text-ink">
+                <h2 className="filename-display mt-3 font-serif text-2xl font-medium tracking-tight text-ink">
                   {SAMPLE_DOCUMENT.filename}
                 </h2>
                 <p className="mt-1 text-sm text-ink-muted">High overall risk · 92% confidence</p>
@@ -134,10 +134,37 @@ export default function HomePage() {
                   </p>
                 </blockquote>
 
-                <p className="text-link mt-7 text-sm">Open the full sample</p>
+                <blockquote className="mt-5 border-l border-rule pl-4">
+                  <p className="font-serif text-[1.05rem] leading-snug text-ink">
+                    Jury trial waiver
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                    Each party waives any right to a jury trial in related proceedings.
+                  </p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.14em] text-ink-muted">
+                    High risk · 91%
+                  </p>
+                </blockquote>
+
+                <dl className="mt-7 grid grid-cols-3 gap-4 border-t border-rule pt-5 text-sm">
+                  <div>
+                    <dt className="eyebrow">Clauses</dt>
+                    <dd className="mt-1 font-serif text-xl text-ink">5</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Risk</dt>
+                    <dd className="mt-1 font-serif text-xl text-ink">High</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Confidence</dt>
+                    <dd className="mt-1 font-serif text-xl text-ink">92%</dd>
+                  </div>
+                </dl>
+
+                <p className="text-link mt-6 text-sm">Open the full sample</p>
               </article>
             </Link>
-          </Reveal>
+          </div>
         </div>
       </section>
 

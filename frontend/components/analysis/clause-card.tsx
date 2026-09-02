@@ -23,23 +23,23 @@ export function ClauseCard({ clause, index }: { clause: ArbitrationClause; index
         className="flex w-full items-start justify-between gap-6 py-6 text-left hover-short"
         aria-expanded={expanded}
       >
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 className="font-serif text-xl font-medium tracking-tight text-ink">
+        <span className="min-w-0">
+          <span className="flex flex-wrap items-center gap-3">
+            <span className="font-serif text-xl font-medium tracking-tight text-ink">
               {formatClauseType(clause.clause_type)}
-            </h3>
+            </span>
             <Badge variant={getRiskBadgeVariant(riskLevel)}>{riskLevel} risk</Badge>
-          </div>
+          </span>
           {clause.section_reference ? (
-            <p className="mt-1 text-sm text-ink-muted">{clause.section_reference}</p>
+            <span className="mt-1 block text-sm text-ink-muted">{clause.section_reference}</span>
           ) : null}
-        </div>
-        <div className="shrink-0 text-right">
-          <p className="text-sm text-ink-muted">{formatConfidence(clause.confidence_score)}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.14em] text-ink-muted">
+        </span>
+        <span className="shrink-0 text-right">
+          <span className="block text-sm text-ink-muted">{formatConfidence(clause.confidence_score)}</span>
+          <span className="mt-1 block text-xs uppercase tracking-[0.14em] text-ink-muted">
             {expanded ? "Hide" : "Show"}
-          </p>
-        </div>
+          </span>
+        </span>
       </button>
 
       {expanded && (

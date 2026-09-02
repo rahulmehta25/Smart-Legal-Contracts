@@ -1,12 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { useAnalyses, useDocuments } from "@/lib/hooks";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -14,13 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  GitCompare,
-  CheckCircle,
-  Minus,
-} from "lucide-react";
 import { formatConfidence } from "@/lib/utils";
-import { staggerContainer, staggerItem } from "@/components/ui/motion";
 import type { ArbitrationClause, RiskLevel } from "@/types/api";
 
 function getRiskBadgeVariant(level: RiskLevel | undefined) {
@@ -40,55 +30,48 @@ function ClauseComparisonRow({
   clauseType,
   clauseA,
   clauseB,
-  index,
 }: {
   clauseType: string;
   clauseA?: ArbitrationClause;
   clauseB?: ArbitrationClause;
-  index: number;
 }) {
   const hasA = !!clauseA;
   const hasB = !!clauseB;
 
   return (
-    <motion.div
-      className="grid grid-cols-3 gap-4 py-4 border-b border-gray-100 last:border-0"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.08 }}
-    >
-      <div className="font-medium text-sm text-gray-700">
+    <div className="grid grid-cols-1 gap-3 border-t border-rule py-5 last:border-b sm:grid-cols-3 sm:gap-4">
+      <div className="font-serif text-lg text-ink">
         {clauseType.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
       </div>
-      <div className="text-center">
+      <div className="sm:text-center">
         {hasA ? (
           <div className="space-y-1">
             <Badge variant={getRiskBadgeVariant(clauseA.risk_level)}>
               {clauseA.risk_level}
             </Badge>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-ink-muted">
               {formatConfidence(clauseA.confidence_score)}
             </p>
           </div>
         ) : (
-          <span className="text-sm text-gray-400">Not found</span>
+          <span className="text-sm text-ink-muted">Not found</span>
         )}
       </div>
-      <div className="text-center">
+      <div className="sm:text-center">
         {hasB ? (
           <div className="space-y-1">
             <Badge variant={getRiskBadgeVariant(clauseB.risk_level)}>
               {clauseB.risk_level}
             </Badge>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-ink-muted">
               {formatConfidence(clauseB.confidence_score)}
             </p>
           </div>
         ) : (
-          <span className="text-sm text-gray-400">Not found</span>
+          <span className="text-sm text-ink-muted">Not found</span>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -137,179 +120,123 @@ export default function ComparePage() {
         </p>
       </div>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-base">Select Documents</CardTitle>
-          <CardDescription>Choose two documents to compare their analysis results.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Document A
-              </label>
-              <Select value={documentAId} onValueChange={setDocumentAId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select first document" />
-                </SelectTrigger>
-                <SelectContent>
-                  {analyses?.map((analysis) => {
-                    const doc = documentMap.get(analysis.document_id);
-                    return (
-                      <SelectItem
-                        key={analysis.id}
-                        value={analysis.id.toString()}
-                        disabled={analysis.id.toString() === documentBId}
-                      >
-                        {doc?.filename || `Document #${analysis.document_id}`}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Document B
-              </label>
-              <Select value={documentBId} onValueChange={setDocumentBId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select second document" />
-                </SelectTrigger>
-                <SelectContent>
-                  {analyses?.map((analysis) => {
-                    const doc = documentMap.get(analysis.document_id);
-                    return (
-                      <SelectItem
-                        key={analysis.id}
-                        value={analysis.id.toString()}
-                        disabled={analysis.id.toString() === documentAId}
-                      >
-                        {doc?.filename || `Document #${analysis.document_id}`}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="border-y border-rule py-8">
+        <p className="eyebrow">Documents</p>
+        <div className="mt-5 grid gap-6 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ink">
+              Document A
+            </label>
+            <Select value={documentAId} onValueChange={setDocumentAId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select first document" />
+              </SelectTrigger>
+              <SelectContent>
+                {analyses?.map((analysis) => {
+                  const doc = documentMap.get(analysis.document_id);
+                  return (
+                    <SelectItem
+                      key={analysis.id}
+                      value={analysis.id.toString()}
+                      disabled={analysis.id.toString() === documentBId}
+                    >
+                      {doc?.filename || `Document #${analysis.document_id}`}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ink">
+              Document B
+            </label>
+            <Select value={documentBId} onValueChange={setDocumentBId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select second document" />
+              </SelectTrigger>
+              <SelectContent>
+                {analyses?.map((analysis) => {
+                  const doc = documentMap.get(analysis.document_id);
+                  return (
+                    <SelectItem
+                      key={analysis.id}
+                      value={analysis.id.toString()}
+                      disabled={analysis.id.toString() === documentAId}
+                    >
+                      {doc?.filename || `Document #${analysis.document_id}`}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
 
       {!analysisA || !analysisB ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <GitCompare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-sm font-medium text-gray-900 mb-1">Select documents to compare</h3>
-            <p className="text-sm text-gray-500">
-              Choose two documents above to see a side-by-side comparison of their clauses.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="border-b border-rule py-12">
+          <p className="font-serif text-2xl font-medium text-ink">Select two documents to compare</p>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
+            Choose a pair above to see which clauses appear in both reviews, and which appear in only one.
+          </p>
+        </div>
       ) : comparisonData ? (
         <>
-          <motion.div
-            className="grid md:grid-cols-3 gap-4 mb-8"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-          >
-            <motion.div variants={staggerItem}>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-linen flex items-center justify-center">
-                      <CheckCircle className="h-5 w-5 text-ink" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Common Clauses</p>
-                      <p className="text-lg font-semibold text-gray-900">{comparisonData.inBoth}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+          <div className="grid grid-cols-1 gap-8 border-b border-rule py-8 sm:grid-cols-3 sm:gap-0">
+            <div className="sm:pr-8">
+              <p className="eyebrow">Common clauses</p>
+              <p className="mt-2 font-serif text-3xl font-medium text-ink">{comparisonData.inBoth}</p>
+            </div>
+            <div className="sm:border-l sm:border-rule sm:px-8">
+              <p className="eyebrow">Only in document A</p>
+              <p className="mt-2 font-serif text-3xl font-medium text-ink">{comparisonData.onlyInA}</p>
+            </div>
+            <div className="sm:border-l sm:border-rule sm:pl-8">
+              <p className="eyebrow">Only in document B</p>
+              <p className="mt-2 font-serif text-3xl font-medium text-ink">{comparisonData.onlyInB}</p>
+            </div>
+          </div>
 
-            <motion.div variants={staggerItem}>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                      <Minus className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Only in Document A</p>
-                      <p className="text-lg font-semibold text-gray-900">{comparisonData.onlyInA}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+          <div className="mt-10 hidden grid-cols-3 gap-4 sm:grid">
+            <p className="eyebrow">Clause type</p>
+            <div className="text-center">
+              <p className="filename-display font-serif text-lg text-ink">
+                {documentMap.get(analysisA.document_id)?.filename || "Document A"}
+              </p>
+              <p className="mt-1 text-xs text-ink-muted">
+                {analysisA.clauses?.length || 0} clauses
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="filename-display font-serif text-lg text-ink">
+                {documentMap.get(analysisB.document_id)?.filename || "Document B"}
+              </p>
+              <p className="mt-1 text-xs text-ink-muted">
+                {analysisB.clauses?.length || 0} clauses
+              </p>
+            </div>
+          </div>
 
-            <motion.div variants={staggerItem}>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                      <Minus className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Only in Document B</p>
-                      <p className="text-lg font-semibold text-gray-900">{comparisonData.onlyInB}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </motion.div>
-
-          <Card>
-            <CardHeader className="pb-0">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="font-medium text-sm text-gray-500">Clause Type</div>
-                <div className="text-center">
-                  <p className="font-medium text-sm text-gray-900">
-                    {documentMap.get(analysisA.document_id)?.filename || "Document A"}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {analysisA.clauses?.length || 0} clauses
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-sm text-gray-900">
-                    {documentMap.get(analysisB.document_id)?.filename || "Document B"}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {analysisB.clauses?.length || 0} clauses
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <Separator className="my-4" />
-            <CardContent className="pt-0">
-              {comparisonData.comparisons.length === 0 ? (
-                <div className="py-8 text-center">
-                  <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-                  <p className="text-sm text-gray-600">
-                    Neither document contains arbitration clauses.
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  {comparisonData.comparisons.map(({ clauseType, clauseA, clauseB }, index) => (
-                    <ClauseComparisonRow
-                      key={clauseType}
-                      clauseType={clauseType}
-                      clauseA={clauseA}
-                      clauseB={clauseB}
-                      index={index}
-                    />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {comparisonData.comparisons.length === 0 ? (
+            <div className="border-y border-rule py-12">
+              <p className="font-serif text-2xl font-medium text-ink">
+                Neither document contains arbitration clauses
+              </p>
+            </div>
+          ) : (
+            <div className="mt-4">
+              {comparisonData.comparisons.map(({ clauseType, clauseA, clauseB }) => (
+                <ClauseComparisonRow
+                  key={clauseType}
+                  clauseType={clauseType}
+                  clauseA={clauseA}
+                  clauseB={clauseB}
+                />
+              ))}
+            </div>
+          )}
         </>
       ) : null}
     </div>

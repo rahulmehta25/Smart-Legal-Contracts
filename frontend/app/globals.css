@@ -113,6 +113,12 @@
     color: hsl(var(--ink));
   }
 
+  .filename-display {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+  }
+
   .text-link {
     color: inherit;
     text-decoration: underline;
@@ -243,4 +249,15 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--ink) / 0.38);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-rise,
+  .dropzone-idle {
+    animation: none !important;
+  }
 }
