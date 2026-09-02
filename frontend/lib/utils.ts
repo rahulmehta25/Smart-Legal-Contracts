@@ -6,24 +6,28 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const utcDateOptions: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+};
+
+const utcDateTimeOptions: Intl.DateTimeFormatOptions = {
+  ...utcDateOptions,
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+};
+
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return new Intl.DateTimeFormat("en-US", utcDateOptions).format(d);
 }
 
 export function formatDateTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return `${new Intl.DateTimeFormat("en-US", utcDateTimeOptions).format(d)} UTC`;
 }
 
 export function formatRelativeTime(date: Date | string): string {
@@ -100,6 +104,33 @@ export function getRiskBorderColor(level: RiskLevel): string {
     default:
       return "border-gray-200";
   }
+}
+
+export function computeRiskLevel(analysis: {
+  clauses?: Array<{ risk_level?: RiskLevel }>;
+}): RiskLevel {
+  const clauses = analysis.clauses ?? [];
+  if (clauses.length === 0) return "low";
+  if (clauses.some((clause) => clause.risk_level === "high")) return "high";
+  if (clauses.some((clause) => clause.risk_level === "medium")) return "medium";
+  return "low";
+}
+
+export function getRiskBadgeVariant(level: RiskLevel | undefined) {
+  switch (level) {
+    case "high":
+      return "danger" as const;
+    case "medium":
+      return "warning" as const;
+    case "low":
+      return "success" as const;
+    default:
+      return "secondary" as const;
+  }
+}
+
+export function formatClauseType(clauseType: string): string {
+  return clauseType.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 export function debounce<T extends (...args: unknown[]) => unknown>(

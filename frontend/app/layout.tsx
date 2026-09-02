@@ -1,55 +1,46 @@
-import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/toaster';
-import { QueryProvider } from '@/components/providers/query-provider';
-import { Navigation } from '@/components/layout/navigation';
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { PostHogProvider } from '@/components/analytics/posthog-provider';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-});
+import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
+import "@fontsource-variable/source-sans-3/wght.css";
+import "@fontsource-variable/fraunces/wght.css";
+import "./globals.css";
+import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/toaster";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { Navigation } from "@/components/layout/navigation";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PostHogProvider } from "@/components/analytics/posthog-provider";
 
 export const metadata: Metadata = {
-  title: 'Smart Legal Contracts | AI-Powered Arbitration Clause Detection',
-  description: 'Detect arbitration clauses in legal documents with AI-powered analysis. Upload contracts and get instant risk assessments with 85%+ accuracy.',
-  keywords: ['arbitration', 'legal tech', 'document analysis', 'AI', 'contract analysis', 'legal AI'],
+  title: "Smart Legal Contracts | Arbitration clause detection",
+  description:
+    "Detect arbitration clauses in legal documents with AI analysis. Upload a contract or open the sample review for risk ratings and recommended next steps.",
+  keywords: ["arbitration", "legal tech", "document analysis", "AI", "contract analysis", "legal AI"],
 };
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
-  themeColor: '#ffffff',
+  themeColor: "#F6F1E8",
 };
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className={cn(inter.className, 'min-h-screen bg-white text-gray-900 antialiased')}>
+    <html lang="en">
+      <body className={cn("min-h-screen bg-ivory font-sans text-ink antialiased")}>
+        <noscript>
+          <style>{`[data-reveal],.animate-fade-rise{opacity:1!important;transform:none!important;animation:none!important}`}</style>
+        </noscript>
         <QueryProvider>
-          <div className="min-h-screen flex flex-col">
+          <div className="flex min-h-screen flex-col">
             <Navigation />
-            <main className="flex-1">
-              {children}
-            </main>
-            <footer className="border-t border-gray-100 bg-gray-50/50">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-                  <p>Smart Legal Contracts. All rights reserved.</p>
-                  <div className="flex items-center gap-6">
-                    <span>v2.0.0</span>
-                  </div>
-                </div>
-              </div>
-            </footer>
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
           </div>
           <Toaster />
         </QueryProvider>

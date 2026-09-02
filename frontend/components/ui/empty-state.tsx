@@ -1,9 +1,7 @@
-import { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 interface EmptyStateProps {
-  icon: LucideIcon;
   title: string;
   description: string;
   action?: {
@@ -13,23 +11,24 @@ interface EmptyStateProps {
   };
 }
 
-export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
-    <div className="py-12 text-center">
-      <Icon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-      <h3 className="text-sm font-medium text-gray-900 mb-1">{title}</h3>
-      <p className="text-sm text-gray-500 mb-4 max-w-sm mx-auto">{description}</p>
-      {action && (
-        action.href ? (
-          <Button asChild variant="outline">
-            <Link href={action.href}>{action.label}</Link>
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={action.onClick}>
-            {action.label}
-          </Button>
-        )
-      )}
+    <div className="border-y border-rule py-12">
+      <h3 className="font-serif text-2xl font-medium tracking-tight text-ink">{title}</h3>
+      <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">{description}</p>
+      {action ? (
+        <p className="mt-5">
+          {action.href ? (
+            <Button asChild variant="link">
+              <Link href={action.href}>{action.label}</Link>
+            </Button>
+          ) : (
+            <Button variant="link" onClick={action.onClick}>
+              {action.label}
+            </Button>
+          )}
+        </p>
+      ) : null}
     </div>
   );
 }

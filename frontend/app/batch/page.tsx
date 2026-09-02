@@ -2,35 +2,14 @@
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import Link from "next/link";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Upload,
-  X,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  File,
-  BarChart3,
-  Play,
-} from "lucide-react";
+import { TextLink } from "@/components/ui/text-link";
 import { cn, formatFileSize, validateFile, ALLOWED_FILE_TYPES, formatConfidence } from "@/lib/utils";
 import { useUploadDocument, useAnalyzeDocument } from "@/lib/hooks";
-import { staggerContainer, staggerItem } from "@/components/ui/motion";
 import env from "@/lib/env";
 import type { RiskLevel } from "@/types/api";
 
@@ -56,6 +35,21 @@ function getRiskBadgeVariant(level: RiskLevel | undefined) {
       return "success";
     default:
       return "secondary";
+  }
+}
+
+function statusLabel(status: BatchFile["status"]) {
+  switch (status) {
+    case "pending":
+      return "Pending";
+    case "uploading":
+      return "Uploading";
+    case "analyzing":
+      return "Analyzing";
+    case "complete":
+      return "Complete";
+    case "error":
+      return "Error";
   }
 }
 
@@ -189,266 +183,151 @@ export default function BatchPage() {
     : 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Batch Analysis</h1>
-        <p className="text-gray-600">
+    <div className="page-wrap py-12 lg:py-16">
+      <div className="mb-10">
+        <p className="eyebrow">Portfolio</p>
+        <h1 className="display mt-3 text-3xl sm:text-4xl">Batch analysis</h1>
+        <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-muted">
           Upload multiple documents for batch processing and analysis.
         </p>
       </div>
 
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <motion.div
-            animate={isDragActive ? { scale: 1.02 } : { scale: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          >
-            <div
-              {...getRootProps()}
-              className={cn(
-                "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-                isDragActive
-                  ? "border-blue-400 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 dropzone-idle"
-              )}
-            >
-              <input {...getInputProps()} />
-              <Upload
-                className={cn(
-                  "h-10 w-10 mx-auto mb-4 transition-colors",
-                  isDragActive ? "text-blue-500" : "text-gray-400"
-                )}
-              />
-              {isDragActive ? (
-                <p className="text-blue-600 font-medium">Drop your files here</p>
-              ) : (
-                <>
-                  <p className="text-gray-700 font-medium mb-1">
-                    Drag and drop multiple files, or click to browse
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Supports {ALLOWED_FILE_TYPES.join(", ").toUpperCase()} up to{" "}
-                    {formatFileSize(env.MAX_FILE_SIZE)} each
-                  </p>
-                </>
-              )}
-            </div>
-          </motion.div>
-        </CardContent>
-      </Card>
+      <div
+        {...getRootProps()}
+        className={cn(
+          "cursor-pointer border-y border-rule py-12 text-center hover-short",
+          isDragActive && "bg-linen"
+        )}
+      >
+        <input {...getInputProps()} />
+        {isDragActive ? (
+          <p className="font-serif text-2xl font-medium text-ink">Drop your files here</p>
+        ) : (
+          <>
+            <p className="font-serif text-2xl font-medium text-ink">
+              Drag files here, or click to browse
+            </p>
+            <p className="mt-3 text-sm text-ink-muted">
+              Supports {ALLOWED_FILE_TYPES.join(", ").toUpperCase()} up to{" "}
+              {formatFileSize(env.MAX_FILE_SIZE)} each
+            </p>
+          </>
+        )}
+      </div>
 
       <AnimatePresence mode="popLayout">
         {files.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <motion.div
-              className="grid md:grid-cols-4 gap-4 mb-6"
-              variants={staggerContainer}
-              initial="hidden"
-              animate="show"
-            >
-              <motion.div variants={staggerItem}>
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-gray-500">Total Files</p>
-                    <p className="text-2xl font-semibold text-gray-900">{files.length}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              <motion.div variants={staggerItem}>
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-gray-500">Completed</p>
-                    <p className="text-2xl font-semibold text-emerald-600">{completeCount}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              <motion.div variants={staggerItem}>
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-gray-500">High Risk</p>
-                    <p className="text-2xl font-semibold text-red-600">{highRiskCount}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              <motion.div variants={staggerItem}>
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-gray-500">Errors</p>
-                    <p className="text-2xl font-semibold text-gray-600">{errorCount}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </motion.div>
+            <div className="mt-10 grid grid-cols-2 gap-8 border-y border-rule py-8 sm:grid-cols-4 sm:gap-0">
+              <div className="sm:pr-8">
+                <p className="eyebrow">Total files</p>
+                <p className="mt-2 font-serif text-3xl font-medium text-ink">{files.length}</p>
+              </div>
+              <div className="sm:border-l sm:border-rule sm:px-8">
+                <p className="eyebrow">Completed</p>
+                <p className="mt-2 font-serif text-3xl font-medium text-ink">{completeCount}</p>
+              </div>
+              <div className="sm:border-l sm:border-rule sm:px-8">
+                <p className="eyebrow">High risk</p>
+                <p className="mt-2 font-serif text-3xl font-medium text-ink">{highRiskCount}</p>
+              </div>
+              <div className="sm:border-l sm:border-rule sm:pl-8">
+                <p className="eyebrow">Errors</p>
+                <p className="mt-2 font-serif text-3xl font-medium text-ink">{errorCount}</p>
+              </div>
+            </div>
 
             {isProcessing && (
-              <Card className="mb-6">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Processing...</span>
-                    <span className="text-sm text-gray-500">
-                      {completeCount + errorCount} / {files.length}
-                    </span>
-                  </div>
-                  <Progress value={overallProgress} className="h-2" />
-                </CardContent>
-              </Card>
+              <div className="border-b border-rule py-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-ink">Processing</span>
+                  <span className="text-sm text-ink-muted">
+                    {completeCount + errorCount} / {files.length}
+                  </span>
+                </div>
+                <Progress value={overallProgress} className="h-1" />
+              </div>
             )}
 
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">Documents</CardTitle>
-                    <CardDescription>{files.length} files queued</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={clearAll} disabled={isProcessing}>
-                      Clear All
-                    </Button>
-                    {pendingCount > 0 && (
-                      <Button onClick={processAllFiles} disabled={isProcessing}>
-                        {isProcessing ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Play className="mr-2 h-4 w-4" />
-                        )}
-                        Start Processing
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <Separator />
-              <CardContent className="pt-0">
-                <div className="border rounded-lg overflow-hidden mt-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>File</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Risk</TableHead>
-                        <TableHead>Clauses</TableHead>
-                        <TableHead>Confidence</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {files.map((batchFile, index) => (
-                        <TableRow
-                          key={`${batchFile.file.name}-${index}`}
-                          style={{
-                            animation: `row-fade-in 0.3s ease-out ${index * 50}ms backwards`,
-                          }}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="eyebrow">Queue</p>
+                <h2 className="mt-2 font-serif text-2xl font-medium text-ink">
+                  {files.length} files queued
+                </h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+                <Button variant="link" onClick={clearAll} disabled={isProcessing}>
+                  Clear all
+                </Button>
+                {pendingCount > 0 && (
+                  <Button onClick={processAllFiles} disabled={isProcessing}>
+                    {isProcessing ? "Processing" : "Start processing"}
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <ul className="mt-4">
+              {files.map((batchFile, index) => (
+                <li
+                  key={`${batchFile.file.name}-${index}`}
+                  className="border-t border-rule py-5 last:border-b"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="filename-display font-serif text-lg font-medium text-ink">
+                        {batchFile.file.name}
+                      </p>
+                      <p className="mt-1 text-sm text-ink-muted">
+                        {formatFileSize(batchFile.file.size)} · {statusLabel(batchFile.status)}
+                        {batchFile.clauseCount !== undefined ? ` · ${batchFile.clauseCount} clauses` : ""}
+                        {batchFile.confidence !== undefined ? ` · ${formatConfidence(batchFile.confidence)}` : ""}
+                      </p>
+                      {batchFile.error && (
+                        <p className="mt-1 text-sm text-red-800">{batchFile.error}</p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4">
+                      {batchFile.riskLevel && (
+                        <Badge variant={getRiskBadgeVariant(batchFile.riskLevel)}>
+                          {batchFile.riskLevel}
+                        </Badge>
+                      )}
+                      {batchFile.status === "complete" && batchFile.analysisId && (
+                        <TextLink href={`/analysis/${batchFile.analysisId}`}>View</TextLink>
+                      )}
+                      {(batchFile.status === "pending" || batchFile.status === "error") && (
+                        <button
+                          type="button"
+                          className="text-sm text-ink-muted underline decoration-rule underline-offset-4 hover:text-ink"
+                          onClick={() => removeFile(index)}
+                          disabled={isProcessing}
                         >
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <File className="h-5 w-5 text-gray-400" />
-                              <div className="min-w-0">
-                                <p className="font-medium text-sm text-gray-900 truncate max-w-[200px]">
-                                  {batchFile.file.name}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {formatFileSize(batchFile.file.size)}
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {batchFile.status === "pending" && (
-                              <Badge variant="secondary">Pending</Badge>
-                            )}
-                            {batchFile.status === "uploading" && (
-                              <Badge variant="secondary">
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                Uploading
-                              </Badge>
-                            )}
-                            {batchFile.status === "analyzing" && (
-                              <Badge variant="secondary">
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                Analyzing
-                              </Badge>
-                            )}
-                            {batchFile.status === "complete" && (
-                              <Badge variant="success">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Complete
-                              </Badge>
-                            )}
-                            {batchFile.status === "error" && (
-                              <Badge variant="danger">
-                                <AlertCircle className="h-3 w-3 mr-1" />
-                                Error
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {batchFile.riskLevel && (
-                              <Badge variant={getRiskBadgeVariant(batchFile.riskLevel)}>
-                                {batchFile.riskLevel}
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {batchFile.clauseCount !== undefined && (
-                              <span className="text-sm">{batchFile.clauseCount}</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {batchFile.confidence !== undefined && (
-                              <span className="text-sm">{formatConfidence(batchFile.confidence)}</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              {batchFile.status === "complete" && batchFile.analysisId && (
-                                <Button variant="ghost" size="sm" asChild>
-                                  <Link href={`/analysis/${batchFile.analysisId}`}>
-                                    View
-                                  </Link>
-                                </Button>
-                              )}
-                              {(batchFile.status === "pending" || batchFile.status === "error") && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => removeFile(index)}
-                                  disabled={isProcessing}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </motion.div>
         )}
       </AnimatePresence>
 
       {files.length === 0 && (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-sm font-medium text-gray-900 mb-1">No files queued</h3>
-              <p className="text-sm text-gray-500">
-                Upload multiple documents to process them in batch.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="border-b border-rule py-12">
+          <p className="font-serif text-2xl font-medium text-ink">No files queued</p>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
+            Add several contracts above to process them as a portfolio.
+          </p>
+        </div>
       )}
     </div>
   );
