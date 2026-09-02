@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useAnalysis, useDocument } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,11 @@ function AnalysisResultsSkeleton() {
   );
 }
 
-export default function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function AnalysisPage({ params }: { params: { id: string } }) {
+  const id = params.id;
   const sampleRequested = isSampleAnalysisId(id);
   const analysisId = Number.parseInt(id, 10);
-  const shouldFetch = !sampleRequested && Number.isFinite(analysisId);
+  const shouldFetch = !sampleRequested && Number.isFinite(analysisId) && analysisId > 0;
   const { data: analysis, isLoading, error } = useAnalysis(shouldFetch ? analysisId : 0);
   const { data: document } = useDocument(shouldFetch ? analysis?.document_id || 0 : 0);
 
@@ -65,6 +65,29 @@ export default function AnalysisPage({ params }: { params: Promise<{ id: string 
         backLabel="Back to home"
         isSample
       />
+    );
+  }
+
+  if (!shouldFetch) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="mb-6">
+          <CardContent className="py-12 text-center">
+            <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-sm font-medium text-gray-900 mb-1">Analysis not found</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              The requested analysis could not be loaded. The upload API may be unavailable.
+            </p>
+            <Button asChild variant="outline">
+              <Link href="/history">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to History
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <SampleDemoCard description="You can still open the sample MSA analysis without a live upload." />
+      </div>
     );
   }
 
