@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "Source Sans 3", "system-ui", "sans-serif"],
-        serif: ["var(--font-serif)", "Fraunces", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
       },
       colors: {
         ivory: {
