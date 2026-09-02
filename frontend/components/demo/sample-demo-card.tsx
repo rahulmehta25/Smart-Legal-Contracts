@@ -1,9 +1,5 @@
-import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { SAMPLE_DEMO_PATH, SAMPLE_DOCUMENT } from "@/lib/sample-analysis";
+import { TextLink } from "@/components/ui/text-link";
 import { cn } from "@/lib/utils";
 
 interface SampleDemoCardProps {
@@ -18,26 +14,14 @@ export function SampleDemoCard({
   description = "Open a canned SaaS MSA review with clause quotes, risk ratings, and recommendations. No upload required.",
 }: SampleDemoCardProps) {
   return (
-    <Card className={cn("border-indigo-100 bg-indigo-50/40", className)}>
-      <CardContent className="pt-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="h-4 w-4 text-indigo-600" />
-              <h3 className="text-sm font-medium text-gray-900">{title}</h3>
-              <Badge variant="secondary">Always available</Badge>
-            </div>
-            <p className="text-sm text-gray-600">{description}</p>
-            <p className="text-xs text-gray-500 mt-1">{SAMPLE_DOCUMENT.filename}</p>
-          </div>
-          <Button asChild>
-            <Link href={SAMPLE_DEMO_PATH}>
-              View Demo
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <aside className={cn("border-y border-rule py-6", className)}>
+      <p className="eyebrow">Always available</p>
+      <h3 className="mt-2 font-serif text-2xl font-medium tracking-tight text-ink">{title}</h3>
+      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">{description}</p>
+      <p className="mt-1 text-xs text-ink-muted">{SAMPLE_DOCUMENT.filename}</p>
+      <p className="mt-4">
+        <TextLink href={SAMPLE_DEMO_PATH}>{title === "View a sample analysis" ? "View Demo" : title}</TextLink>
+      </p>
+    </aside>
   );
 }

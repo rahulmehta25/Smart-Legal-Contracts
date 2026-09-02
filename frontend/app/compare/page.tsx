@@ -128,11 +128,12 @@ export default function ComparePage() {
   }, [analysisA, analysisB]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Compare Documents</h1>
-        <p className="text-gray-600">
-          Select two analyzed documents to compare their arbitration clauses side-by-side.
+    <div className="page-wrap py-12 lg:py-16">
+      <div className="mb-10">
+        <p className="eyebrow">Side by side</p>
+        <h1 className="display mt-3 text-3xl sm:text-4xl">Compare documents</h1>
+        <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-muted">
+          Select two analyzed documents to compare their arbitration clauses.
         </p>
       </div>
 
@@ -218,8 +219,8 @@ export default function ComparePage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <CheckCircle className="h-5 w-5 text-blue-600" />
+                    <div className="h-10 w-10 rounded-lg bg-linen flex items-center justify-center">
+                      <CheckCircle className="h-5 w-5 text-ink" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Common Clauses</p>

@@ -1,31 +1,21 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { FileQuestion, Home } from "lucide-react";
+import { TextLink } from "@/components/ui/text-link";
 
 export default function NotFound() {
   return (
-    <div className="max-w-lg mx-auto px-4 py-16">
-      <Card>
-        <CardContent className="py-12 text-center">
-          <FileQuestion className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Page Not Found</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            The page you are looking for does not exist or has been moved.
-          </p>
-          <div className="flex justify-center gap-3">
-            <Button asChild variant="outline">
-              <Link href="/demo">View Demo</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/">
-                <Home className="h-4 w-4 mr-2" />
-                Home
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="page-wrap py-24">
+      <p className="eyebrow">404</p>
+      <h1 className="display mt-4 text-4xl">This page is not here.</h1>
+      <p className="mt-4 max-w-md text-base leading-relaxed text-ink-muted">
+        The address may have moved, or the document you asked for is not in this demo.
+      </p>
+      <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
+        <Button asChild>
+          <Link href="/">Home</Link>
+        </Button>
+        <TextLink href="/demo">Open sample analysis</TextLink>
+      </div>
     </div>
   );
 }

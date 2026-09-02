@@ -5,6 +5,7 @@ export default {
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
+    "./lib/**/*.{ts,tsx}",
   ],
   theme: {
     container: {
@@ -16,9 +17,37 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "Source Sans 3", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Fraunces", "Georgia", "serif"],
       },
       colors: {
+        ivory: {
+          DEFAULT: "hsl(var(--ivory))",
+          deep: "hsl(var(--ivory-deep))",
+        },
+        linen: "hsl(var(--linen))",
+        ink: {
+          DEFAULT: "hsl(var(--ink))",
+          muted: "hsl(var(--ink-muted))",
+        },
+        brass: {
+          DEFAULT: "hsl(var(--brass))",
+          deep: "hsl(var(--brass-deep))",
+        },
+        rule: "hsl(var(--rule))",
+        gray: {
+          50: "#F7F2E9",
+          100: "#EFE8DC",
+          200: "#E0D6C6",
+          300: "#CBBDA8",
+          400: "#A89880",
+          500: "#857864",
+          600: "#675C4D",
+          700: "#4A4338",
+          800: "#2E2A23",
+          900: "#16140F",
+          950: "#0C0B09",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -63,8 +92,8 @@ export default {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 1px)",
+        sm: "0",
       },
       keyframes: {
         "accordion-down": {

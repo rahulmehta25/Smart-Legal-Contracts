@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Upload,
-  FileText,
   X,
   CheckCircle,
   AlertCircle,
@@ -147,56 +146,38 @@ export default function UploadPage() {
   const completeCount = files.filter((f) => f.status === "complete").length;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Upload Documents</h1>
-        <p className="text-gray-600">
-          Upload legal documents to analyze for arbitration clauses and risk assessment.
-          If live upload fails, the sample analysis still works.
+    <div className="page-wrap py-12 lg:py-16">
+      <div className="mb-10">
+        <p className="eyebrow">Review</p>
+        <h1 className="display mt-3 text-3xl sm:text-4xl">Upload documents</h1>
+        <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-muted">
+          Analyze a contract for arbitration clauses. If live upload fails, the sample analysis
+          still works.
         </p>
       </div>
 
-      <SampleDemoCard className="mb-6" />
+      <SampleDemoCard className="mb-10" />
 
-      <Card className="mb-6 animate-fade-in-scale">
-        <CardContent className="pt-6">
-          <motion.div
-            animate={isDragActive ? { scale: 1.02 } : { scale: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          >
-            <div
-              {...getRootProps()}
-              className={cn(
-                "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-                isDragActive
-                  ? "border-blue-400 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 dropzone-idle"
-              )}
-            >
-              <input {...getInputProps()} />
-              <Upload
-                className={cn(
-                  "h-10 w-10 mx-auto mb-4 transition-colors",
-                  isDragActive ? "text-blue-500" : "text-gray-400"
-                )}
-              />
-              {isDragActive ? (
-                <p className="text-blue-600 font-medium">Drop your files here</p>
-              ) : (
-                <>
-                  <p className="text-gray-700 font-medium mb-1">
-                    Drag and drop files, or click to browse
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Supports {ALLOWED_FILE_TYPES.join(", ").toUpperCase()} up to{" "}
-                    {formatFileSize(env.MAX_FILE_SIZE)}
-                  </p>
-                </>
-              )}
-            </div>
-          </motion.div>
-        </CardContent>
-      </Card>
+      <div
+        {...getRootProps()}
+        className={cn(
+          "mb-10 cursor-pointer border border-dashed p-10 text-center hover-short",
+          isDragActive ? "border-brass bg-linen" : "border-rule hover:border-ink/40 dropzone-idle"
+        )}
+      >
+        <input {...getInputProps()} />
+        {isDragActive ? (
+          <p className="font-serif text-xl text-ink">Drop your files here</p>
+        ) : (
+          <>
+            <p className="font-serif text-xl text-ink">Drag and drop files, or click to browse</p>
+            <p className="mt-2 text-sm text-ink-muted">
+              Supports {ALLOWED_FILE_TYPES.join(", ").toUpperCase()} up to{" "}
+              {formatFileSize(env.MAX_FILE_SIZE)}
+            </p>
+          </>
+        )}
+      </div>
 
       <AnimatePresence mode="popLayout">
         {files.length > 0 && (
@@ -256,7 +237,7 @@ export default function UploadPage() {
                           {uploadedFile.status === "uploading" && (
                             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                               <motion.div
-                                className="h-full bg-blue-600 rounded-full"
+                                className="h-full bg-brass"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${uploadedFile.progress}%` }}
                                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
@@ -264,7 +245,7 @@ export default function UploadPage() {
                             </div>
                           )}
                           {uploadedFile.status === "analyzing" && (
-                            <div className="flex items-center gap-2 text-xs text-blue-600">
+                            <div className="flex items-center gap-2 text-xs text-ink-muted">
                               <Loader2 className="h-3 w-3 animate-spin" />
                               Analyzing document...
                             </div>
@@ -339,17 +320,12 @@ export default function UploadPage() {
       </AnimatePresence>
 
       {files.length === 0 && (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-sm font-medium text-gray-900 mb-1">No files uploaded</h3>
-              <p className="text-sm text-gray-500">
-                Upload a document when the API is available, or open the sample analysis above.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="border-t border-rule py-12">
+          <h3 className="font-serif text-xl font-medium text-ink">No files uploaded</h3>
+          <p className="mt-2 text-sm text-ink-muted">
+            Upload a document when the API is available, or open the sample analysis above.
+          </p>
+        </div>
       )}
     </div>
   );

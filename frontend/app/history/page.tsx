@@ -27,7 +27,6 @@ import {
   FileText,
   Search,
   ArrowRight,
-  AlertTriangle,
   Upload,
 } from "lucide-react";
 import { computeRiskLevel, formatConfidence, formatRelativeTime, getRiskBadgeVariant } from "@/lib/utils";
@@ -105,73 +104,36 @@ export default function HistoryPage() {
   }, [allAnalyses]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="page-wrap py-12 lg:py-16">
+      <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Analysis History</h1>
-          <p className="text-gray-600">
+          <p className="eyebrow">Archive</p>
+          <h1 className="display mt-3 text-3xl sm:text-4xl">Analysis history</h1>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-muted">
             View live analyses when the API is available. The sample review is always listed.
           </p>
         </div>
         <Button asChild>
-          <Link href="/upload">
-            <Upload className="h-4 w-4 mr-2" />
-            New Analysis
-          </Link>
+          <Link href="/upload">New analysis</Link>
         </Button>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
-        <div className="animate-fade-in-up hover-lift stagger-1">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Analyses</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
-                </div>
-                <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="mb-10 grid grid-cols-1 gap-8 border-y border-rule py-8 sm:grid-cols-3 sm:gap-0">
+        <div className="sm:pr-8">
+          <p className="eyebrow">Total analyses</p>
+          <p className="mt-2 font-serif text-3xl font-medium text-ink">{stats.total}</p>
         </div>
-
-        <div className="animate-fade-in-up hover-lift stagger-2">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">With Arbitration</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats.withArbitration}</p>
-                </div>
-                <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5 text-amber-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="sm:border-l sm:border-rule sm:px-8">
+          <p className="eyebrow">With arbitration</p>
+          <p className="mt-2 font-serif text-3xl font-medium text-ink">{stats.withArbitration}</p>
         </div>
-
-        <div className="animate-fade-in-up hover-lift stagger-3">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">High Risk</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats.highRisk}</p>
-                </div>
-                <div className="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="sm:border-l sm:border-rule sm:pl-8">
+          <p className="eyebrow">High risk</p>
+          <p className="mt-2 font-serif text-3xl font-medium text-ink">{stats.highRisk}</p>
         </div>
       </div>
 
-      <SampleDemoCard className="mb-6" />
+      <SampleDemoCard className="mb-10" />
 
       {analysesError && (
         <p className="text-sm text-amber-700 mb-4">
@@ -283,7 +245,7 @@ export default function HistoryPage() {
                                 {document?.filename || `Document #${analysis.document_id}`}
                               </p>
                               {isSample && (
-                                <p className="text-xs text-indigo-600">Sample, no upload required</p>
+                                <p className="text-xs text-ink-muted">Sample, no upload required</p>
                               )}
                             </div>
                           </div>

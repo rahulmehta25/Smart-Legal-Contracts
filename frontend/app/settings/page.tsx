@@ -101,7 +101,7 @@ export default function SettingsPage() {
         onClick={() => onChange(!checked)}
         className={cn(
           "relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          checked ? "bg-blue-600" : "bg-gray-200"
+          checked ? "bg-brass" : "bg-gray-200"
         )}
       >
         <span
@@ -115,11 +115,12 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Settings</h1>
-        <p className="text-gray-600">
-          Manage your API keys, notification preferences, and export options.
+    <div className="page-wrap py-12 lg:py-16">
+      <div className="mb-10">
+        <p className="eyebrow">Workspace</p>
+        <h1 className="display mt-3 text-3xl sm:text-4xl">Settings</h1>
+        <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-muted">
+          Manage API keys, notification preferences, and export options.
         </p>
       </div>
 

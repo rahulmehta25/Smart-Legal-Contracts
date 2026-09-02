@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { useAnalysis, useDocument } from "@/lib/hooks";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { posthog } from "@/lib/posthog";
 import { AnalysisResults } from "@/components/analysis/analysis-results";
 import { SampleDemoCard } from "@/components/demo/sample-demo-card";
+import { TextLink } from "@/components/ui/text-link";
 import {
   SAMPLE_ANALYSIS,
   SAMPLE_DOCUMENT,
@@ -70,30 +67,25 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
   if (!shouldFetch) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="mb-6">
-          <CardContent className="py-12 text-center">
-            <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-sm font-medium text-gray-900 mb-1">Analysis not found</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              The requested analysis could not be loaded. The upload API may be unavailable.
-            </p>
-            <Button asChild variant="outline">
-              <Link href="/history">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to History
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <SampleDemoCard description="You can still open the sample MSA analysis without a live upload." />
+      <div className="page-wrap py-16">
+        <h1 className="display text-3xl">Analysis not found</h1>
+        <p className="mt-3 max-w-lg text-base leading-relaxed text-ink-muted">
+          The requested analysis could not be loaded. The upload API may be unavailable.
+        </p>
+        <p className="mt-6">
+          <TextLink href="/history">Back to history</TextLink>
+        </p>
+        <SampleDemoCard
+          className="mt-10"
+          description="You can still open the sample MSA analysis without a live upload."
+        />
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-wrap py-16">
         <AnalysisResultsSkeleton />
       </div>
     );
@@ -101,23 +93,18 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
   if (error || !analysis) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="mb-6">
-          <CardContent className="py-12 text-center">
-            <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-sm font-medium text-gray-900 mb-1">Analysis not found</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              The requested analysis could not be loaded. The upload API may be unavailable.
-            </p>
-            <Button asChild variant="outline">
-              <Link href="/history">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to History
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <SampleDemoCard description="You can still open the sample MSA analysis without a live upload." />
+      <div className="page-wrap py-16">
+        <h1 className="display text-3xl">Analysis not found</h1>
+        <p className="mt-3 max-w-lg text-base leading-relaxed text-ink-muted">
+          The requested analysis could not be loaded. The upload API may be unavailable.
+        </p>
+        <p className="mt-6">
+          <TextLink href="/history">Back to history</TextLink>
+        </p>
+        <SampleDemoCard
+          className="mt-10"
+          description="You can still open the sample MSA analysis without a live upload."
+        />
       </div>
     );
   }

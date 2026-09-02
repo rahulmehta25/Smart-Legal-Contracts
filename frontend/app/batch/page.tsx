@@ -189,10 +189,11 @@ export default function BatchPage() {
     : 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Batch Analysis</h1>
-        <p className="text-gray-600">
+    <div className="page-wrap py-12 lg:py-16">
+      <div className="mb-10">
+        <p className="eyebrow">Portfolio</p>
+        <h1 className="display mt-3 text-3xl sm:text-4xl">Batch analysis</h1>
+        <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-muted">
           Upload multiple documents for batch processing and analysis.
         </p>
       </div>
@@ -208,19 +209,19 @@ export default function BatchPage() {
               className={cn(
                 "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
                 isDragActive
-                  ? "border-blue-400 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 dropzone-idle"
+                  ? "border-brass bg-linen"
+                  : "border-rule hover:border-ink/40 dropzone-idle"
               )}
             >
               <input {...getInputProps()} />
               <Upload
                 className={cn(
                   "h-10 w-10 mx-auto mb-4 transition-colors",
-                  isDragActive ? "text-blue-500" : "text-gray-400"
+                  isDragActive ? "text-brass" : "text-gray-400"
                 )}
               />
               {isDragActive ? (
-                <p className="text-blue-600 font-medium">Drop your files here</p>
+                <p className="font-serif text-xl text-ink">Drop your files here</p>
               ) : (
                 <>
                   <p className="text-gray-700 font-medium mb-1">

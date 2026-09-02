@@ -1,33 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TextLink } from "@/components/ui/text-link";
+import { Reveal } from "@/components/ui/reveal";
 import {
-  ArrowLeft,
-  CheckCircle,
-  Clock,
-  Download,
-  FileText,
-  Shield,
-} from "lucide-react";
-import {
-  cn,
   computeRiskLevel,
   copyToClipboard,
   formatConfidence,
   formatDateTime,
   formatProcessingTime,
-  getRiskBgColor,
-  getRiskColor,
+  getRiskBadgeVariant,
 } from "@/lib/utils";
-import { staggerContainer, staggerItem } from "@/components/ui/motion";
 import { ClauseCard } from "@/components/analysis/clause-card";
+import { SAMPLE_DEMO_PATH } from "@/lib/sample-analysis";
 import type { ArbitrationAnalysis, Document } from "@/types/api";
 
 interface AnalysisResultsProps {
@@ -61,181 +50,153 @@ export function AnalysisResults({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={backHref}>
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            {backLabel}
-          </Link>
-        </Button>
-      </div>
+    <div>
+      <section className="band band-ivory">
+        <div className="page-wrap py-10 lg:py-14">
+          <TextLink href={backHref}>{backLabel}</TextLink>
 
-      {isSample && (
-        <div className="mb-6 rounded-lg border border-indigo-100 bg-indigo-50/70 px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">Sample analysis</Badge>
-            <p className="text-sm text-indigo-900">
+          {isSample && (
+            <p className="mt-6 max-w-2xl text-sm leading-relaxed text-ink-muted">
               This walkthrough uses a canned SaaS MSA. It does not call the upload API.
             </p>
-          </div>
-        </div>
-      )}
+          )}
 
-      <div className="mb-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-              {document?.filename || `Analysis #${analysis.id}`}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
+          <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="eyebrow">{isSample ? "Sample analysis" : "Analysis"}</p>
+              <h1 className="display mt-3 text-3xl sm:text-4xl">
+                {document?.filename || `Analysis #${analysis.id}`}
+              </h1>
+              <p className="mt-3 text-sm text-ink-muted">
                 {formatDateTime(analysis.analyzed_at)}
-              </span>
-              <span>{formatProcessingTime(analysis.processing_time_ms)}</span>
-              {document?.page_count ? <span>{document.page_count} pages</span> : null}
+                {" · "}
+                {formatProcessingTime(analysis.processing_time_ms)}
+                {document?.page_count ? ` · ${document.page_count} pages` : ""}
+              </p>
             </div>
+            <Button variant="link" onClick={handleExport}>
+              Export JSON
+            </Button>
           </div>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1" />
-            Export
-          </Button>
         </div>
+      </section>
+
+      <div className="flex justify-center band-ivory" aria-hidden>
+        <div className="h-8 w-px bg-rule" />
       </div>
 
-      <motion.div
-        className="grid md:grid-cols-3 gap-4 mb-8"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="show"
-      >
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "h-10 w-10 rounded-lg flex items-center justify-center",
-                    getRiskBgColor(riskLevel)
-                  )}
-                >
-                  <Shield className={cn("h-5 w-5", getRiskColor(riskLevel))} />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Risk Level</p>
-                  <p className={cn("text-lg font-semibold capitalize", getRiskColor(riskLevel))}>
-                    {riskLevel}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Clauses Found</p>
-                  <p className="text-lg font-semibold text-gray-900">{analysis.clauses.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Confidence</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {formatConfidence(analysis.confidence_score)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      <Tabs defaultValue="clauses">
-        <TabsList className="mb-4">
-          <TabsTrigger value="clauses">Clauses ({analysis.clauses.length})</TabsTrigger>
-          <TabsTrigger value="summary">Summary</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="clauses">
-          {analysis.clauses.length > 0 ? (
-            <div className="space-y-4">
-              {analysis.clauses.map((clause, index) => (
-                <motion.div
-                  key={clause.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                >
-                  <ClauseCard clause={clause} index={index} />
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-                <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  No Arbitration Clauses Found
-                </h3>
-                <p className="text-sm text-gray-500">
-                  This document was analyzed with {formatConfidence(analysis.confidence_score)}{" "}
-                  confidence and no arbitration-related clauses were detected.
+      <section className="band band-linen">
+        <div className="page-wrap py-10">
+          <Reveal>
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-0">
+              <div className="sm:pr-8">
+                <p className="eyebrow">Risk level</p>
+                <p className="mt-2 font-serif text-3xl font-medium capitalize tracking-tight text-ink">
+                  {riskLevel}
                 </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="summary">
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-medium text-gray-900 mb-3">Analysis Summary</h3>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {analysis.analysis_summary || "No summary available."}
-              </p>
-
-              <Separator className="my-6" />
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Analysis Version</p>
-                  <p className="font-medium">{analysis.analysis_version}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Processing Time</p>
-                  <p className="font-medium">{formatProcessingTime(analysis.processing_time_ms)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Document ID</p>
-                  <p className="font-medium">{isSample ? "sample" : analysis.document_id}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Has Arbitration</p>
-                  <p className="font-medium">{analysis.has_arbitration_clause ? "Yes" : "No"}</p>
-                </div>
+                <Badge variant={getRiskBadgeVariant(riskLevel)} className="mt-3">
+                  {riskLevel} risk
+                </Badge>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <div className="sm:border-l sm:border-rule sm:px-8">
+                <p className="eyebrow">Clauses found</p>
+                <p className="mt-2 font-serif text-3xl font-medium tracking-tight text-ink">
+                  {analysis.clauses.length}
+                </p>
+              </div>
+              <div className="sm:border-l sm:border-rule sm:pl-8">
+                <p className="eyebrow">Confidence</p>
+                <p className="mt-2 font-serif text-3xl font-medium tracking-tight text-ink">
+                  {formatConfidence(analysis.confidence_score)}
+                </p>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <div className="flex justify-center band-linen" aria-hidden>
+        <div className="h-8 w-px bg-rule" />
+      </div>
+
+      <section className="band band-ivory">
+        <div className="page-wrap py-12 lg:py-16">
+          <Tabs defaultValue="clauses">
+            <TabsList className="mb-8 h-auto rounded-none bg-transparent p-0">
+              <TabsTrigger
+                value="clauses"
+                className="rounded-none border-b-2 border-transparent bg-transparent px-0 pb-2 mr-8 shadow-none data-[state=active]:border-brass data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                Clauses ({analysis.clauses.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="summary"
+                className="rounded-none border-b-2 border-transparent bg-transparent px-0 pb-2 shadow-none data-[state=active]:border-brass data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                Summary
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="clauses">
+              {analysis.clauses.length > 0 ? (
+                <div>
+                  {analysis.clauses.map((clause, index) => (
+                    <ClauseCard key={clause.id} clause={clause} index={index} />
+                  ))}
+                </div>
+              ) : (
+                <div className="border-t border-b border-rule py-12">
+                  <h3 className="font-serif text-2xl font-medium text-ink">
+                    No arbitration clauses found
+                  </h3>
+                  <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
+                    This document was analyzed with {formatConfidence(analysis.confidence_score)}{" "}
+                    confidence and no arbitration-related clauses were detected.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="summary">
+              <div className="max-w-2xl border-t border-rule pt-8">
+                <h3 className="font-serif text-2xl font-medium text-ink">Analysis summary</h3>
+                <p className="mt-4 text-base leading-relaxed text-ink-muted whitespace-pre-wrap">
+                  {analysis.analysis_summary || "No summary available."}
+                </p>
+                <dl className="mt-10 grid grid-cols-2 gap-6 text-sm">
+                  <div>
+                    <dt className="eyebrow">Version</dt>
+                    <dd className="mt-1 text-ink">{analysis.analysis_version}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Processing time</dt>
+                    <dd className="mt-1 text-ink">{formatProcessingTime(analysis.processing_time_ms)}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Document</dt>
+                    <dd className="mt-1 text-ink">{isSample ? "sample" : analysis.document_id}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Has arbitration</dt>
+                    <dd className="mt-1 text-ink">{analysis.has_arbitration_clause ? "Yes" : "No"}</dd>
+                  </div>
+                </dl>
+                {isSample ? (
+                  <p className="mt-8">
+                    <TextLink href={SAMPLE_DEMO_PATH}>Keep this sample open</TextLink>
+                  </p>
+                ) : (
+                  <p className="mt-8">
+                    <Link href="/upload" className="text-link">
+                      Analyze another document
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
     </div>
   );
 }
