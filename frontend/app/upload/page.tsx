@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn, formatFileSize, validateFile, ALLOWED_FILE_TYPES } from "@/lib/utils";
 import { useUploadDocument, useAnalyzeDocument } from "@/lib/hooks";
+import { SampleDemoCard } from "@/components/demo/sample-demo-card";
 import env from "@/lib/env";
 
 interface UploadedFile {
@@ -119,7 +120,13 @@ export default function UploadPage() {
       const message = error instanceof Error ? error.message : "Upload failed";
       setFiles((prev) =>
         prev.map((f, i) =>
-          i === fileIndex ? { ...f, status: "error" as const, error: message } : f
+          i === fileIndex
+            ? {
+                ...f,
+                status: "error" as const,
+                error: `${message} You can still open the sample analysis.`,
+              }
+            : f
         )
       );
       toast.error(message);
@@ -145,8 +152,11 @@ export default function UploadPage() {
         <h1 className="text-2xl font-semibold text-gray-900 mb-2">Upload Documents</h1>
         <p className="text-gray-600">
           Upload legal documents to analyze for arbitration clauses and risk assessment.
+          If live upload fails, the sample analysis still works.
         </p>
       </div>
+
+      <SampleDemoCard className="mb-6" />
 
       <Card className="mb-6 animate-fade-in-scale">
         <CardContent className="pt-6">
@@ -335,7 +345,7 @@ export default function UploadPage() {
               <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-sm font-medium text-gray-900 mb-1">No files uploaded</h3>
               <p className="text-sm text-gray-500">
-                Upload documents to start analyzing for arbitration clauses.
+                Upload a document when the API is available, or open the sample analysis above.
               </p>
             </div>
           </CardContent>

@@ -102,6 +102,33 @@ export function getRiskBorderColor(level: RiskLevel): string {
   }
 }
 
+export function computeRiskLevel(analysis: {
+  clauses?: Array<{ risk_level?: RiskLevel }>;
+}): RiskLevel {
+  const clauses = analysis.clauses ?? [];
+  if (clauses.length === 0) return "low";
+  if (clauses.some((clause) => clause.risk_level === "high")) return "high";
+  if (clauses.some((clause) => clause.risk_level === "medium")) return "medium";
+  return "low";
+}
+
+export function getRiskBadgeVariant(level: RiskLevel | undefined) {
+  switch (level) {
+    case "high":
+      return "danger" as const;
+    case "medium":
+      return "warning" as const;
+    case "low":
+      return "success" as const;
+    default:
+      return "secondary" as const;
+  }
+}
+
+export function formatClauseType(clauseType: string): string {
+  return clauseType.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number

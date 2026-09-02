@@ -133,6 +133,37 @@
   animation: gradientShift 6s ease infinite;
 }
 
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(15 23 42 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 20%, transparent 75%);
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+  pointer-events: none;
+}
+
+.hero-orb-left {
+  width: 18rem;
+  height: 18rem;
+  top: 4rem;
+  left: -4rem;
+  background: rgb(99 102 241 / 0.16);
+}
+
+.hero-orb-right {
+  width: 20rem;
+  height: 20rem;
+  bottom: -3rem;
+  right: -3rem;
+  background: rgb(59 130 246 / 0.12);
+}
+
 /* Dropzone pulse animation */
 @keyframes dropzone-pulse {
   0%, 100% { border-color: rgb(229 231 235); }
