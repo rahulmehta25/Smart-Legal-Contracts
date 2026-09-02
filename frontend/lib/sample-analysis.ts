@@ -129,12 +129,11 @@ export const SAMPLE_ANALYSIS: ArbitrationAnalysis = {
 
 export function isSampleAnalysisId(id: string | number | null | undefined): boolean {
   if (id === null || id === undefined) return false;
-  const normalized = String(id).trim().toLowerCase();
-  return (
-    normalized === SAMPLE_ANALYSIS_SLUG ||
-    normalized === String(SAMPLE_ANALYSIS_ID) ||
-    normalized === String(SAMPLE_DOCUMENT_ID)
-  );
+  return String(id).trim().toLowerCase() === SAMPLE_ANALYSIS_SLUG;
+}
+
+export function isCannedSampleAnalysis(analysis: { id: number } | null | undefined): boolean {
+  return analysis === SAMPLE_ANALYSIS;
 }
 
 export function getSampleAnalysis(): ArbitrationAnalysis {

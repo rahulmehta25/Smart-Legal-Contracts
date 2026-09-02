@@ -7,6 +7,7 @@ import {
   SAMPLE_DOCUMENT,
   getSampleAnalysis,
   getSampleDocument,
+  isCannedSampleAnalysis,
   isSampleAnalysisId,
   resolveSampleAnalysis,
   resolveSampleDocument,
@@ -43,13 +44,15 @@ function testSampleIdsResolveWithoutApi() {
   assert.equal(isSampleAnalysisId("sample"), true);
   assert.equal(isSampleAnalysisId("SAMPLE"), true);
   assert.equal(isSampleAnalysisId(SAMPLE_ANALYSIS_SLUG), true);
-  assert.equal(isSampleAnalysisId(SAMPLE_ANALYSIS_ID), true);
-  assert.equal(isSampleAnalysisId(String(SAMPLE_ANALYSIS_ID)), true);
+  assert.equal(isSampleAnalysisId(SAMPLE_ANALYSIS_ID), false);
+  assert.equal(isSampleAnalysisId(String(SAMPLE_ANALYSIS_ID)), false);
   assert.equal(isSampleAnalysisId("  sample  "), true);
   assert.equal(isSampleAnalysisId(12), false);
   assert.equal(isSampleAnalysisId("live"), false);
   assert.equal(isSampleAnalysisId(null), false);
   assert.equal(isSampleAnalysisId(undefined), false);
+  assert.equal(isCannedSampleAnalysis(SAMPLE_ANALYSIS), true);
+  assert.equal(isCannedSampleAnalysis({ ...SAMPLE_ANALYSIS }), false);
   assert.equal(resolveSampleAnalysis("sample"), SAMPLE_ANALYSIS);
   assert.equal(resolveSampleDocument("sample"), SAMPLE_DOCUMENT);
   assert.equal(resolveSampleAnalysis("missing"), null);

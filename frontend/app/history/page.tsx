@@ -64,11 +64,8 @@ export default function HistoryPage() {
     return map;
   }, [documents]);
 
-  const allAnalyses = useMemo(() => {
-    const live = analyses ?? [];
-    const withoutSample = live.filter((analysis) => analysis.id !== SAMPLE_ANALYSIS.id);
-    return [SAMPLE_ANALYSIS, ...withoutSample];
-  }, [analyses]);
+  const liveAnalyses = useMemo(() => analyses ?? [], [analyses]);
+  const allAnalyses = useMemo(() => [SAMPLE_ANALYSIS, ...liveAnalyses], [liveAnalyses]);
 
   const filteredAnalyses = useMemo(() => {
     return allAnalyses.filter((analysis) => {
@@ -97,11 +94,11 @@ export default function HistoryPage() {
 
   const stats = useMemo(() => {
     return {
-      total: allAnalyses.length,
-      withArbitration: allAnalyses.filter((a) => a.has_arbitration_clause).length,
-      highRisk: allAnalyses.filter((a) => computeRiskLevel(a) === "high").length,
+      total: liveAnalyses.length,
+      withArbitration: liveAnalyses.filter((a) => a.has_arbitration_clause).length,
+      highRisk: liveAnalyses.filter((a) => computeRiskLevel(a) === "high").length,
     };
-  }, [allAnalyses]);
+  }, [liveAnalyses]);
 
   return (
     <div className="page-wrap py-12 lg:py-16">
@@ -225,11 +222,11 @@ export default function HistoryPage() {
                   {filteredAnalyses.map((analysis, index) => {
                     const document = documentMap.get(analysis.document_id);
                     const riskLevel = computeRiskLevel(analysis);
-                    const isSample = analysis.id === SAMPLE_ANALYSIS.id;
+                    const isSample = analysis === SAMPLE_ANALYSIS;
 
                     return (
                       <TableRow
-                        key={analysis.id}
+                        key={analysis === SAMPLE_ANALYSIS ? "sample" : analysis.id}
                         className="transition-colors duration-150"
                         style={{
                           animation: `row-fade-in 0.3s ease-out ${index * 50}ms backwards`,

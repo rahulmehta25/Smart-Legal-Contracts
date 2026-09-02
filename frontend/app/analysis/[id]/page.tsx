@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { useAnalysis, useDocument } from "@/lib/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
-import { posthog } from "@/lib/posthog";
 import { AnalysisResults } from "@/components/analysis/analysis-results";
 import { SampleDemoCard } from "@/components/demo/sample-demo-card";
 import { TextLink } from "@/components/ui/text-link";
@@ -35,23 +33,6 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
   const shouldFetch = !sampleRequested && Number.isFinite(analysisId) && analysisId > 0;
   const { data: analysis, isLoading, error } = useAnalysis(shouldFetch ? analysisId : 0);
   const { data: document } = useDocument(shouldFetch ? analysis?.document_id || 0 : 0);
-
-  useEffect(() => {
-    if (sampleRequested) {
-      posthog.capture?.("risk_memo_view", {
-        analysis_id: "sample",
-        narration_available: false,
-        source: "sample_demo",
-      });
-      return;
-    }
-    if (!analysis) return;
-    const narrationOn = !!posthog.getFeatureFlag?.("slc-risk-memo-narration");
-    posthog.capture?.("risk_memo_view", {
-      analysis_id: analysisId,
-      narration_available: narrationOn,
-    });
-  }, [analysis, analysisId, sampleRequested]);
 
   if (sampleRequested) {
     return (

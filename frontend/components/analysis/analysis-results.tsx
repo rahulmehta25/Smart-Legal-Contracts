@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { posthog } from "@/lib/posthog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,6 +37,22 @@ export function AnalysisResults({
   isSample = false,
 }: AnalysisResultsProps) {
   const riskLevel = analysis.risk_level ?? computeRiskLevel(analysis);
+
+  useEffect(() => {
+    if (isSample) {
+      posthog.capture?.("risk_memo_view", {
+        analysis_id: "sample",
+        narration_available: false,
+        source: "sample_demo",
+      });
+      return;
+    }
+    const narrationOn = !!posthog.getFeatureFlag?.("slc-risk-memo-narration");
+    posthog.capture?.("risk_memo_view", {
+      analysis_id: analysis.id,
+      narration_available: narrationOn,
+    });
+  }, [analysis.id, isSample]);
 
   const handleExport = async () => {
     const payload = {
